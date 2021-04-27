@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE isys [
+        <!ELEMENT isys (info|delete)*>
+        <!ELEMENT info (title|version|requirement|directory|revision|release)*>
+        <!ELEMENT title (#PCDATA)>
+        <!ELEMENT version (#PCDATA)>
+        <!ELEMENT requirement (revision|version)*>
+        <!ELEMENT revision (#PCDATA)>
+        <!ELEMENT directory (#PCDATA)>
+        <!ELEMENT release (#PCDATA)>
+        <!ELEMENT delete (file|dir)*>
+        <!ELEMENT file (#PCDATA)>
+        <!ELEMENT dir (#PCDATA)>
+        ]>
+<isys>
+    <info>
+        <title>i-doit v1.12</title>
+        <version>1.12</version>
+        <requirement>
+            <revision>201811100</revision>
+            <version>1.11</version>
+        </requirement>
+        <directory>v1.12</directory>
+        <!--
+        LF: Changed this to: <year>1<major><minor> with major and minor beeing a two digit number:
+        201711000 => 2017 1.10.00
+        201811221 => 2018 1.12.21
+        ...
+        -->
+        <revision>201811200</revision>
+        <release>2018-12-17</release>
+    </info>
+    <delete>
+        <!-- Old d3 versions -->
+        <file>src/tools/js/d3/d3-v5.3.0-min.js</file>
+        <file>src/tools/js/d3/d3-v5.5.0-min.js</file>
+
+        <!-- Removing BLUFF -->
+        <file>src/tools/js/bluff/bluff-min.js</file>
+        <file>src/tools/js/bluff/bluff-src.js</file>
+        <file>src/tools/js/bluff/js-class.js</file>
+        <dir>src/tools/js/bluff</dir>
+
+        <!-- ID-5919  Remove CMDB-Explorer code to a sub-dir, so it won't be included EVERYWHERE -->
+        <file>src/tools/js/cmdb_explorer.js</file>
+
+        <!-- ID-5883  Remove old browsers -->
+        <file>src/classes/popups/isys_popup_browser_ldevclient_fc_port.class.php</file>
+
+        <!-- ID-6002 Remove category indexer, which are not necessary -->
+        <file>src/classes/modules/cmdb/src/Search/Index/Data/Source/Category/isys_cmdb_dao_category_g_cluster_adm_service.php</file>
+        <file>src/classes/modules/cmdb/src/Search/Index/Data/Source/Category/isys_cmdb_dao_category_g_connector.php</file>
+        <file>src/classes/modules/cmdb/src/Search/Index/Data/Source/Category/isys_cmdb_dao_category_g_identifier.php</file>
+        <file>src/classes/modules/cmdb/src/Search/Index/Data/Source/Category/isys_cmdb_dao_category_g_model.php</file>
+        <file>src/classes/modules/cmdb/src/Search/Index/Data/Source/Category/isys_cmdb_dao_category_g_nagios_refs_services_backwards.php</file>
+        <file>src/classes/modules/cmdb/src/Search/Index/Data/Source/Category/isys_cmdb_dao_category_g_ndo.php</file>
+        <file>src/classes/modules/cmdb/src/Search/Index/Data/Source/Category/isys_cmdb_dao_category_g_network_port.php</file>
+        <file>src/classes/modules/cmdb/src/Search/Index/Data/Source/Category/isys_cmdb_dao_category_g_operating_system.php</file>
+        <file>src/classes/modules/cmdb/src/Search/Index/Data/Source/Category/isys_cmdb_dao_category_g_power_consumer.php</file>
+        <file>src/classes/modules/cmdb/src/Search/Index/Data/Source/Category/isys_cmdb_dao_category_g_power_supplier.php</file>
+        <file>src/classes/modules/cmdb/src/Search/Index/Data/Source/Category/isys_cmdb_dao_category_g_soa_stacks.php</file>
+        <file>src/classes/modules/cmdb/src/Search/Index/Data/Source/Category/isys_cmdb_dao_category_g_ui.php</file>
+        <file>src/classes/modules/cmdb/src/Search/Index/Data/Source/Category/isys_cmdb_dao_category_g_virtual_devices.php</file>
+        <file>src/classes/modules/cmdb/src/Search/Index/Data/Source/Category/isys_cmdb_dao_category_s_chassis_view.php</file>
+        <file>src/classes/modules/cmdb/src/Search/Index/Data/Source/Category/isys_cmdb_dao_category_s_file.php</file>
+
+        <!-- ID-6184 Remove decoupled JS files -->
+        <file>src/tools/js/rack.js</file>
+        <file>src/tools/js/rackAssignment.js</file>
+
+        <!-- ID-6186 Remove old memcache resource for smarty -->
+        <file>src/classes/libraries/smarty/cacheresource.memcache.php</file>
+
+        <!-- ID-6257 Remove old list edit files -->
+        <file>src/classes/modules/cmdb/dao/isys_cmdb_dao_multiedit.class.php</file>
+        <file>src/themes/default/smarty/templates/modules/multiedit/main.tpl</file>
+        <file>src/classes/modules/pro/cmdb/view/isys_cmdb_view_multiedit.class.php</file>
+
+
+        <!-- ############################################################# -->
+        <!-- ### @see ID-6273                                         #### -->
+        <!-- ### Nagios Add-onisierung                                #### -->
+        <!-- ############################################################# -->
+        <file>src/classes/components/isys_component_dao_nagios.class.php</file>
+        <file>src/classes/export/isys_export_helper_nagios.class.php</file>
+        <file>src/classes/modules/cmdb/dao/category/global/isys_cmdb_dao_category_g_nagios.class.php</file>
+        <file>src/classes/modules/cmdb/dao/category/global/isys_cmdb_dao_category_g_nagios_group.class.php</file>
+        <file>src/classes/modules/cmdb/dao/category/global/isys_cmdb_dao_category_g_nagios_host_tpl_assigned_objects.class.php</file>
+        <file>src/classes/modules/cmdb/dao/category/global/isys_cmdb_dao_category_g_nagios_host_tpl_def.class.php</file>
+        <file>src/classes/modules/cmdb/dao/category/global/isys_cmdb_dao_category_g_nagios_refs_services.class.php</file>
+        <file>src/classes/modules/cmdb/dao/category/global/isys_cmdb_dao_category_g_nagios_refs_services_backwards.class.php</file>
+        <file>src/classes/modules/cmdb/dao/category/global/isys_cmdb_dao_category_g_nagios_service_def.class.php</file>
+        <file>src/classes/modules/cmdb/dao/category/global/isys_cmdb_dao_category_g_nagios_service_dep.class.php</file>
+        <file>src/classes/modules/cmdb/dao/category/global/isys_cmdb_dao_category_g_nagios_service_refs_tpl_backwards.class.php</file>
+        <file>src/classes/modules/cmdb/dao/category/global/isys_cmdb_dao_category_g_nagios_service_tpl_def.class.php</file>
+        <file>src/classes/modules/cmdb/dao/list/isys_cmdb_dao_list_catg_nagios_host_tpl_assigned_objects.class.php</file>
+        <file>src/classes/modules/cmdb/dao/list/isys_cmdb_dao_list_catg_nagios_refs_services.class.php</file>
+        <file>src/classes/modules/cmdb/dao/list/isys_cmdb_dao_list_catg_nagios_refs_services_backwards.class.php</file>
+        <file>src/classes/modules/cmdb/dao/list/isys_cmdb_dao_list_catg_nagios_service_dep.class.php</file>
+        <file>src/classes/modules/cmdb/dao/list/isys_cmdb_dao_list_catg_nagios_service_refs_tpl_backwards.class.php</file>
+        <file>src/classes/modules/cmdb/ui/global/isys_cmdb_ui_category_g_nagios.class.php</file>
+        <file>src/classes/modules/cmdb/ui/global/isys_cmdb_ui_category_g_nagios_group.class.php</file>
+        <file>src/classes/modules/cmdb/ui/global/isys_cmdb_ui_category_g_nagios_host_tpl_assigned_objects.class.php</file>
+        <file>src/classes/modules/cmdb/ui/global/isys_cmdb_ui_category_g_nagios_host_tpl_def.class.php</file>
+        <file>src/classes/modules/cmdb/ui/global/isys_cmdb_ui_category_g_nagios_refs_services.class.php</file>
+        <file>src/classes/modules/cmdb/ui/global/isys_cmdb_ui_category_g_nagios_refs_services_backwards.class.php</file>
+        <file>src/classes/modules/cmdb/ui/global/isys_cmdb_ui_category_g_nagios_service_def.class.php</file>
+        <file>src/classes/modules/cmdb/ui/global/isys_cmdb_ui_category_g_nagios_service_dep.class.php</file>
+        <file>src/classes/modules/cmdb/ui/global/isys_cmdb_ui_category_g_nagios_service_refs_tpl_backwards.class.php</file>
+        <file>src/classes/modules/cmdb/ui/global/isys_cmdb_ui_category_g_nagios_service_tpl_def.class.php</file>
+        <file>src/classes/modules/cmdb/dao/category/specific/isys_cmdb_dao_category_s_person_group_nagios.class.php</file>
+        <file>src/classes/modules/cmdb/dao/category/specific/isys_cmdb_dao_category_s_person_nagios.class.php</file>
+        <file>src/classes/modules/cmdb/ui/specific/isys_cmdb_ui_category_s_person_group_nagios.class.php</file>
+        <file>src/classes/modules/cmdb/ui/specific/isys_cmdb_ui_category_s_person_nagios.class.php</file>
+        <file>src/handler/config/examples/isys_handler_nagios.inc.php</file>
+        <file>src/handler/config/examples/isys_handler_nagios_export.inc.php</file>
+
+        <!-- ############################################################# -->
+        <!-- ### @see ID-6237                                         #### -->
+        <!-- ### Check_MK Add-onisierung                              #### -->
+        <!-- ############################################################# -->
+        <file>src/classes/export/isys_export_helper_check_mk.class.php</file>
+        <file>src/classes/export/isys_global_cmk_tag_export_helper.class.php</file>
+
+        <!-- ############################################################# -->
+        <!-- ### @see ID-6270                                       #### -->
+        <!-- ### Workflow Add-onisierung                                #### -->
+        <!-- ############################################################# -->
+        <file>src/classes/event/isys_event.class.php</file>
+        <file>src/classes/event/task/isys_event_task.class.php</file>
+        <file>src/classes/event/task/isys_event_task_accept.class.php</file>
+        <file>src/classes/event/task/isys_event_task_closed.class.php</file>
+        <file>src/classes/event/task/isys_event_task_completion_accepted.class.php</file>
+        <file>src/classes/event/task/isys_event_task_information.class.php</file>
+        <file>src/classes/event/task/isys_event_task_new.class.php</file>
+        <file>src/classes/event/task/isys_event_task_notification.class.php</file>
+        <file>src/classes/event/task/isys_event_task_open.class.php</file>
+        <file>src/classes/modules/cmdb/dao/category/global/isys_cmdb_dao_category_g_workflow.class.php</file>
+        <file>src/classes/modules/cmdb/dao/list/isys_cmdb_dao_list_catg_workflow.class.php</file>
+        <file>src/classes/modules/cmdb/ui/global/isys_cmdb_ui_category_g_workflow.class.php</file>
+        <file>src/classes/popups/isys_popup_workflow.class.php</file>
+        <dir>src/classes/workflow</dir>
+        <file>src/handler/config/examples/isys_handler_workflow.inc.php</file>
+        <file>src/handler/isys_handler_workflow.class.php</file>
+        <file>src/idoit/Console/Command/Workflow/HandleWorkflowsCommand.php</file>
+        <file>src/idoit/Console/Command/Workflow/MaintenanceCommand.php</file>
+        <file>src/themes/default/smarty/templates/workflow/detail/actions.tpl</file>
+        <file>src/themes/default/smarty/templates/workflow/detail/actions/accept.tpl</file>
+        <file>src/themes/default/smarty/templates/workflow/detail/actions/assign.tpl</file>
+        <file>src/themes/default/smarty/templates/workflow/detail/actions/cancel.tpl</file>
+        <file>src/themes/default/smarty/templates/workflow/detail/actions/complete.tpl</file>
+        <file>src/themes/default/smarty/templates/workflow/detail/actions/new.tpl</file>
+        <file>src/themes/default/smarty/templates/workflow/detail/detail.tpl</file>
+        <file>src/themes/default/smarty/templates/workflow/detail/generic.tpl</file>
+        <file>src/themes/default/smarty/templates/workflow/detail/selector.tpl</file>
+        <file>src/themes/default/smarty/templates/workflow/detail/template.tpl</file>
+        <file>src/themes/default/smarty/templates/workflow/detail/wf_type.tpl</file>
+        <file>src/themes/default/smarty/templates/workflow/detail/workflow.tpl</file>
+        <file>src/themes/default/smarty/templates/workflow/email_gui.tpl</file>
+        <file>src/themes/default/smarty/templates/workflow/email_tpl.tpl</file>
+        <file>src/themes/default/smarty/templates/workflow/filter.tpl</file>
+        <file>src/themes/default/smarty/templates/workflow/filter_list.tpl</file>
+        <file>src/themes/default/smarty/templates/workflow/list.tpl</file>
+        <file>src/themes/default/smarty/templates/workflow/list_top.tpl</file>
+
+        <!-- ID-6109  Remove .htaccess files -->
+        <file>src/.htaccess</file>
+        <file>log/.htaccess</file>
+        <file>imports/.htaccess</file>
+    </delete>
+</isys>

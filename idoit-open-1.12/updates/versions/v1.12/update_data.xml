@@ -1,0 +1,852 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE isys [
+        <!ELEMENT isys (info|queries)*>
+        <!ELEMENT info (title|version|requirement|directory|revision|release)*>
+        <!ELEMENT title (#PCDATA)>
+        <!ELEMENT version (#PCDATA)>
+        <!ELEMENT requirement (revision|version)*>
+        <!ELEMENT revision (#PCDATA)>
+        <!ELEMENT directory (#PCDATA)>
+        <!ELEMENT release (#PCDATA)>
+        <!ELEMENT queries (query)*>
+        <!ELEMENT query (id|title|check|errmsg|sql)*>
+        <!ELEMENT id (#PCDATA)>
+        <!ELEMENT check (#PCDATA)>
+        <!ATTLIST check ident CDATA #REQUIRED>
+        <!ELEMENT errmsg (#PCDATA)>
+        <!ELEMENT sql (exec)*>
+        <!ELEMENT exec (#PCDATA)>
+        <!ATTLIST exec ident CDATA #REQUIRED>
+        ]>
+<isys>
+    <info>
+        <title>i-doit v1.12</title>
+        <version>1.12</version>
+        <requirement>
+            <revision>201811100</revision>
+            <version>1.11</version>
+        </requirement>
+        <directory>v1.12</directory>
+        <!--
+        LF: Changed this to: <year>1<major><minor> with major and minor beeing a two digit number:
+        201711000 => 2017 1.10.00
+        201811221 => 2018 1.12.21
+        ...
+        -->
+        <revision>201811200</revision>
+        <release>2018-12-17</release>
+    </info>
+    <queries>
+
+        <!-- ID-5817 -->
+        <query>
+            <id>1</id>
+            <title>Enable password category to be saved without title.</title>
+            <check ident="C_CHANGE_FIELD">isys_catg_password_list, isys_catg_password_list__title</check>
+            <sql>
+                <exec ident="true">
+                    ALTER TABLE `isys_catg_password_list` MODIFY column `isys_catg_password_list__title` varchar(255) default null;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>2</id>
+            <title>Enable password category to be saved without username.</title>
+            <check ident="C_CHANGE_FIELD">isys_catg_password_list, isys_catg_password_list__username</check>
+            <sql>
+                <exec ident="true">
+                    ALTER TABLE `isys_catg_password_list` MODIFY column `isys_catg_password_list__username` varchar(255) default null;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>3</id>
+            <title>Removing unused category table.</title>
+            <check ident="C_TABLE_EXISTS">isys_catg_maintenance_list</check>
+            <sql>
+                <exec ident="true">
+                    DELETE FROM isys_catg_maintenance_list WHERE TRUE;
+                    DROP TABLE isys_catg_maintenance_list;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>4</id>
+            <title>Removing unused category table.</title>
+            <check ident="C_TABLE_EXISTS">isys_cats_maintenance_list</check>
+            <sql>
+                <exec ident="true">
+                    DELETE FROM isys_cats_maintenance_list WHERE TRUE;
+                    DROP TABLE isys_cats_maintenance_list;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>5</id>
+            <title>Adding field: isys_notification__isys_notification_template__id__de</title>
+            <check ident="C_ADD_FIELD">isys_notification, isys_notification__isys_notification_template__id__de</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    ALTER TABLE `isys_notification`
+                    ADD COLUMN `isys_notification__isys_notification_template__id__de` int(10) unsigned,
+                    ADD CONSTRAINT FOREIGN KEY(`isys_notification__isys_notification_template__id__de`) REFERENCES `isys_notification_template`(`isys_notification_template__id`) ON UPDATE CASCADE ON DELETE SET NULL;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>6</id>
+            <title>Adding field: isys_notification__isys_notification_template__id__en</title>
+            <check ident="C_ADD_FIELD">isys_notification, isys_notification__isys_notification_template__id__en</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    ALTER TABLE `isys_notification`
+                    ADD COLUMN `isys_notification__isys_notification_template__id__en` int(10) unsigned,
+                    ADD CONSTRAINT FOREIGN KEY(`isys_notification__isys_notification_template__id__en`) REFERENCES `isys_notification_template`(`isys_notification_template__id`) ON UPDATE CASCADE ON DELETE SET NULL;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>7</id>
+            <title>Changing field length: isys_search_idx__key</title>
+            <check ident="C_CHANGE_FIELD">isys_search_idx, isys_search_idx__key</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="true">
+                    ALTER TABLE `isys_search_idx` CHANGE `isys_search_idx__key` `isys_search_idx__key` VARCHAR(255)  CHARACTER SET utf8  COLLATE utf8_unicode_ci  NOT NULL  DEFAULT '';
+                </exec>
+            </sql>
+        </query>
+
+        <!-- @see  ID-5464  The next six queries are used to set volt, watt and ampere to float -->
+        <query>
+            <id>8</id>
+            <title>Changing "volt" in category "power supplier" to type float</title>
+            <check ident="C_CHANGE_FIELD">isys_catg_power_supplier_list, isys_catg_power_supplier_list__volt</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="true">
+                    ALTER TABLE isys_catg_power_supplier_list CHANGE isys_catg_power_supplier_list__volt isys_catg_power_supplier_list__volt float unsigned DEFAULT NULL;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>9</id>
+            <title>Changing "watt" in category "power supplier" to type float</title>
+            <check ident="C_CHANGE_FIELD">isys_catg_power_supplier_list, isys_catg_power_supplier_list__watt</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="true">
+                    ALTER TABLE isys_catg_power_supplier_list CHANGE isys_catg_power_supplier_list__watt isys_catg_power_supplier_list__watt float unsigned DEFAULT NULL;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>10</id>
+            <title>Changing "ampere" in category "power supplier" to type float</title>
+            <check ident="C_CHANGE_FIELD">isys_catg_power_supplier_list, isys_catg_power_supplier_list__ampere</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="true">
+                    ALTER TABLE isys_catg_power_supplier_list CHANGE isys_catg_power_supplier_list__ampere isys_catg_power_supplier_list__ampere float unsigned DEFAULT NULL;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>11</id>
+            <title>Changing "volt" in category "power consumer" to type float</title>
+            <check ident="C_CHANGE_FIELD">isys_catg_pc_list, isys_catg_pc_list__volt</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="true">
+                    ALTER TABLE isys_catg_pc_list CHANGE isys_catg_pc_list__volt isys_catg_pc_list__volt float unsigned DEFAULT NULL;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>12</id>
+            <title>Changing "watt" in category "power consumer" to type float</title>
+            <check ident="C_CHANGE_FIELD">isys_catg_pc_list, isys_catg_pc_list__watt</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="true">
+                    ALTER TABLE isys_catg_pc_list CHANGE isys_catg_pc_list__watt isys_catg_pc_list__watt float unsigned DEFAULT NULL;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>13</id>
+            <title>Changing "ampere" in category "power consumer" to type float</title>
+            <check ident="C_CHANGE_FIELD">isys_catg_pc_list, isys_catg_pc_list__ampere</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="true">
+                    ALTER TABLE isys_catg_pc_list CHANGE isys_catg_pc_list__ampere isys_catg_pc_list__ampere float unsigned DEFAULT NULL;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>14</id>
+            <title>Change isys_lock__isys_obj__id to nullable</title>
+            <check ident="C_CHANGE_FIELD">isys_lock, isys_lock__isys_obj__id</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="true">
+                    ALTER TABLE isys_lock MODIFY isys_lock__isys_obj__id int(10) unsigned DEFAULT NULL;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>15</id>
+            <title>Adding field: isys_lock, isys_lock__table_label</title>
+            <check ident="C_ADD_FIELD">isys_lock, isys_lock__table_label</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    ALTER TABLE `isys_lock`
+                    ADD COLUMN `isys_lock__table_label` varchar(255) DEFAULT NULL;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>16</id>
+            <title>Adding field: isys_lock, isys_lock__table_name</title>
+            <check ident="C_ADD_FIELD">isys_lock, isys_lock__table_name</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    ALTER TABLE `isys_lock`
+                    ADD COLUMN `isys_lock__table_name` varchar(255) DEFAULT NULL;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>18</id>
+            <title>Adding field: isys_lock, isys_lock__table_field</title>
+            <check ident="C_ADD_FIELD">isys_lock, isys_lock__table_field</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    ALTER TABLE `isys_lock`
+                    ADD COLUMN `isys_lock__table_field` varchar(255) DEFAULT NULL;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>19</id>
+            <title>Adding field: isys_lock, isys_lock__field_value</title>
+            <check ident="C_ADD_FIELD">isys_lock, isys_lock__field_value</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    ALTER TABLE `isys_lock`
+                    ADD COLUMN `isys_lock__field_value` int(10) unsigned DEFAULT NULL;
+                </exec>
+            </sql>
+        </query>
+
+        <!-- ID-5978 Archive default users, if their password has not been changed -->
+        <query>
+            <id>20</id>
+            <title>Archive guest</title>
+            <check ident="C_VALUE_EXISTS">
+                SELECT isys_cats_person_list__id
+                FROM isys_cats_person_list
+                WHERE isys_cats_person_list__title = 'guest'
+                AND isys_cats_person_list__user_pass = '084e0343a0486ff05530df6c705c8bb4';
+            </check>
+            <sql>
+                <exec ident="true">
+                    UPDATE isys_obj
+                    SET isys_obj__status = 3
+                    WHERE isys_obj__id IN (
+                        SELECT isys_cats_person_list__isys_obj__id
+                        FROM isys_cats_person_list
+                        WHERE isys_cats_person_list__title = 'guest'
+                        AND isys_cats_person_list__user_pass = '084e0343a0486ff05530df6c705c8bb4'
+                    );
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>21</id>
+            <title>Archive reader</title>
+            <check ident="C_VALUE_EXISTS">
+                SELECT isys_cats_person_list__id
+                FROM isys_cats_person_list
+                WHERE isys_cats_person_list__title = 'reader'
+                AND isys_cats_person_list__user_pass = '1de9b0a30075ae8c303eb420c103c320';
+            </check>
+            <sql>
+                <exec ident="true">
+                    UPDATE isys_obj
+                    SET isys_obj__status = 3
+                    WHERE isys_obj__id IN (
+                        SELECT isys_cats_person_list__isys_obj__id
+                        FROM isys_cats_person_list
+                        WHERE isys_cats_person_list__title = 'reader'
+                        AND isys_cats_person_list__user_pass = '1de9b0a30075ae8c303eb420c103c320'
+                    );
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>22</id>
+            <title>Archive editor</title>
+            <check ident="C_VALUE_EXISTS">
+                SELECT isys_cats_person_list__id
+                FROM isys_cats_person_list
+                WHERE isys_cats_person_list__title = 'editor'
+                AND isys_cats_person_list__user_pass = '5aee9dbd2a188839105073571bee1b1f';
+            </check>
+            <sql>
+                <exec ident="true">
+                    UPDATE isys_obj
+                    SET isys_obj__status = 3
+                    WHERE isys_obj__id IN (
+                        SELECT isys_cats_person_list__isys_obj__id
+                        FROM isys_cats_person_list
+                        WHERE isys_cats_person_list__title = 'editor'
+                        AND isys_cats_person_list__user_pass = '5aee9dbd2a188839105073571bee1b1f'
+                    );
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>23</id>
+            <title>Archive author</title>
+            <check ident="C_VALUE_EXISTS">
+                SELECT isys_cats_person_list__id
+                FROM isys_cats_person_list
+                WHERE isys_cats_person_list__title = 'author'
+                AND isys_cats_person_list__user_pass = '02bd92faa38aaa6cc0ea75e59937a1ef';
+            </check>
+            <sql>
+                <exec ident="true">
+                    UPDATE isys_obj
+                    SET isys_obj__status = 3
+                    WHERE isys_obj__id IN (
+                        SELECT isys_cats_person_list__isys_obj__id
+                        FROM isys_cats_person_list
+                        WHERE isys_cats_person_list__title = 'author'
+                        AND isys_cats_person_list__user_pass = '02bd92faa38aaa6cc0ea75e59937a1ef'
+                    );
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>24</id>
+            <title>Archive archivar</title>
+            <check ident="C_VALUE_EXISTS">
+                SELECT isys_cats_person_list__id
+                FROM isys_cats_person_list
+                WHERE isys_cats_person_list__title = 'archivar'
+                AND isys_cats_person_list__user_pass = '4baf8329be21a4ad4f4401295cc130a9';
+            </check>
+            <sql>
+                <exec ident="true">
+                    UPDATE isys_obj
+                    SET isys_obj__status = 3
+                    WHERE isys_obj__id IN (
+                        SELECT isys_cats_person_list__isys_obj__id
+                        FROM isys_cats_person_list
+                        WHERE isys_cats_person_list__title = 'archivar'
+                        AND isys_cats_person_list__user_pass = '4baf8329be21a4ad4f4401295cc130a9'
+                    );
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>25</id>
+            <title>New relation type: manual assignment</title>
+            <check ident="C_VALUE_EXISTS">
+                SELECT isys_relation_type__id FROM isys_relation_type
+                WHERE isys_relation_type__const = 'C__RELATION_TYPE__MANUAL'
+            </check>
+            <sql>
+                <exec ident="false">
+                    INSERT INTO isys_relation_type VALUES(
+                        NULL,
+                        'LC__CMDB__CATG__MANUAL',
+                        'LC__RELATION_TYPE__MASTER__MANUAL_LAYS_ON',
+                        'LC__RELATION_TYPE__SLAVE__MANUAL_LAYS_ON',
+                        1,
+                        1,
+                        'C__RELATION_TYPE__MANUAL',
+                        'C__CATG__MANUAL',
+                        0,
+                        100,
+                        2,
+                        5
+                    );
+                </exec>
+            </sql>
+        </query>
+        <query>
+            <id>26</id>
+            <title>New relation type: emergency plan assignment</title>
+            <check ident="C_VALUE_EXISTS">
+                SELECT isys_relation_type__id FROM isys_relation_type
+                WHERE isys_relation_type__const = 'C__RELATION_TYPE__EMERGENCY_PLAN'
+            </check>
+            <sql>
+                <exec ident="false">
+                    INSERT INTO isys_relation_type VALUES(
+                    NULL,
+                    'LC__CMDB__CATG__EMERGENCY_PLAN',
+                    'LC__RELATION_TYPE__MASTER__EMERGENCY_PLAN_LAYS_ON',
+                    'LC__RELATION_TYPE__SLAVE__EMERGENCY_PLAN_LAYS_ON',
+                    1,
+                    1,
+                    'C__RELATION_TYPE__EMERGENCY_PLAN',
+                    'C__CATG__EMERGENCY_PLAN',
+                    0,
+                    100,
+                    2,
+                    5
+                    );
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>27</id>
+            <title>Module entry for multiedit</title>
+            <check ident="C_VALUE_EXISTS">SELECT isys_module__id FROM isys_module WHERE isys_module__const = 'C__MODULE__MULTIEDIT';</check>
+            <sql>
+                <exec ident="false">
+                    INSERT INTO `isys_module` (`isys_module__title`, `isys_module__identifier`, `isys_module__const`, `isys_module__date_install`, `isys_module__class`, `isys_module__persistent`, `isys_module__status`, `isys_module__parent`, `isys_module__icon`)
+                    VALUES
+                    ('LC__MODULE__MULTIEDIT', 'multiedit', 'C__MODULE__MULTIEDIT', NOW(), 'isys_module_multiedit', 1, 2, 2, 'images/icons/silk/table_edit.png');
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>28</id>
+            <title>Adding category multiedit</title>
+            <check ident="C_VALUE_EXISTS">SELECT isysgui_catg__id FROM isysgui_catg WHERE isysgui_catg__const = 'C__CATG__MULTIEDIT';</check>
+            <sql>
+                <exec ident="false">
+                    INSERT INTO `isysgui_catg` (`isysgui_catg__isys_tree_group__id`, `isysgui_catg__type`, `isysgui_catg__title`, `isysgui_catg__description`, `isysgui_catg__const`, `isysgui_catg__source_table`, `isysgui_catg__class_name`, `isysgui_catg__sort`, `isysgui_catg__parent`, `isysgui_catg__list_multi_value`, `isysgui_catg__property`, `isysgui_catg__search`, `isysgui_catg__status`, `isysgui_catg__standard`, `isysgui_catg__overview`)
+                    VALUES
+                    (NULL, 1, 'LC__MODULE__MULTIEDIT_CATEGORY', NULL, 'C__CATG__MULTIEDIT', 'isys_catg_virtual', 'isys_cmdb_dao_category_g_multiedit', 10, NULL, 0, 0, 0, 2, 1, 0);
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>29</id>
+            <title>Updating multiedit authentication</title>
+            <check ident="C_VALUE_EXISTS">SELECT isys_auth__id FROM isys_auth WHERE isys_auth__path = 'MULTIEDIT' AND isys_auth__isys_module__id != (SELECT isys_module__id FROM isys_module WHERE isys_module__const = 'C__MODULE__MULTIEDIT');</check>
+            <sql>
+                <exec ident="true">
+                    UPDATE isys_auth
+                        SET isys_auth__isys_module__id = (SELECT isys_module__id FROM isys_module WHERE isys_module__const = 'C__MODULE__MULTIEDIT')
+                    WHERE
+                        isys_auth__path = 'MULTIEDIT' AND isys_auth__isys_module__id != (SELECT isys_module__id FROM isys_module WHERE isys_module__const = 'C__MODULE__MULTIEDIT');
+                </exec>
+            </sql>
+        </query>
+        <query>
+            <id>30</id>
+            <title>Adding field isys_jdisc_db__discovery_timeout in the jdisc server configuration</title>
+            <check ident="C_ADD_FIELD">isys_jdisc_db, isys_jdisc_db__discovery_timeout</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    ALTER TABLE isys_jdisc_db ADD isys_jdisc_db__discovery_timeout int(10) UNSIGNED NULL DEFAULT 60;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>31</id>
+            <title>Adding field isys_jdisc_db__discovery_import_retries in the jdisc server configuration</title>
+            <check ident="C_ADD_FIELD">isys_jdisc_db, isys_jdisc_db__discovery_import_retries</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    ALTER TABLE isys_jdisc_db ADD isys_jdisc_db__discovery_import_retries tinyint(1) UNSIGNED NULL DEFAULT 1;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>32</id>
+            <title>Adding field: isys_search_idx, isys_search_idx__metadata</title>
+            <check ident="C_ADD_FIELD">isys_search_idx, isys_search_idx__metadata</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    ALTER TABLE `isys_search_idx`
+                    ADD COLUMN `isys_search_idx__metadata` blob;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>x</id>
+            <title>Updating defined objects to be "undeletable".</title>
+            <check ident="C_VALUE_EXISTS">
+                SELECT isys_obj__id
+                FROM isys_obj
+                WHERE isys_obj__const IN (
+                'C__OBJ__ROOT_LOCATION',
+                'C__OBJ__PERSON_ADMIN',
+                'C__OBJ__PERSON_GROUP_READER',
+                'C__OBJ__PERSON_GROUP_EDITOR',
+                'C__OBJ__PERSON_GROUP_AUTHOR',
+                'C__OBJ__PERSON_GROUP_ARCHIVAR',
+                'C__OBJ__PERSON_GROUP_ADMIN',
+                'C__OBJ__NET_GLOBAL_IPV4',
+                'C__OBJ__NET_GLOBAL_IPV6',
+                'C__OBJ__PERSON_API_SYSTEM',
+                'C__OBJ__RACK_SEGMENT__2SLOT',
+                'C__OBJ__RACK_SEGMENT__4SLOT',
+                'C__OBJ__RACK_SEGMENT__8SLOT'
+                )
+                LIMIT 1;
+            </check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    UPDATE isys_obj
+                    SET isys_obj__undeletable = 1
+                    WHERE isys_obj__const IN (
+                    'C__OBJ__ROOT_LOCATION',
+                    'C__OBJ__PERSON_ADMIN',
+                    'C__OBJ__PERSON_GROUP_READER',
+                    'C__OBJ__PERSON_GROUP_EDITOR',
+                    'C__OBJ__PERSON_GROUP_AUTHOR',
+                    'C__OBJ__PERSON_GROUP_ARCHIVAR',
+                    'C__OBJ__PERSON_GROUP_ADMIN',
+                    'C__OBJ__NET_GLOBAL_IPV4',
+                    'C__OBJ__NET_GLOBAL_IPV6',
+                    'C__OBJ__PERSON_API_SYSTEM',
+                    'C__OBJ__RACK_SEGMENT__2SLOT',
+                    'C__OBJ__RACK_SEGMENT__4SLOT',
+                    'C__OBJ__RACK_SEGMENT__8SLOT'
+                    );
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>x</id>
+            <title>Recreate default object with constant 'C__OBJ__PERSON_GROUP_ADMIN'</title>
+            <check ident="C_VALUE_EXISTS">SELECT isys_obj__id FROM isys_obj WHERE isys_obj__const = 'C__OBJ__PERSON_GROUP_ADMIN';</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    INSERT INTO isys_obj SET
+                    isys_obj__isys_obj_type__id = (SELECT isys_obj_type__id FROM isys_obj_type WHERE isys_obj_type__const = 'C__OBJTYPE__PERSON_GROUP' LIMIT 1),
+                    isys_obj__title = 'Admin',
+                    isys_obj__const = 'C__OBJ__PERSON_GROUP_ADMIN',
+                    isys_obj__created = NOW(),
+                    isys_obj__created_by = 'system',
+                    isys_obj__updated = NOW(),
+                    isys_obj__updated_by = 'system',
+                    isys_obj__property = 0,
+                    isys_obj__status = 2,
+                    isys_obj__sysid = CONCAT('SYSID_', UNIX_TIMESTAMP()),
+                    isys_obj__undeletable = 1,
+                    isys_obj__isys_cmdb_status__id = (SELECT isys_cmdb_status__id FROM isys_cmdb_status WHERE isys_cmdb_status__const = 'C__CMDB_STATUS__IN_OPERATION' LIMIT 1);
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>x</id>
+            <title>Recreate default object with constant 'C__OBJ__PERSON_GROUP_AUTHOR'</title>
+            <check ident="C_VALUE_EXISTS">SELECT isys_obj__id FROM isys_obj WHERE isys_obj__const = 'C__OBJ__PERSON_GROUP_AUTHOR';</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    INSERT INTO isys_obj SET
+                    isys_obj__isys_obj_type__id = (SELECT isys_obj_type__id FROM isys_obj_type WHERE isys_obj_type__const = 'C__OBJTYPE__PERSON_GROUP' LIMIT 1),
+                    isys_obj__title = 'Author',
+                    isys_obj__const = 'C__OBJ__PERSON_GROUP_AUTHOR',
+                    isys_obj__created = NOW(),
+                    isys_obj__created_by = 'system',
+                    isys_obj__updated = NOW(),
+                    isys_obj__updated_by = 'system',
+                    isys_obj__property = 0,
+                    isys_obj__status = 2,
+                    isys_obj__sysid = CONCAT('SYSID_', UNIX_TIMESTAMP()),
+                    isys_obj__undeletable = 1,
+                    isys_obj__isys_cmdb_status__id = (SELECT isys_cmdb_status__id FROM isys_cmdb_status WHERE isys_cmdb_status__const = 'C__CMDB_STATUS__IN_OPERATION' LIMIT 1);
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>x</id>
+            <title>Recreate default object with constant 'C__OBJ__PERSON_GROUP_EDITOR'</title>
+            <check ident="C_VALUE_EXISTS">SELECT isys_obj__id FROM isys_obj WHERE isys_obj__const = 'C__OBJ__PERSON_GROUP_EDITOR';</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    INSERT INTO isys_obj SET
+                    isys_obj__isys_obj_type__id = (SELECT isys_obj_type__id FROM isys_obj_type WHERE isys_obj_type__const = 'C__OBJTYPE__PERSON_GROUP' LIMIT 1),
+                    isys_obj__title = 'Editor',
+                    isys_obj__const = 'C__OBJ__PERSON_GROUP_EDITOR',
+                    isys_obj__created = NOW(),
+                    isys_obj__created_by = 'system',
+                    isys_obj__updated = NOW(),
+                    isys_obj__updated_by = 'system',
+                    isys_obj__property = 0,
+                    isys_obj__status = 2,
+                    isys_obj__sysid = CONCAT('SYSID_', UNIX_TIMESTAMP()),
+                    isys_obj__undeletable = 1,
+                    isys_obj__isys_cmdb_status__id =(SELECT isys_cmdb_status__id FROM isys_cmdb_status WHERE isys_cmdb_status__const = 'C__CMDB_STATUS__IN_OPERATION' LIMIT 1);
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>x</id>
+            <title>Recreate default object with constant 'C__OBJ__PERSON_GROUP_READER'</title>
+            <check ident="C_VALUE_EXISTS">SELECT isys_obj__id FROM isys_obj WHERE isys_obj__const = 'C__OBJ__PERSON_GROUP_READER';</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    INSERT INTO isys_obj SET
+                    isys_obj__isys_obj_type__id = (SELECT isys_obj_type__id FROM isys_obj_type WHERE isys_obj_type__const = 'C__OBJTYPE__PERSON_GROUP' LIMIT 1),
+                    isys_obj__title = 'Reader',
+                    isys_obj__const = 'C__OBJ__PERSON_GROUP_READER',
+                    isys_obj__created = NOW(),
+                    isys_obj__created_by = 'system',
+                    isys_obj__updated = NOW(),
+                    isys_obj__updated_by = 'system',
+                    isys_obj__property = 0,
+                    isys_obj__status = 2,
+                    isys_obj__sysid = CONCAT('SYSID_', UNIX_TIMESTAMP()),
+                    isys_obj__undeletable = 1,
+                    isys_obj__isys_cmdb_status__id = (SELECT isys_cmdb_status__id FROM isys_cmdb_status WHERE isys_cmdb_status__const = 'C__CMDB_STATUS__IN_OPERATION' LIMIT 1);
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>x</id>
+            <title>Recreate default object with constant 'C__OBJ__PERSON_GROUP_ARCHIVAR'</title>
+            <check ident="C_VALUE_EXISTS">SELECT isys_obj__id FROM isys_obj WHERE isys_obj__const = 'C__OBJ__PERSON_GROUP_ARCHIVAR';</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    INSERT INTO isys_obj SET
+                    isys_obj__isys_obj_type__id = (SELECT isys_obj_type__id FROM isys_obj_type WHERE isys_obj_type__const = 'C__OBJTYPE__PERSON_GROUP' LIMIT 1),
+                    isys_obj__title = 'Archivar',
+                    isys_obj__const = 'C__OBJ__PERSON_GROUP_ARCHIVAR',
+                    isys_obj__created = NOW(),
+                    isys_obj__created_by = 'system',
+                    isys_obj__updated = NOW(),
+                    isys_obj__updated_by = 'system',
+                    isys_obj__property = 0,
+                    isys_obj__status = 2,
+                    isys_obj__sysid = CONCAT('SYSID_', UNIX_TIMESTAMP()),
+                    isys_obj__undeletable = 1,
+                    isys_obj__isys_cmdb_status__id = (SELECT isys_cmdb_status__id FROM isys_cmdb_status WHERE isys_cmdb_status__const = 'C__CMDB_STATUS__IN_OPERATION' LIMIT 1);
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>x</id>
+            <title>Adding field: isys_ldap__use_admin_only</title>
+            <check ident="C_ADD_FIELD">isys_ldap, isys_ldap__use_admin_only</check>
+            <errmsg>Unable to add field "isys_ldap__use_admin_only"</errmsg>
+            <sql>
+                <exec ident="false">
+                    ALTER TABLE `isys_ldap`
+                    ADD COLUMN `isys_ldap__use_admin_only` int(1) unsigned DEFAULT 0;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>x</id>
+            <title>Update the Nagios module entry</title>
+            <check ident="C_VALUE_EXISTS">SELECT isys_module__id FROM isys_module WHERE isys_module__const = 'C__MODULE__NAGIOS';</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="true">
+                    UPDATE isys_module SET
+                    `isys_module__title` = 'LC__CATG__NAGIOS',
+                    `isys_module__date_install` = NOW(),
+                    `isys_module__persistent` = 0
+                    WHERE isys_module__const = 'C__MODULE__NAGIOS';
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>x</id>
+            <title>Create the workflow module entry</title>
+            <check ident="C_VALUE_EXISTS">SELECT isys_module__id FROM isys_module WHERE isys_module__const = 'C__MODULE__WORKFLOW';</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    INSERT INTO isys_module SET
+                    isys_module__title = 'LC__MODULE__WORKFLOW',
+                    isys_module__identifier = 'workflow',
+                    isys_module__const = 'C__MODULE__WORKFLOW',
+                    isys_module__date_install = NOW(),
+                    isys_module__class = 'isys_module_workflow',
+                    isys_module__persistent = 0,
+                    isys_module__icon = 'images/icons/silk/share.png',
+                    isys_module__status = 2;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>x</id>
+            <title>Migrate old rights from verwaltung to workflow</title>
+            <check ident="C_VALUE_EXISTS">
+                SELECT isys_auth__id
+                FROM isys_auth
+                WHERE isys_auth__isys_module__id = (SELECT isys_module__id FROM isys_module WHERE isys_module__const = 'C__MODULE__SYSTEM' LIMIT 1)
+                AND isys_auth__path LIKE 'WORKFLOW%';
+            </check>
+            <sql>
+                <exec ident="true">
+                    SET @SYSTEM = (SELECT isys_module__id FROM isys_module WHERE isys_module__const = 'C__MODULE__SYSTEM' LIMIT 1);
+                    SET @WORKFLOW = (SELECT isys_module__id FROM isys_module WHERE isys_module__const = 'C__MODULE__WORKFLOW' LIMIT 1);
+
+                    UPDATE isys_auth
+                    SET isys_auth__isys_module__id = @WORKFLOW
+                    WHERE isys_auth__isys_module__id = @SYSTEM
+                    AND isys_auth__path LIKE 'WORKFLOW%';
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>x</id>
+            <title>Create new contact assignment role "Monitoring"</title>
+            <check ident="C_VALUE_EXISTS">SELECT isys_contact_tag__id FROM isys_contact_tag WHERE isys_contact_tag__const = 'C__CONTACT_TYPE__MONITORING'</check>
+            <errmsg></errmsg>
+            <sql>
+                <exec ident="false">
+                    INSERT INTO `isys_contact_tag`(
+                        isys_contact_tag__description,
+                        isys_contact_tag__title,
+                        isys_contact_tag__const,
+                        isys_contact_tag__sort,
+                        isys_contact_tag__property,
+                        isys_contact_tag__status,
+                        isys_contact_tag__isys_relation_type__id
+                    ) VALUES (NULL,'LC__CMDB__CONTACT__ROLE__MONITORING','C__CONTACT_TYPE__MONITORING',NULL,NULL,2,4);
+                </exec>
+            </sql>
+        </query>
+        
+        <query>
+            <id>x</id>
+            <title>Add new object type group for Nagios (if necessary)</title>
+            <check ident="C_VALUE_EXISTS">
+                SELECT isys_obj_type_group__id
+                FROM isys_obj_type_group
+                WHERE isys_obj_type_group__const = 'C__OBJTYPE_GROUP__SD_NAGIOS';
+            </check>
+            <sql>
+                <exec ident="false">
+                    INSERT INTO `isys_obj_type_group` SET
+                    isys_obj_type_group__title = 'LC__CMDB__OBJTYPE_GROUP__NAGIOS',
+                    isys_obj_type_group__const = 'C__OBJTYPE_GROUP__SD_NAGIOS',
+                    isys_obj_type_group__sort = 5,
+                    isys_obj_type_group__property = 0,
+                    isys_obj_type_group__status = 1;
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>x</id>
+            <title>Add new object type for Nagios services</title>
+            <check ident="C_VALUE_EXISTS">
+                SELECT isys_obj_type__id
+                FROM isys_obj_type
+                WHERE isys_obj_type__const = 'C__OBJTYPE__NAGIOS_SERVICE';
+            </check>
+            <sql>
+                <exec ident="true">
+                    SET @OBJECTTYPEGROUP = (SELECT isys_obj_type_group__id FROM isys_obj_type_group WHERE isys_obj_type_group__const = 'C__OBJTYPE_GROUP__SD_NAGIOS' LIMIT 1);
+
+                    UPDATE `isys_obj_type`
+                    SET isys_obj_type__isys_obj_type_group__id = @OBJECTTYPEGROUP,
+                    isys_obj_type__status = 2,
+                    isys_obj_type__show_in_tree = 1
+                    WHERE isys_obj_type__const = 'C__OBJTYPE__NAGIOS_SERVICE';
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>x</id>
+            <title>Add new object type for Nagios services templates</title>
+            <check ident="C_VALUE_EXISTS">
+                SELECT isys_obj_type__id
+                FROM isys_obj_type
+                WHERE isys_obj_type__const = 'C__OBJTYPE__NAGIOS_SERVICE_TPL';
+            </check>
+            <sql>
+                <exec ident="true">
+                    SET @OBJECTTYPEGROUP = (SELECT isys_obj_type_group__id FROM isys_obj_type_group WHERE isys_obj_type_group__const = 'C__OBJTYPE_GROUP__SD_NAGIOS' LIMIT 1);
+
+                    UPDATE `isys_obj_type`
+                    SET isys_obj_type__isys_obj_type_group__id = @OBJECTTYPEGROUP,
+                    isys_obj_type__status = 2,
+                    isys_obj_type__show_in_tree = 1
+                    WHERE isys_obj_type__const = 'C__OBJTYPE__NAGIOS_SERVICE_TPL';
+                </exec>
+            </sql>
+        </query>
+
+        <query>
+            <id>x</id>
+            <title>Add new object type for Nagios host templates</title>
+            <check ident="C_VALUE_EXISTS">
+                SELECT isys_obj_type__id
+                FROM isys_obj_type
+                WHERE isys_obj_type__const = 'C__OBJTYPE__NAGIOS_HOST_TPL';
+            </check>
+            <sql>
+                <exec ident="true">
+                    SET @OBJECTTYPEGROUP = (SELECT isys_obj_type_group__id FROM isys_obj_type_group WHERE isys_obj_type_group__const = 'C__OBJTYPE_GROUP__SD_NAGIOS' LIMIT 1);
+
+                    UPDATE `isys_obj_type`
+                    SET isys_obj_type__isys_obj_type_group__id = @OBJECTTYPEGROUP,
+                    isys_obj_type__status = 2,
+                    isys_obj_type__show_in_tree = 1
+                    WHERE isys_obj_type__const = 'C__OBJTYPE__NAGIOS_HOST_TPL';
+                </exec>
+            </sql>
+        </query>
+
+    </queries>
+</isys>

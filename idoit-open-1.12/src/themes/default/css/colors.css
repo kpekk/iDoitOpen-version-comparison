@@ -1,0 +1,191 @@
+/*
+ * This CSS file contains multiple color definitions. Please try to avoid names like "error", "notice" or "info" and use color names instead.
+ * There are styles for following purposes:
+ *
+ * text-*    For text colors only (see text.css).
+ * border-*  For border colors only.
+ * box-*     This style should contain border, background and text color definitions.
+ * bg-*      For backgrounds only.
+ *
+ */
+
+/* BLACK ================================================== */
+.bg-black {
+	background-color: #000;
+}
+
+.box-black {
+	border: 1px solid #444;
+	background-color: #000;
+	color: #fff;
+	text-shadow: none;
+}
+
+.border-transparent, /* Deprecated */
+.border-black-transparent {
+	border-color: rgba(0, 0, 0, 0.3);
+}
+
+.border-black {
+	border-color: #000;
+}
+
+/* DARK GREY ============================================== */
+.bg-darkgrey {
+	background-color: #888;
+}
+
+.box-darkgrey {
+	border: 1px solid #555;
+	background-color: #888;
+	color: #fff;
+	text-shadow: none;
+}
+
+.border-darkgrey {
+	border-color: #555;
+}
+
+/* GREY =================================================== */
+.bg-grey {
+	background-color: #ccc;
+}
+
+.muted, /* Deprecated */
+.box-grey {
+	background-color: #ccc;
+	border: 1px solid #aaa;
+	color: #666;
+}
+
+.muted a, /* Deprecated */
+.box-grey a {
+	border-bottom: 1px dotted #666;
+	color: #666;
+}
+
+.border-ccc, /* Deprecated */
+.border-grey {
+	border-color: #ccc;
+}
+
+/* LIGHT GREY ============================================= */
+.bg-lightgrey {
+	background-color: #eee;
+}
+
+.box-lightgrey {
+	background-color: #eee;
+	border: 1px solid #ccc;
+	color: #555;
+}
+
+.border-lightgrey {
+	border-color: #eee;
+}
+
+/* WHITE ================================================== */
+.whitebg, /* Deprecated */
+.bg-white {
+	background-color: #fff;
+}
+
+.box-white {
+	border: 1px solid #ccc;
+	background-color: #fff;
+	color: #444;
+}
+
+.border-white {
+	border-color: #fff;
+}
+
+/* RED ==================================================== */
+.error, /* Deprecated */
+.box-red {
+	background-color: #ffdddd !important;
+	border: 1px solid #ff4343 !important;
+	color: #500000 !important;
+}
+
+.error a, /* Deprecated */
+.box-red a {
+	color: #500000 !important;
+	border-bottom: 1px dotted #500000 !important;
+}
+
+.border-red {
+	border-color: #a00;
+}
+
+.bg-red {
+	background-color: #ffdddd;
+}
+
+/* GREEN ================================================== */
+.note, /* Deprecated */
+.success, /* Deprecated */
+.box-green {
+	background-color: #d4ffde;
+	border: 1px solid #487854;
+	color: #487854;
+}
+
+.note a, /* Deprecated */
+.success a, /* Deprecated */
+.box-green a {
+	color: #487854;
+	border-bottom: 1px dotted #487854;
+}
+
+.border-green {
+	border-color: #090;
+}
+
+.bg-green {
+	background-color: #d4ffde;
+}
+
+/* BLUE =================================================== */
+.info, /* Deprecated */
+.box-blue {
+	background-color: #d4ecff;
+	border: 1px solid #486278;
+	color: #486278;
+}
+
+.info a, /* Deprecated */
+.box-blue a {
+	border-bottom: 1px dotted #486278;
+	color: #486278;
+}
+
+.border-blue {
+	border-color: #486278;
+}
+
+.bg-blue {
+	background-color: #b2d1f0;
+}
+
+/* YELLOW ================================================= */
+.warning, /* Deprecated */
+.box-yellow {
+	background-color: #fffb99;
+	border: 1px solid #88853c;
+	color: #88853c;
+}
+
+.warning a, /* Deprecated */
+.box-yellow a {
+	border-bottom: 1px dotted #88853c;
+	color: #88853c;
+}
+
+.border-yellow {
+	border-color: #926c07;
+}
+
+.bg-yellow {
+	background-color: #edf081;
+}
