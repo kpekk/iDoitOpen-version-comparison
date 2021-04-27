@@ -67,7 +67,7 @@ class QueryResultItem extends AbstractQueryResultItem implements QueryResultItem
             return sprintf(
                 '%s > %s',
                 self::$ciTypeCache[$this->getDocumentMetadata()->getObjectTypeId()],
-                $language->get($this->getDocumentMetadata()->getCategoryTitle())
+                str_replace('_', ' ', $language->get($this->getDocumentMetadata()->getCategoryTitle()))
             );
         }
 

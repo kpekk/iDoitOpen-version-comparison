@@ -289,16 +289,16 @@ class isys_cmdb_dao_category_g_ui extends isys_cmdb_dao_category_global
                 C__PROPERTY__UI       => [
                     C__PROPERTY__UI__ID     => 'C__CATG__UI__ASSIGNED_UI',
                     C__PROPERTY__UI__PARAMS => [
-                        'p_strPopupType'  => 'browser_cable_connection_ng',
-                        'secondSelection' => 'true',
-                        'catFilter'       => 'C__CATG__NETWORK;C__CATG__CONTROLLER_FC_PORT;C__CATG__CABLING',
-                        'secondList'      => 'isys_cmdb_dao_category_g_connector::object_browser'
+                        'p_strPopupType'                                  => 'browser_cable_connection_ng',
+                        isys_popup_browser_object_ng::C__SECOND_SELECTION => true,
+                        isys_popup_browser_object_ng::C__CAT_FILTER       => 'C__CATG__NETWORK;C__CATG__CONTROLLER_FC_PORT;C__CATG__CABLING',
+                        isys_popup_browser_object_ng::C__SECOND_LIST      => 'isys_cmdb_dao_category_g_connector::object_browser',
                     ]
                 ],
                 C__PROPERTY__PROVIDES => [
                     C__PROPERTY__PROVIDES__SEARCH  => false,
-                    C__PROPERTY__PROVIDES__LIST    => true,
-                    C__PROPERTY__PROVIDES__VIRTUAL => true
+                    C__PROPERTY__PROVIDES__REPORT  => true,
+                    C__PROPERTY__PROVIDES__VIRTUAL => false
                 ],
                 C__PROPERTY__FORMAT   => [
                     C__PROPERTY__FORMAT__CALLBACK => [

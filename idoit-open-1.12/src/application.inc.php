@@ -13,7 +13,36 @@
 $app = isys_application::instance();
 $catchallController = \idoit\Controller\CatchallController::factory($app->container);
 
-$app->run(isys_request_controller::instance()
+$requestController = isys_request_controller::instance()
+    ->route('POST', '/mod-rewrite-test', function (isys_register $request) {
+        try {
+            isys_core::send_header('Content-Type', 'application/json');
+
+            $startTime = (float) $request->get('POST')->get('start');
+            $responseTime = microtime(true);
+
+            $result = [
+                'success' => true,
+                'data' => [
+                    'startTime' => $startTime,
+                    'responseTime' => $responseTime,
+                    'delta' => $responseTime - $startTime,
+                ],
+                'message' => ''
+            ];
+        } catch (Exception $e) {
+            header('Content-Type: application/json');
+
+            $result = [
+                'success' => false,
+                'data' => null,
+                'message' => $e->getMessage()
+            ];
+        }
+
+        echo isys_format_json::encode($result);
+        die;
+    })
     ->route('GET|POST', '/[s:module]/[s:action]/[c:method]/[i:id]', [
         $catchallController,
         'handle'
@@ -25,4 +54,6 @@ $app->run(isys_request_controller::instance()
     ->route('GET|POST', '/[s:module]?/[s:action]?/[i:id]?', [
         $catchallController,
         'handle'
-    ]));
+    ]);
+
+$app::run($requestController);

@@ -3088,12 +3088,12 @@ isys_catg_hba_list.*,
         // We convert all sorts of mac addresses to one "default" form.
         $macAddressRaw = preg_replace('/[^0-9a-fA-F]+/', '', $macAddress);
 
-        if (isys_strlen($macAddressRaw) === 48 && preg_match('/^[01]+$/', $macAddressRaw)) {
+        if ((mb_strlen($macAddressRaw) === 48 || mb_strlen($macAddressRaw) === 56) && preg_match('/^[01]+$/', $macAddressRaw)) {
             // We got a binary MAC!
             return implode(':', str_split($macAddressRaw, 8));
         }
 
-        if (isys_strlen($macAddressRaw) === 12 && preg_match('/^[0-9a-fA-F]+$/', $macAddressRaw)) {
+        if ((mb_strlen($macAddressRaw) === 12 || mb_strlen($macAddressRaw) === 16) && preg_match('/^[0-9a-fA-F]+$/', $macAddressRaw)) {
             // We got a HEX MAC!
             return implode(':', str_split($macAddressRaw, 2));
         }

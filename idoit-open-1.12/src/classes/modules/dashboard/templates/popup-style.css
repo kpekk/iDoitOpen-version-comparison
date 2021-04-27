@@ -9,42 +9,42 @@
 }
 
 #widget-popup {
-	position: relative;
-	display: block;
-	height: 100%;
-	width: 100%;
+    position: relative;
+    display: block;
+    height: 100%;
+    width: 100%;
 }
 
 #widget-popup #widget-popup-config-container table.contentTable td.key {
-	width: 150px;
+    width: 150px;
 }
 
 #widget-popup #widget-popup-config-container table.contentTable .chosen-container .chosen-results {
-	max-height: 150px;
+    max-height: 150px;
 }
 
 /* Some special rules for the configuration popup */
 #widget-popup
 #widget-config-popup,
 #widget-config-popup ul#widget-config-list {
-	position: relative;
+    position: relative;
 }
 
 #widget-config-popup ul#widget-config-list {
-	list-style: none;
-	margin: 0;
-	height: 270px;
-	overflow: hidden;
-	overflow-y: scroll;
+    list-style: none;
+    margin: 0;
+    height: 270px;
+    overflow: hidden;
+    overflow-y: scroll;
 }
 
 #widget-config-popup ul#widget-config-list li {
-	background: #eee;
-	border-bottom: 1px solid #b7b7b7;
-	padding: 5px;
+    background: #eeeeee;
+    border-bottom: 1px solid #b7b7b7;
+    padding: 5px;
 }
 
 #widget-config-popup .handle {
-	background: url('[{$dir_images}]icons/hatch.gif');
-	cursor: ns-resize;
+    background: url('[{$dir_images}]icons/hatch.gif');
+    cursor: ns-resize;
 }

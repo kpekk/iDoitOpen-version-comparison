@@ -153,7 +153,6 @@ class isys_module_cmdb_eventhandler
 
                 $l_source_table = $p_dao->get_source_table();
             }
-
         }
 
         if ($p_dao instanceof isys_cmdb_dao_category_g_custom_fields) {
@@ -171,10 +170,10 @@ class isys_module_cmdb_eventhandler
                 foreach ($p_row as $l_key => $l_value) {
                     if ($l_key == 'isys_obj__title') {
                         $l_new_key = 'object';
-                    } else if ($l_key == 'isys_obj_type__title') {
+                    } elseif ($l_key == 'isys_obj_type__title') {
                         $l_new_key = 'objectType';
                         $l_value = $language->get($l_value);
-                    } else if ($l_key == 'isys_obj_type__const') {
+                    } elseif ($l_key == 'isys_obj_type__const') {
                         $l_new_key = 'objectTypeConst';
                     } else {
                         $l_new_key = str_replace('_', '', str_replace('_list', '', str_replace($l_source_table, '', $l_key)));
@@ -224,11 +223,32 @@ class isys_module_cmdb_eventhandler
             ? $dao->get_category_const()
             : 'C__CATG__GLOBAL';
 
+        /**
+         * Calculate category constant and type
+         *
+         * @see ID-6352
+         */
+
+        // Set category constant and type
+        $categoryConstant = (method_exists($dao, 'get_category_const') ? $dao->get_category_const() : null);
+        $categoryType = $dao->get_category_type_const();
+
+        // Check whether we need to do some special handling for custom fields
+        if ($dao instanceof isys_cmdb_dao_category_g_custom_fields) {
+            // Get category constant of custom category
+            $categoryConstantInfo = $dao->get_category_info($dao->get_catg_custom_id());
+            $categoryConstant = $categoryConstantInfo['isysgui_catg_custom__const'];
+
+            // Set category type statically to 'custom'
+            $categoryType = 'C__CMDB__CATEGORY__TYPE_CUSTOM';
+        }
+
         self::trigger(__METHOD__, [
             'success'        => is_null($saveSuccess) ? 1 : 0,
             'objectID'       => $objectId,
             'categoryID'     => $dao->get_category_id(),
-            'categoryConst'  => method_exists($dao, 'get_category_const') ? $dao->get_category_const() : false,
+            'categoryConst'  => $categoryConstant,
+            'categoryType'   => $categoryType,
             'categoryDataID' => $categoryId,
             'multivalue'     => $dao->is_multivalued(),
             'changes'        => $changes,
@@ -304,12 +324,25 @@ class isys_module_cmdb_eventhandler
      */
     public function onAfterCategoryEntryCreate($categoryID, $categoryEntryId, $result, $objectId, isys_cmdb_dao_category $dao)
     {
+        $categoryConstant = method_exists($dao, 'get_category_const') ? $dao->get_category_const() : null;
+        $categoryType = $dao->get_category_type_const();
+
+        // Check whether we need to do some special handling for custom fields
+        if ($dao instanceof isys_cmdb_dao_category_g_custom_fields) {
+            $categoryConstantInfo = $dao->get_category_info($dao->get_catg_custom_id());
+            $categoryConstant = $categoryConstantInfo['isysgui_catg_custom__const'];
+
+            // Set category type statically to 'custom'
+            $categoryType = 'C__CMDB__CATEGORY__TYPE_CUSTOM';
+        }
+
         self::trigger(__METHOD__, [
             'success'        => is_null($result) ? 1 : 0,
             'objectID'       => $objectId,
             'categoryID'     => $dao->get_category_id(),
             'categoryDataID' => $categoryEntryId,
-            'categoryConst'  => method_exists($dao, 'get_category_const') ? $dao->get_category_const() : false,
+            'categoryConst'  => $categoryConstant,
+            'categoryType'   => $categoryType,
             'multivalue'     => $dao->is_multivalued()
         ]);
     }

@@ -287,6 +287,7 @@ $sed 	-e 's/%config.adminauth.username%/admin/g' \
 		-e "s/%config.db.password%/${pass}/g" \
 		-e "s/%config.db.name%/${idoit_system}/g" \
 		-e "s/%config.crypt.hash%/${chash}/g" \
+		-e "s/%config.admin.disable_addon_upload%/0/g" \
 		config_template.inc.php > ../src/config.inc.php
 
 if [ "$QUIET" = "0" ]; then

@@ -573,10 +573,11 @@ class isys_cmdb_view_list_object extends isys_cmdb_view_list
         $orderThreshhold = isys_tenantsettings::get('cmdb.limits.table-order-threshhold', 20000);
         $tableConfig = $p_list_dao->get_table_config();
         $objectTypeID = $this->m_id;
+        $listViewStatus = ($_SESSION['cRecStatusListView'] ?: C__RECORD_STATUS__NORMAL);
 
         $sessionSource = Configuration::initSessionSource($objectTypeID);
         $sortSessionSource = Configuration::initSessionSource('sort-' . $objectTypeID);
-        $pagingSessionSource = Configuration::initSessionSource('paging-' . $objectTypeID);
+        $pagingSessionSource = Configuration::initSessionSource('paging-' . $objectTypeID . '-' . $listViewStatus);
 
         // if tableFilter or filtered comes - clear the session's stored values
         if ((isset($_GET['tableFilter']) && is_array($_GET['tableFilter'])) || isset($_GET['filtered'])) {
@@ -587,7 +588,7 @@ class isys_cmdb_view_list_object extends isys_cmdb_view_list
 
         $filterValues = Configuration::filter($p_list_dao, $objectTypeID);
         $sortValues = Configuration::sort($p_list_dao, $objectTypeID);
-        $pagingValues = Configuration::paging($p_list_dao, $objectTypeID);
+        $pagingValues = Configuration::paging($p_list_dao, $objectTypeID . '-' . $listViewStatus);
 
         // if not filtering for suggestion - save the filters
         if (!isset($_GET['suggestion'])) {

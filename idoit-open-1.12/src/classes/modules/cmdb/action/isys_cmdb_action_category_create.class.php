@@ -84,15 +84,22 @@ class isys_cmdb_action_category_create extends isys_cmdb_action_category impleme
         if (($l_dao->get_category_id() === defined_or_default('C__CATG__GLOBAL') && $l_dao->get_category_type() === C__CMDB__CATEGORY__TYPE_GLOBAL) || $this->object_is_locked()) {
             if (!$this->object_is_locked() && $_POST['useTemplate'] == 1) {
                 if (isset($l_template_module) && is_object($l_template_module)) {
-                    $l_template_module->create_from_template([$l_default_template], $_GET[C__CMDB__GET__OBJECTTYPE], $_POST['C__CATG__GLOBAL_TITLE'], $l_object_id, false, 1,
-                        '');
+                    $l_template_module->create_from_template(
+                        [$l_default_template],
+                        $_GET[C__CMDB__GET__OBJECTTYPE],
+                        $_POST['C__CATG__GLOBAL_TITLE'],
+                        $l_object_id,
+                        false,
+                        1,
+                        ''
+                    );
                 }
             }
 
             $l_actionproc->result_push(null);
 
             return;
-        } else if ($l_dao->get_category_id() === defined_or_default('C__CATG__OVERVIEW') && $_POST['useTemplate'] == 1) {
+        } elseif ($l_dao->get_category_id() === defined_or_default('C__CATG__OVERVIEW') && $_POST['useTemplate'] == 1) {
             if (isset($l_template_module) && is_object($l_template_module)) {
                 $l_template_module->create_from_template([$l_default_template], $_GET[C__CMDB__GET__OBJECTTYPE], $_POST['C__CATG__GLOBAL_TITLE'], $l_object_id, false, 1, '');
             }
@@ -190,7 +197,7 @@ class isys_cmdb_action_category_create extends isys_cmdb_action_category impleme
             }
 
             $l_property_arr = $p_dao->get_properties();
-            foreach ($l_property_arr AS $l_property_key => $l_property) {
+            foreach ($l_property_arr as $l_property_key => $l_property) {
                 if ($l_property[C__PROPERTY__INFO][C__PROPERTY__INFO__TYPE] == C__PROPERTY__INFO__TYPE__OBJECT_BROWSER ||
                     $l_property[C__PROPERTY__INFO][C__PROPERTY__INFO__TYPE] == C__PROPERTY__INFO__TYPE__N2M) {
                     $l_referenced_property_key = $l_property_key;
@@ -214,15 +221,14 @@ class isys_cmdb_action_category_create extends isys_cmdb_action_category impleme
                     } else {
                         return;
                     }
-
                 }
             }
 
             if (isset($l_referenced_property_key)) {
                 $this->m_category_title = ($p_dao->get_category_type() ==
                     C__CMDB__CATEGORY__TYPE_GLOBAL) ? $p_dao->get_catg_name_by_id_as_string($p_dao->get_category_id()) : $p_dao->get_cats_name_by_id_as_string($p_dao->get_category_id());
-
-                if (!isset($l_new_objects)) {
+                // @See ID-6423 fallback if popupReceiver is empty
+                if (empty($l_new_objects)) {
                     if (isset($p_post[$l_property[C__PROPERTY__UI][C__PROPERTY__UI__ID] . '__HIDDEN'])) {
                         $l_key = $l_property[C__PROPERTY__UI][C__PROPERTY__UI__ID] . '__HIDDEN';
                     } else {
@@ -254,7 +260,7 @@ class isys_cmdb_action_category_create extends isys_cmdb_action_category impleme
                 }
 
                 if (is_array($l_new_objects) && count($l_new_objects) > 0) {
-                    foreach ($l_new_objects AS $l_obj_id) {
+                    foreach ($l_new_objects as $l_obj_id) {
                         if (isset($l_method)) {
                             $l_data = $l_helper->$l_method($l_obj_id);
                             $l_new_objects_arr[] = (isset($l_data['ref_title'])) ? $l_data['ref_title'] : $l_data['title'];
@@ -291,9 +297,15 @@ class isys_cmdb_action_category_create extends isys_cmdb_action_category impleme
             $l_event_manager = isys_event_manager::getInstance();
             $l_changes_compressed = serialize($this->m_changes);
 
-            $l_event_manager->triggerCMDBEvent('C__LOGBOOK_EVENT__CATEGORY_CHANGED', $p_dao->get_strLogbookSQL(), $_GET[C__CMDB__GET__OBJECT],
-                isys_glob_get_param(C__CMDB__GET__OBJECTTYPE), isys_application::instance()->container->get('language')
-                    ->get($this->m_category_title), $l_changes_compressed);
+            $l_event_manager->triggerCMDBEvent(
+                'C__LOGBOOK_EVENT__CATEGORY_CHANGED',
+                $p_dao->get_strLogbookSQL(),
+                $_GET[C__CMDB__GET__OBJECT],
+                isys_glob_get_param(C__CMDB__GET__OBJECTTYPE),
+                isys_application::instance()->container->get('language')
+                    ->get($this->m_category_title),
+                $l_changes_compressed
+            );
         }
     }
 }

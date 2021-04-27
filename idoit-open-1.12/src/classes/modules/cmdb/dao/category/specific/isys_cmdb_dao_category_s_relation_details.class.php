@@ -69,17 +69,28 @@ class isys_cmdb_dao_category_s_relation_details extends isys_cmdb_dao_category_s
         }
 
         if ($l_id) {
-
-            $l_bRet = $this->save($l_id, C__RECORD_STATUS__NORMAL, $l_master_obj_id, $l_slave_obj_id, $_POST['C__CATS__RELATION_DETAILS__RELATION_TYPE_VALUE'],
-                $_POST['C__CATS__RELATION_DETAILS__WEIGHTING'], $_POST['C__CATS__RELATION_DETAILS__ITSERVICE'],
-                $_POST["C__CMDB__CAT__COMMENTARY_" . $this->get_category_type() . $this->get_category_id()]);
+            $l_bRet = $this->save(
+                $l_id,
+                C__RECORD_STATUS__NORMAL,
+                $l_master_obj_id,
+                $l_slave_obj_id,
+                $_POST['C__CATS__RELATION_DETAILS__RELATION_TYPE_VALUE'],
+                $_POST['C__CATS__RELATION_DETAILS__WEIGHTING'],
+                $_POST['C__CATS__RELATION_DETAILS__ITSERVICE'],
+                $_POST["C__CMDB__CAT__COMMENTARY_" . $this->get_category_type() . $this->get_category_id()]
+            );
 
             $this->m_strLogbookSQL = $this->get_last_query();
         } else {
-
-            $l_id = $this->create($_GET[C__CMDB__GET__OBJECT], $l_master_obj_id, $l_slave_obj_id, $_POST['C__CATS__RELATION_DETAILS__RELATION_TYPE_VALUE'],
-                $_POST['C__CATS__RELATION_DETAILS__WEIGHTING'], $_POST['C__CATS__RELATION_DETAILS__ITSERVICE'],
-                $_POST["C__CMDB__CAT__COMMENTARY_" . $this->get_category_type() . $this->get_category_id()]);
+            $l_id = $this->create(
+                $_GET[C__CMDB__GET__OBJECT],
+                $l_master_obj_id,
+                $l_slave_obj_id,
+                $_POST['C__CATS__RELATION_DETAILS__RELATION_TYPE_VALUE'],
+                $_POST['C__CATS__RELATION_DETAILS__WEIGHTING'],
+                $_POST['C__CATS__RELATION_DETAILS__ITSERVICE'],
+                $_POST["C__CMDB__CAT__COMMENTARY_" . $this->get_category_type() . $this->get_category_id()]
+            );
             $l_bRet = true;
         }
 
@@ -101,7 +112,6 @@ class isys_cmdb_dao_category_s_relation_details extends isys_cmdb_dao_category_s
      */
     public function save($p_cat_level, $p_newRecStatus, $p_obj_id_master, $p_obj_id_slave, $p_relation_type, $p_weighting, $p_itservice, $p_description)
     {
-
         $l_dao_rel = new isys_cmdb_dao_category_g_relation($this->m_db);
 
         $l_strSql = "UPDATE isys_catg_relation_list SET " . " isys_catg_relation_list__isys_weighting__id  = " . $this->convert_sql_text($p_weighting) . ", " .
@@ -318,10 +328,14 @@ class isys_cmdb_dao_category_s_relation_details extends isys_cmdb_dao_category_s
                 ],
                 C__PROPERTY__DATA     => [
                     C__PROPERTY__DATA__FIELD  => 'isys_catg_relation_list__isys_obj__id__master',
-                    C__PROPERTY__DATA__SELECT => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory('SELECT CONCAT(isys_obj__title, \' {\', isys_obj__id, \'}\')
+                    C__PROPERTY__DATA__SELECT => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory(
+                        'SELECT CONCAT(isys_obj__title, \' {\', isys_obj__id, \'}\')
                             FROM isys_catg_relation_list
-                            INNER JOIN isys_obj ON isys_obj__id = isys_catg_relation_list__isys_obj__id__master', 'isys_catg_relation_list', 'isys_catg_relation_list__id',
-                        'isys_catg_relation_list__isys_obj__id'),
+                            INNER JOIN isys_obj ON isys_obj__id = isys_catg_relation_list__isys_obj__id__master',
+                        'isys_catg_relation_list',
+                        'isys_catg_relation_list__id',
+                        'isys_catg_relation_list__isys_obj__id'
+                    ),
                     C__PROPERTY__DATA__JOIN   => [
                         idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory('isys_catg_relation_list', 'LEFT', 'isys_catg_relation_list__isys_obj__id', 'isys_obj__id'),
                         idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory('isys_obj', 'LEFT', 'isys_catg_relation_list__isys_obj__id__master', 'isys_obj__id')
@@ -347,10 +361,14 @@ class isys_cmdb_dao_category_s_relation_details extends isys_cmdb_dao_category_s
                 ],
                 C__PROPERTY__DATA     => [
                     C__PROPERTY__DATA__FIELD  => 'isys_catg_relation_list__isys_obj__id__slave',
-                    C__PROPERTY__DATA__SELECT => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory('SELECT CONCAT(isys_obj__title, \' {\', isys_obj__id, \'}\')
+                    C__PROPERTY__DATA__SELECT => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory(
+                        'SELECT CONCAT(isys_obj__title, \' {\', isys_obj__id, \'}\')
                             FROM isys_catg_relation_list
-                            INNER JOIN isys_obj ON isys_obj__id = isys_catg_relation_list__isys_obj__id__slave', 'isys_catg_relation_list', 'isys_catg_relation_list__id',
-                        'isys_catg_relation_list__isys_obj__id'),
+                            INNER JOIN isys_obj ON isys_obj__id = isys_catg_relation_list__isys_obj__id__slave',
+                        'isys_catg_relation_list',
+                        'isys_catg_relation_list__id',
+                        'isys_catg_relation_list__isys_obj__id'
+                    ),
                     C__PROPERTY__DATA__JOIN   => [
                         idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory('isys_catg_relation_list', 'LEFT', 'isys_catg_relation_list__isys_obj__id', 'isys_obj__id'),
                         idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory('isys_obj', 'LEFT', 'isys_catg_relation_list__isys_obj__id__slave', 'isys_obj__id')
@@ -376,10 +394,14 @@ class isys_cmdb_dao_category_s_relation_details extends isys_cmdb_dao_category_s
                 ],
                 C__PROPERTY__DATA     => [
                     C__PROPERTY__DATA__FIELD  => 'isys_catg_relation_list__isys_obj__id__itservice',
-                    C__PROPERTY__DATA__SELECT => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory('SELECT CONCAT(isys_obj__title, \' {\', isys_obj__id, \'}\')
+                    C__PROPERTY__DATA__SELECT => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory(
+                        'SELECT CONCAT(isys_obj__title, \' {\', isys_obj__id, \'}\')
                             FROM isys_catg_relation_list
-                            INNER JOIN isys_obj ON isys_obj__id = isys_catg_relation_list__isys_obj__id__itservice', 'isys_catg_relation_list', 'isys_catg_relation_list__id',
-                        'isys_catg_relation_list__isys_obj__id'),
+                            INNER JOIN isys_obj ON isys_obj__id = isys_catg_relation_list__isys_obj__id__itservice',
+                        'isys_catg_relation_list',
+                        'isys_catg_relation_list__id',
+                        'isys_catg_relation_list__isys_obj__id'
+                    ),
                     C__PROPERTY__DATA__JOIN   => [
                         idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory('isys_catg_relation_list', 'LEFT', 'isys_catg_relation_list__isys_obj__id', 'isys_obj__id'),
                         idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory('isys_obj', 'LEFT', 'isys_catg_relation_list__isys_obj__id__itservice', 'isys_obj__id')
@@ -419,8 +441,12 @@ class isys_cmdb_dao_category_s_relation_details extends isys_cmdb_dao_category_s
                     C__PROPERTY__DATA__SELECT       => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory('isys_relation_type__title', 'isys_relation_type'),
                     C__PROPERTY__DATA__JOIN         => [
                         idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory('isys_catg_relation_list', 'LEFT', 'isys_catg_relation_list__isys_obj__id', 'isys_obj__id'),
-                        idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory('isys_relation_type', 'LEFT', 'isys_catg_relation_list__isys_relation_type__id',
-                            'isys_relation_type__id')
+                        idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory(
+                            'isys_relation_type',
+                            'LEFT',
+                            'isys_catg_relation_list__isys_relation_type__id',
+                            'isys_relation_type__id'
+                        )
                     ]
                 ],
                 C__PROPERTY__UI       => [
@@ -448,14 +474,20 @@ class isys_cmdb_dao_category_s_relation_details extends isys_cmdb_dao_category_s
                     C__PROPERTY__DATA__SELECT       => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory('isys_weighting__title', 'isys_weighting'),
                     C__PROPERTY__DATA__JOIN         => [
                         idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory('isys_catg_relation_list', 'LEFT', 'isys_catg_relation_list__isys_obj__id', 'isys_obj__id'),
-                        idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory('isys_weighting', 'LEFT', 'isys_catg_relation_list__isys_weighting__id',
-                            'isys_weighting__id')
+                        idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory(
+                            'isys_weighting',
+                            'LEFT',
+                            'isys_catg_relation_list__isys_weighting__id',
+                            'isys_weighting__id'
+                        )
                     ]
                 ],
                 C__PROPERTY__UI       => [
                     C__PROPERTY__UI__ID     => 'C__CATS__RELATION_DETAILS__WEIGHTING',
                     C__PROPERTY__UI__PARAMS => [
-                        'p_strTable' => 'isys_weighting'
+                        'p_strTable' => 'isys_weighting',
+                        'p_bSort'    => false,
+                        'order'      => 'isys_weighting__sort'
                     ]
                 ],
                 C__PROPERTY__PROVIDES => [
@@ -463,15 +495,16 @@ class isys_cmdb_dao_category_s_relation_details extends isys_cmdb_dao_category_s
                 ]
             ]),
             'description'   => array_replace_recursive(isys_cmdb_dao_category_pattern::commentary(), [
-                C__PROPERTY__INFO     => [
+                C__PROPERTY__INFO => [
                     C__PROPERTY__INFO__TITLE       => 'LC__CMDB__LOGBOOK__DESCRIPTION',
                     C__PROPERTY__INFO__DESCRIPTION => 'Description'
                 ],
-                C__PROPERTY__DATA     => [
+                C__PROPERTY__DATA => [
                     C__PROPERTY__DATA__FIELD => 'isys_catg_relation_list__description'
                 ],
-                C__PROPERTY__UI       => [
-                    C__PROPERTY__UI__ID => 'C__CMDB__CAT__COMMENTARY_' . C__CMDB__CATEGORY__TYPE_SPECIFIC . defined_or_default('C__CATS__RELATION_DETAILS', 'C__CATS__RELATION_DETAILS')
+                C__PROPERTY__UI   => [
+                    C__PROPERTY__UI__ID => 'C__CMDB__CAT__COMMENTARY_' . C__CMDB__CATEGORY__TYPE_SPECIFIC .
+                        defined_or_default('C__CATS__RELATION_DETAILS', 'C__CATS__RELATION_DETAILS')
                 ],
             ])
         ];
@@ -503,15 +536,30 @@ class isys_cmdb_dao_category_s_relation_details extends isys_cmdb_dao_category_s
             $this->m_sync_catg_data = $p_category_data;
             switch ($p_status) {
                 case isys_import_handler_cmdb::C__CREATE:
-                    $p_category_data['data_id'] = $this->create($p_object_id, $this->get_property('object1'), $this->get_property('object2'),
-                        $this->get_property('relation_type'), $this->get_property('weighting'), $this->get_property('itservice'), $this->get_property('description'));
+                    $p_category_data['data_id'] = $this->create(
+                        $p_object_id,
+                        $this->get_property('object1'),
+                        $this->get_property('object2'),
+                        $this->get_property('relation_type'),
+                        $this->get_property('weighting'),
+                        $this->get_property('itservice'),
+                        $this->get_property('description')
+                    );
                     if ($p_category_data['data_id'] > 0) {
                         $l_indicator = true;
                     }
                     break;
                 case isys_import_handler_cmdb::C__UPDATE:
-                    $l_indicator = $this->save($p_category_data['data_id'], C__RECORD_STATUS__NORMAL, $this->get_property('object1'), $this->get_property('object2'),
-                        $this->get_property('relation_type'), $this->get_property('weighting'), $this->get_property('itservice'), $this->get_property('description'));
+                    $l_indicator = $this->save(
+                        $p_category_data['data_id'],
+                        C__RECORD_STATUS__NORMAL,
+                        $this->get_property('object1'),
+                        $this->get_property('object2'),
+                        $this->get_property('relation_type'),
+                        $this->get_property('weighting'),
+                        $this->get_property('itservice'),
+                        $this->get_property('description')
+                    );
                     break;
             }
         }
@@ -519,5 +567,3 @@ class isys_cmdb_dao_category_s_relation_details extends isys_cmdb_dao_category_s
         return ($l_indicator === true) ? $p_category_data['data_id'] : false;
     }
 }
-
-?>

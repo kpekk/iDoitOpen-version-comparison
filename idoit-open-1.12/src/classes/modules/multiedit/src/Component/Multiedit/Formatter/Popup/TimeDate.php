@@ -85,12 +85,16 @@ class TimeDate extends Formatter implements FormatterInterface
 
         if ($valueFormatter->isDeactivated()) {
             $params['name'] = null;
+            $params['p_bReadonly'] = true;
         }
 
         if ($valueFormatter->isChangeAllRowsActive() && $params['name'] !== null) {
             $params['name'] = $valueFormatter->getPropertyKey() . '[-]';
             $params['cellCallback'] = "function(){window.multiEdit.overwriteAll($(this._relative), '{$valueFormatter->getPropertyKey()}', 'popupDate');}";
         }
+
+        // @see  ID-6582  Use the new "scroll-observer".
+        $params['observeScrollingParent'] = 'multiEditContainer';
 
         $plugin = new isys_smarty_plugin_f_popup();
         $pluginContent = $plugin->navigation_edit(\isys_application::instance()->container->template, $params);

@@ -219,7 +219,7 @@ class isys_component_dao extends isys_component
      *
      * @param   mixed $p_value
      *
-     * @return  boolean
+     * @return  int|string
      */
     public function convert_sql_id($p_value)
     {
@@ -237,7 +237,7 @@ class isys_component_dao extends isys_component
      *
      * @param   mixed $p_value Can be something numeric or a string.
      *
-     * @return  integer
+     * @return  int|string
      */
     public function convert_sql_int($p_value)
     {

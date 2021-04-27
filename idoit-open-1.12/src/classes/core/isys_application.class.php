@@ -289,6 +289,11 @@ final class isys_application
             throw $e;
         }
 
+        if (isset($_SERVER['HTTP_X_I_DOIT_TENANT_ID']) && $_SERVER['HTTP_X_I_DOIT_TENANT_ID'] != $userMandatorId) {
+            isys_notify::error("Changes were interrupted.\nYou have logged in with a different tenant.\nPlease, log in again!");
+            exit;
+        }
+
         return $this;
     }
 

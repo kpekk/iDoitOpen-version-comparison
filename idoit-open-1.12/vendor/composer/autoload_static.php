@@ -301,10 +301,6 @@ class ComposerStaticInit3acec9f323a1fd1139f7dec0c727acef
             array (
                 0 => __DIR__ . '/..' . '/ocramius/proxy-manager/src',
             ),
-            'Pimple' => 
-            array (
-                0 => __DIR__ . '/..' . '/pimple/pimple/src',
-            ),
             'Pagerfanta\\' => 
             array (
                 0 => __DIR__ . '/..' . '/pagerfanta/pagerfanta/src',

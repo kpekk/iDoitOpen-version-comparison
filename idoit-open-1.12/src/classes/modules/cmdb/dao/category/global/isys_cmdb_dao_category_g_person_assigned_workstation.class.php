@@ -121,8 +121,14 @@ class isys_cmdb_dao_category_g_person_assigned_workstation extends isys_cmdb_dao
                       WHERE isys_catg_location_list__isys_obj__id = ' . $this->convert_sql_id($l_dao_row['isys_catg_logical_unit_list__isys_obj__id']))
                         ->get_row();
 
-                    $locationDao->handle_location_inheritage(true, $objectTypeID, $locationEntry['isys_catg_location_list__id'],
-                        $l_dao_row['isys_catg_logical_unit_list__isys_obj__id'], $locationParentObjectID, $locationEntry['isys_catg_location_list__parentid']);
+                    $locationDao->handle_location_inheritage(
+                        true,
+                        $objectTypeID,
+                        $locationEntry['isys_catg_location_list__id'],
+                        $l_dao_row['isys_catg_logical_unit_list__isys_obj__id'],
+                        $locationParentObjectID,
+                        $locationEntry['isys_catg_location_list__parentid']
+                    );
                 }
 
                 $this->delete_entry($l_dao_row['isys_catg_logical_unit_list__id'], 'isys_catg_logical_unit_list');
@@ -143,8 +149,14 @@ class isys_cmdb_dao_category_g_person_assigned_workstation extends isys_cmdb_dao
                     $l_cat_id = $this->create_connector('isys_catg_logical_unit_list', $l_id);
                 }
 
-                $l_dao->save($l_cat_id, $_GET[C__CMDB__GET__OBJECT], C__RECORD_STATUS__NORMAL, $l_id, $l_relation_id,
-                    $_POST["C__CMDB__CAT__COMMENTARY_" . $this->get_category_type() . $this->get_category_id()]);
+                $l_dao->save(
+                    $l_cat_id,
+                    $_GET[C__CMDB__GET__OBJECT],
+                    C__RECORD_STATUS__NORMAL,
+                    $l_id,
+                    $l_relation_id,
+                    $_POST["C__CMDB__CAT__COMMENTARY_" . $this->get_category_type() . $this->get_category_id()]
+                );
             }
         }
     }
@@ -258,23 +270,28 @@ class isys_cmdb_dao_category_g_person_assigned_workstation extends isys_cmdb_dao
                 ],
                 C__PROPERTY__DATA     => [
                     C__PROPERTY__DATA__FIELD  => 'isys_catg_logical_unit_list__isys_obj__id',
-                    C__PROPERTY__DATA__SELECT => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory('SELECT CONCAT(isys_obj__title, \' {\', isys_obj__id, \'}\')
+                    C__PROPERTY__DATA__SELECT => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory(
+                        'SELECT CONCAT(isys_obj__title, \' {\', isys_obj__id, \'}\')
                                 FROM isys_catg_logical_unit_list
-                                INNER JOIN isys_obj ON isys_obj__id = isys_catg_logical_unit_list__isys_obj__id', 'isys_catg_logical_unit_list',
-                        'isys_catg_logical_unit_list__id', 'isys_catg_logical_unit_list__isys_obj__id__parent', '', '',
+                                INNER JOIN isys_obj ON isys_obj__id = isys_catg_logical_unit_list__isys_obj__id',
+                        'isys_catg_logical_unit_list',
+                        'isys_catg_logical_unit_list__id',
+                        'isys_catg_logical_unit_list__isys_obj__id__parent',
+                        '',
+                        '',
                         idoit\Module\Report\SqlQuery\Structure\SelectCondition::factory([
                             'isys_obj__isys_obj_type__id IN
                                 (SELECT isys_obj_type_2_isysgui_catg__isys_obj_type__id FROM isys_obj_type_2_isysgui_catg
                                     INNER JOIN isysgui_catg ON isysgui_catg__id = isys_obj_type_2_isysgui_catg__isysgui_catg__id
                                     WHERE isysgui_catg__const = \'C__CATG__LOGICAL_UNIT\')'
-                        ]), idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['isys_catg_logical_unit_list__isys_obj__id__parent']))
+                        ]),
+                        idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['isys_catg_logical_unit_list__isys_obj__id__parent'])
+                    )
                 ],
                 C__PROPERTY__UI       => [
                     C__PROPERTY__UI__ID     => 'C__CMDB__CATG__PERSON_ASSIGNED_WORKSTATION',
                     C__PROPERTY__UI__PARAMS => [
-                        'tab'            => '80',
-                        'multiselection' => true,
-                        'catFilter'      => 'C__CATG__ASSIGNED_LOGICAL_UNIT'
+                        'multiselection' => true
                     ]
                 ],
                 C__PROPERTY__PROVIDES => [
@@ -329,13 +346,15 @@ class isys_cmdb_dao_category_g_person_assigned_workstation extends isys_cmdb_dao
                 $p_category_data['data_id'] = $this->create_connector('isys_catg_logical_unit_list', $p_category_data['properties']['assigned_workstations'][C__DATA__VALUE]);
             }
             if ($p_status == isys_import_handler_cmdb::C__CREATE || $p_status == isys_import_handler_cmdb::C__UPDATE) {
-                $l_indicator = $l_dao->save($p_category_data['data_id'], $p_object_id, C__RECORD_STATUS__NORMAL,
-                    $p_category_data['properties']['assigned_workstations'][C__DATA__VALUE]);
+                $l_indicator = $l_dao->save(
+                    $p_category_data['data_id'],
+                    $p_object_id,
+                    C__RECORD_STATUS__NORMAL,
+                    $p_category_data['properties']['assigned_workstations'][C__DATA__VALUE]
+                );
             }
         }
 
         return ($l_indicator === true) ? $p_category_data['data_id'] : false;
     }
 }
-
-?>

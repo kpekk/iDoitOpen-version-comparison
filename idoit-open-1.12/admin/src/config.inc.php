@@ -6,7 +6,7 @@
  * @copyright  synetics GmbH
  * @license    http://www.gnu.org/licenses/agpl-3.0.html GNU AGPLv3
  */
-global $g_comp_database, $g_config, $g_absdir, $g_comp_database_system, $g_db_system;
+global $g_comp_database, $g_config, $g_absdir, $g_comp_database_system, $g_db_system, $g_disable_addon_upload, $g_license_token;
 
 $l_template = isys_component_template::instance();
 
@@ -75,7 +75,9 @@ if (isset($_GET['action'])) {
                         '%config.db.username%'        => $_POST['db_user'],
                         '%config.db.password%'        => $l_db_pass,
                         '%config.db.name%'            => $_POST['db_name'],
-                        '%config.crypt.hash%'         => $g_crypto_hash
+                        '%config.crypt.hash%'         => $g_crypto_hash,
+                        '%config.admin.disable_addon_upload%' => $g_disable_addon_upload,
+                        '%config.license.token%' => !empty($_POST['license_token']) ? $_POST['license_token'] : $g_license_token
                     ]);
                 } catch (isys_exception_database $e) {
                     $l_result['success'] = false;
@@ -109,8 +111,10 @@ if (is_writable($l_configFile)) {
     }
 
     $l_config['db'] = $g_db_system;
+    $l_config['license_token'] = $g_license_token;
 } else {
     $l_template->assign('configFilePath', $l_configFile);
 }
 
 $l_template->assign('config', $l_config);
+$l_template->assign('config_admin_disable_addon_upload', $g_disable_addon_upload);

@@ -67,6 +67,7 @@ class isys_report_pdf extends isys_report
             ->initialize([
                 'pdf.title'   => $this->getTitle(),
                 'pdf.subject' => $this->getDescription(),
+                'pdf.showHtml' => $this->shouldShowHtml()
             ])
             ->reportTable($l_report['headers'], $l_report['content']);
     }

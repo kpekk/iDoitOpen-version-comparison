@@ -1,15 +1,15 @@
 <?php
+
+namespace idoit\AddOn;
+
 /**
  * i-doit Module interface for activation
  *
- * @package     idoit\Component
+ * @package     idoit\AddOn
  * @author      atsapko
  * @copyright   synetics GmbH
  * @license     http://www.gnu.org/licenses/agpl-3.0.html GNU AGPLv3
  */
-
-namespace idoit\AddOn;
-
 interface ActivatableInterface
 {
     /**

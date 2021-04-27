@@ -22,7 +22,7 @@ class isys_helper
      */
     public static function filter_text($p_string)
     {
-        if (is_string($p_string) && isys_strlen($p_string) <= 255) {
+        if (is_string($p_string) && mb_strlen($p_string) <= 255) {
             return $p_string;
         }
 
@@ -38,7 +38,7 @@ class isys_helper
      */
     public static function filter_textarea($p_string)
     {
-        if (is_string($p_string) && isys_strlen($p_string) <= 65534) {
+        if (is_string($p_string) && mb_strlen($p_string) <= 65534) {
             return $p_string;
         }
 
@@ -191,12 +191,12 @@ class isys_helper
         // We convert all sorts of mac addresses to one "default" form.
         $macAddressRaw = preg_replace('/[^0-9a-fA-F]+/', '', $macAddress);
 
-        if (isys_strlen($macAddressRaw) === 48 && preg_match('/^[01]+$/', $macAddressRaw)) {
+        if ((mb_strlen($macAddressRaw) === 48 || mb_strlen($macAddressRaw) === 56) && preg_match('/^[01]+$/', $macAddressRaw)) {
             // We got a binary MAC!
             return implode(':', str_split($macAddressRaw, 8));
         }
 
-        if (isys_strlen($macAddressRaw) === 12 && preg_match('/^[0-9a-fA-F]+$/', $macAddressRaw)) {
+        if ((mb_strlen($macAddressRaw) === 12 || mb_strlen($macAddressRaw) === 16) && preg_match('/^[0-9a-fA-F]+$/', $macAddressRaw)) {
             // We got a HEX MAC!
             return implode(':', str_split($macAddressRaw, 2));
         }
@@ -228,6 +228,13 @@ class isys_helper
         // @see ID-4191
         if ($p_string === '') {
             return 0;
+        }
+
+        // Match part which starts and ends with a digit
+        $matchingResult = preg_match('/\d[\d,\.]*\d/', $p_string, $matches);
+
+        if ($matchingResult >= 1) {
+            $p_string = $matches[0];
         }
 
         // Check if someone wrote a string like "1.000.000".

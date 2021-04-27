@@ -5,66 +5,66 @@
  */
 
 ul.css-tree {
-	margin: 0 0 0 20px;
-	list-style: none;
-	line-height: 20px;
+    margin: 0 0 0 20px;
+    list-style: none;
+    line-height: 20px;
 }
 
 ul.css-tree li {
-	position: relative;
+    position: relative;
 }
 
 ul.css-tree li:before {
-	position: absolute;
-	left: -15px;
-	top: 0;
-	content: '';
-	display: block;
-	border-left: 1px solid #ddd;
-	height: 1em;
-	border-bottom: 1px solid #ddd;
-	width: 10px;
+    position: absolute;
+    left: -15px;
+    top: 0;
+    content: '';
+    display: block;
+    border-left: 1px solid #dddddd;
+    height: 1em;
+    border-bottom: 1px solid #dddddd;
+    width: 10px;
 }
 
 ul.css-tree li:after {
-	position: absolute;
-	left: -15px;
-	bottom: -7px;
-	content: '';
-	display: block;
-	border-left: 1px solid #ddd;
-	height: 100%;
+    position: absolute;
+    left: -15px;
+    bottom: -7px;
+    content: '';
+    display: block;
+    border-left: 1px solid #dddddd;
+    height: 100%;
 }
 
 ul.css-tree li.root {
-	margin: 0 0 0 -20px;
+    margin: 0 0 0 -20px;
 }
 
 ul.css-tree li.root:before {
-	display: none;
+    display: none;
 }
 
 ul.css-tree li.root:after {
-	display: none;
+    display: none;
 }
 
 ul.css-tree li:last-child:after {
-	display: none;
+    display: none;
 }
 
 /**
  * i-doit specific styles for "toggle" button and displaying images (icons) inside the tree.
  */
 ul.css-tree li .child-toggle {
-	position: absolute;
-	top: 4px;
-	left: -22px;
-	z-index: 50;
-	cursor: pointer;
+    position: absolute;
+    top: 4px;
+    left: -22px;
+    z-index: 50;
+    cursor: pointer;
 }
 
 ul.css-tree li img {
-	max-width: 16px;
-	max-height: 16px;
-	vertical-align: middle;
+    max-width: 16px;
+    max-height: 16px;
+    vertical-align: middle;
 }

@@ -530,8 +530,8 @@ class isys_component_session extends isys_component
                     $this->set_mandator_name($l_dbdata["isys_mandator__title"]);
 
                     $this->m_mandator_data = $l_dbdata;
-                    $this->m_mandator_id = $p_mandator_id;
-                    $_SESSION["user_mandator"] = $p_mandator_id;
+                    $this->m_mandator_id = (int)$p_mandator_id;
+                    $_SESSION["user_mandator"] = (int)$p_mandator_id;
                     $this->m_logged_in = $this->is_logged_in();
 
                     return $l_dbdata;

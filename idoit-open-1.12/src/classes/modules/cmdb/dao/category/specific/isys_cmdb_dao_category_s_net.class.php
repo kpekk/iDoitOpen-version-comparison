@@ -236,7 +236,7 @@ class isys_cmdb_dao_category_s_net extends isys_cmdb_dao_category_specific
 
         $l_net_num = $l_net_dao->get_assigned_hosts($p_row['isys_obj__id'], 'AND isys_cats_net_ip_addresses_list__title != ""')
             ->num_rows();
-        $l_net_num = '<span class="hide">' . str_pad($l_net_num, 10, 0, STR_PAD_LEFT) . '</span>' . $l_net_num;
+        $l_net_num = '<span data-sort="' . htmlentities(str_pad($l_net_num, 10, 0, STR_PAD_LEFT)) . '">' . $l_net_num . '</span>';
 
         // When we handle a IPv4 address, we don't need to shorten.
         if ($l_row['isys_cats_net_list__isys_net_type__id'] == defined_or_default('C__CATS_NET_TYPE__IPV4')) {
@@ -332,8 +332,13 @@ class isys_cmdb_dao_category_s_net extends isys_cmdb_dao_category_specific
         } elseif ($p_ip_assignment == defined_or_default('C__CMDB__CATG__IP__SLAAC')) {
             return '';
         } elseif ($p_ip_assignment == defined_or_default('C__CMDB__CATG__IP__SLAAC_AND_DHCPV6')) {
-            $l_rows = $l_dhcp_dao->get_data(null, $p_net_obj, 'AND isys_cats_net_dhcp_list__isys_net_dhcpv6_type__id = ' . defined_or_default('C__NET__DHCPV6__SLAAC_AND_DHCPV6'), null,
-                C__RECORD_STATUS__NORMAL)
+            $l_rows = $l_dhcp_dao->get_data(
+                null,
+                $p_net_obj,
+                'AND isys_cats_net_dhcp_list__isys_net_dhcpv6_type__id = ' . defined_or_default('C__NET__DHCPV6__SLAAC_AND_DHCPV6'),
+                null,
+                C__RECORD_STATUS__NORMAL
+            )
                 ->num_rows();
 
             if ($l_rows > 0) {
@@ -406,42 +411,56 @@ class isys_cmdb_dao_category_s_net extends isys_cmdb_dao_category_specific
     {
         $l_catdata = $this->get_general_data();
 
-        $p_intOldRecStatus = $l_catdata["isys_cats_net_list__status"];
+        $p_intOldRecStatus = $l_catdata['isys_cats_net_list__status'];
 
-        $l_list_id = $l_catdata["isys_cats_net_list__id"];
+        $l_list_id = $l_catdata['isys_cats_net_list__id'];
 
-        $l_ip_data = $this->merge_posted_ip_data($_POST["C__CATS__NET__TYPE"]);
+        $l_ip_data = $this->merge_posted_ip_data($_POST['C__CATS__NET__TYPE']);
 
         $l_cidr = 0;
 
         // We have to check, which CIDR field we have to take.
-        if ($_POST["C__CATS__NET__TYPE"] == defined_or_default('C__CATS_NET_TYPE__IPV4')) {
-            $l_cidr = $_POST["C__CATS__NET__CIDR"];
-        } else if ($_POST["C__CATS__NET__TYPE"] == defined_or_default('C__CATS_NET_TYPE__IPV6')) {
-            $l_cidr = $_POST["C__CATS__NET__NET_V6_CIDR"];
+        if ($_POST['C__CATS__NET__TYPE'] == defined_or_default('C__CATS_NET_TYPE__IPV4')) {
+            $l_cidr = $_POST['C__CATS__NET__CIDR'];
+        } elseif ($_POST['C__CATS__NET__TYPE'] == defined_or_default('C__CATS_NET_TYPE__IPV6')) {
+            $l_cidr = $_POST['C__CATS__NET__NET_V6_CIDR'];
             $l_ip_data[C__IP__SUBNET] = Ip::calc_subnet_by_cidr_suffix_ipv6($l_cidr);
-            if ($l_ip_data["ADDRESS_FROM"] == '') {
+
+            if ($l_ip_data['ADDRESS_FROM'] == '') {
                 $l_ip_range = Ip::calc_ip_range_ipv6($l_ip_data[C__IP__NET], $l_cidr);
-                $l_ip_data["ADDRESS_FROM"] = $l_ip_range['from'];
-                $l_ip_data["ADDRESS_TO"] = $l_ip_range['to'];
+                $l_ip_data['ADDRESS_FROM'] = $l_ip_range['from'];
+                $l_ip_data['ADDRESS_TO'] = $l_ip_range['to'];
             }
-            $l_ip_data["ADDRESS_FROM"] = Ip::validate_ipv6($l_ip_data["ADDRESS_FROM"]);
-            $l_ip_data["ADDRESS_TO"] = Ip::validate_ipv6($l_ip_data["ADDRESS_TO"]);
+
+            $l_ip_data['ADDRESS_FROM'] = Ip::validate_ipv6($l_ip_data['ADDRESS_FROM']);
+            $l_ip_data['ADDRESS_TO'] = Ip::validate_ipv6($l_ip_data['ADDRESS_TO']);
         }
 
         if (empty($l_list_id)) {
-            $l_list_id = $this->create_connector("isys_cats_net_list");
+            $l_list_id = $this->create_connector('isys_cats_net_list');
         }
 
-        $l_bRet = $this->save($l_list_id, C__RECORD_STATUS__NORMAL, $_POST["C__CATS__NET__TITLE"], $_POST["C__CATS__NET__TYPE"], $l_ip_data[C__IP__NET],
-            $l_ip_data[C__IP__SUBNET], $_POST["C__CATS__NET__DEF_GW_V4"], $l_ip_data["ADDRESS_FROM"], $l_ip_data["ADDRESS_TO"],
-            $_POST["C__CMDB__CAT__COMMENTARY_" . $this->get_category_type() . $this->get_category_id()], $l_cidr,
-            isys_format_json::decode($_POST['C__CATS__NET__ASSIGNED_DNS_SERVER__HIDDEN']), $_POST['C__CATS__NET__DNS_DOMAIN'], $_POST["C__CATS__NET__REVERSE_DNS"],
-            isys_format_json::decode($_POST["C__CATS__NET__LAYER2__HIDDEN"]));
+        $l_bRet = $this->save(
+            $l_list_id,
+            C__RECORD_STATUS__NORMAL,
+            $_POST['C__CATS__NET__TITLE'],
+            $_POST['C__CATS__NET__TYPE'],
+            $l_ip_data[C__IP__NET],
+            $l_ip_data[C__IP__SUBNET],
+            $_POST['C__CATS__NET__DEF_GW_V4'],
+            $l_ip_data['ADDRESS_FROM'],
+            $l_ip_data['ADDRESS_TO'],
+            $_POST['C__CMDB__CAT__COMMENTARY_' . $this->get_category_type() . $this->get_category_id()],
+            $l_cidr,
+            isys_format_json::decode($_POST['C__CATS__NET__ASSIGNED_DNS_SERVER__HIDDEN']),
+            $_POST['C__CATS__NET__DNS_DOMAIN'],
+            $_POST['C__CATS__NET__REVERSE_DNS'],
+            isys_format_json::decode($_POST['C__CATS__NET__LAYER2__HIDDEN'])
+        );
 
         $this->m_strLogbookSQL = $this->get_last_query();
 
-        return $l_bRet == true ? $l_list_id : -1;
+        return $l_bRet ? $l_list_id : -1;
     }
 
     /**
@@ -517,7 +536,7 @@ class isys_cmdb_dao_category_s_net extends isys_cmdb_dao_category_specific
             $l_layer2_ids = $this->get_layer_2_id_by_obj_id($p_layer_2_assignment);
 
             if (is_array($l_layer2_ids) && count($l_layer2_ids) > 0) {
-                foreach ($l_layer2_ids AS $l_key1 => $l_id) {
+                foreach ($l_layer2_ids as $l_key1 => $l_id) {
                     if (count($l_assigned_layer2) > 0 && is_numeric(($l_key2 = array_search($l_id, $l_assigned_layer2)))) {
                         unset($l_assigned_layer2[$l_key2]);
                         unset($l_layer2_ids[$l_key1]);
@@ -547,7 +566,7 @@ class isys_cmdb_dao_category_s_net extends isys_cmdb_dao_category_specific
                 }
 
                 if (is_array($l_dns_server_arr) && count($l_dns_server_arr) > 0) {
-                    foreach ($l_dns_server_arr AS $l_dns_server_id) {
+                    foreach ($l_dns_server_arr as $l_dns_server_id) {
                         if (is_numeric($l_dns_server_id) && $l_dns_server_id > 0) {
                             $this->attach_dns_server($p_cat_level, $l_dns_server_id);
                         }
@@ -574,7 +593,7 @@ class isys_cmdb_dao_category_s_net extends isys_cmdb_dao_category_specific
                         $l_ar_selected_domains[] = $l_row['isys_net_dns_domain__id'];
                     }
                     if (is_array($l_dns_domain_arr) && count($l_dns_domain_arr) > 0) {
-                        foreach ($l_dns_domain_arr AS $l_dns_domain_id) {
+                        foreach ($l_dns_domain_arr as $l_dns_domain_id) {
                             if (!in_array($l_dns_domain_id, $l_ar_selected_domains) && $l_dns_domain_id > 0) {
                                 $this->attach_dns_domain($p_cat_level, $l_dns_domain_id);
                             }
@@ -588,7 +607,6 @@ class isys_cmdb_dao_category_s_net extends isys_cmdb_dao_category_specific
         } else {
             return false;
         }
-
     }
 
     /**
@@ -681,7 +699,6 @@ class isys_cmdb_dao_category_s_net extends isys_cmdb_dao_category_specific
 
             if (!empty($p_dns_server_selected)) {
                 if (is_string($p_dns_server_selected) || is_array($p_dns_server_selected)) {
-
                     if (!is_array($p_dns_server_selected)) {
                         $l_dns_server_arr = explode(",", $p_dns_server_selected);
                     } else {
@@ -689,7 +706,7 @@ class isys_cmdb_dao_category_s_net extends isys_cmdb_dao_category_specific
                     }
 
                     if (count($l_dns_server_arr) > 0) {
-                        foreach ($l_dns_server_arr AS $l_dns_server_id) {
+                        foreach ($l_dns_server_arr as $l_dns_server_id) {
                             $this->attach_dns_server($l_last_id, $l_dns_server_id);
                         }
                     }
@@ -698,7 +715,6 @@ class isys_cmdb_dao_category_s_net extends isys_cmdb_dao_category_specific
 
             if (!empty($p_dns_domain_selected)) {
                 if (is_string($p_dns_domain_selected) || is_array($p_dns_domain_selected)) {
-
                     if (!is_array($p_dns_domain_selected)) {
                         $l_dns_domain_arr = explode(",", $p_dns_domain_selected);
                     } else {
@@ -706,7 +722,7 @@ class isys_cmdb_dao_category_s_net extends isys_cmdb_dao_category_specific
                     }
 
                     if (count($l_dns_domain_arr) > 0) {
-                        foreach ($l_dns_domain_arr AS $l_dns_domain_id) {
+                        foreach ($l_dns_domain_arr as $l_dns_domain_id) {
                             $this->attach_dns_domain($l_last_id, $l_dns_domain_id);
                         }
                     }
@@ -824,7 +840,7 @@ class isys_cmdb_dao_category_s_net extends isys_cmdb_dao_category_specific
 
         if (!empty($p_cat_id) && empty($p_obj_id)) {
             $l_sql .= 'WHERE isys_cats_net_list__id = ' . $this->convert_sql_id($p_cat_id) . ';';
-        } else if (empty($p_cat_id) && !empty($p_obj_id)) {
+        } elseif (empty($p_cat_id) && !empty($p_obj_id)) {
             $l_sql .= 'WHERE isys_cats_net_list__id = (SELECT isys_cats_net_list__id FROM isys_cats_net_list WHERE isys_cats_net_list__isys_obj__id = ' .
                 $this->convert_sql_id($p_obj_id) . ');';
         }
@@ -1037,7 +1053,6 @@ class isys_cmdb_dao_category_s_net extends isys_cmdb_dao_category_specific
                             $l_row['isys_catg_ip_list__id'],
                             $l_row['isys_cats_net_ip_addresses_list__title'],
                         ];
-
                     }
                 }
 
@@ -1199,9 +1214,14 @@ class isys_cmdb_dao_category_s_net extends isys_cmdb_dao_category_specific
 
         if (count($l_dhcp_types) > 0) {
             $l_dhcp_arr = [];
-            foreach ($l_dhcp_types AS $l_dhcp_key => $l_dhcp_type_id) {
-                $l_dhcp_res = $l_dao_dhcp->get_data(null, $p_obj_id, ' AND ' . $dhcpTypeTable . '__id = ' . $this->convert_sql_id($l_dhcp_type_id), null,
-                    C__RECORD_STATUS__NORMAL);
+            foreach ($l_dhcp_types as $l_dhcp_key => $l_dhcp_type_id) {
+                $l_dhcp_res = $l_dao_dhcp->get_data(
+                    null,
+                    $p_obj_id,
+                    ' AND ' . $dhcpTypeTable . '__id = ' . $this->convert_sql_id($l_dhcp_type_id),
+                    null,
+                    C__RECORD_STATUS__NORMAL
+                );
                 while ($l_dhcp_row = $l_dhcp_res->get_row()) {
                     $l_dhcp_arr[$l_dhcp_key][] = [
                         'from' => Ip::ip2long($l_dhcp_row['isys_cats_net_dhcp_list__range_from']),
@@ -1228,7 +1248,7 @@ class isys_cmdb_dao_category_s_net extends isys_cmdb_dao_category_specific
 
         if (is_numeric($p_id)) {
             $l_sql .= 'WHERE isys_net_type__id = ' . $this->convert_sql_id($p_id);
-        } else if (is_string($p_id)) {
+        } elseif (is_string($p_id)) {
             $l_sql .= 'WHERE isys_net_type__const = ' . $this->convert_sql_text($p_id);
         }
 
@@ -1396,7 +1416,7 @@ class isys_cmdb_dao_category_s_net extends isys_cmdb_dao_category_specific
         if (is_numeric($p_layer2_id)) {
             $l_insert .= ' (' . $this->convert_sql_id($p_layer2_id) . ', ' . $this->convert_sql_id($p_obj_id) . ')';
         } elseif (is_array($p_layer2_id) && count($p_layer2_id) > 0) {
-            foreach ($p_layer2_id AS $l_id) {
+            foreach ($p_layer2_id as $l_id) {
                 $l_insert .= ' (' . $this->convert_sql_id($l_id) . ', ' . $this->convert_sql_id($p_obj_id) . '), ';
             }
             $l_insert = rtrim($l_insert, ', ');
@@ -1715,19 +1735,34 @@ class isys_cmdb_dao_category_s_net extends isys_cmdb_dao_category_specific
                 ],
                 C__PROPERTY__DATA     => [
                     C__PROPERTY__DATA__FIELD  => 'isys_cats_net_list__isys_catg_ip_list__id',
-                    C__PROPERTY__DATA__SELECT => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory('SELECT CONCAT(isys_cats_net_ip_addresses_list__title, \' - \', isys_obj__title, \' {\', isys_obj__id, \'}\')
+                    C__PROPERTY__DATA__SELECT => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory(
+                        'SELECT CONCAT(isys_cats_net_ip_addresses_list__title, \' - \', isys_obj__title, \' {\', isys_obj__id, \'}\')
                             FROM isys_cats_net_list
                             INNER JOIN isys_catg_ip_list ON isys_catg_ip_list__id = isys_cats_net_list__isys_catg_ip_list__id
                             INNER JOIN isys_obj ON isys_obj__id = isys_catg_ip_list__isys_obj__id
                             INNER JOIN isys_cats_net_ip_addresses_list AS gw ON gw.isys_cats_net_ip_addresses_list__id = isys_catg_ip_list__isys_cats_net_ip_addresses_list__id',
-                        'isys_cats_net_list', 'isys_cats_net_list__id', 'isys_cats_net_list__isys_obj__id'),
+                        'isys_cats_net_list',
+                        'isys_cats_net_list__id',
+                        'isys_cats_net_list__isys_obj__id'
+                    ),
                     C__PROPERTY__DATA__JOIN   => [
                         idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory('isys_cats_net_list', 'LEFT', 'isys_cats_net_list__isys_obj__id', 'isys_obj__id'),
-                        idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory('isys_catg_ip_list', 'LEFT', 'isys_cats_net_list__isys_catg_ip_list__id',
-                            'isys_catg_ip_list__id'),
+                        idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory(
+                            'isys_catg_ip_list',
+                            'LEFT',
+                            'isys_cats_net_list__isys_catg_ip_list__id',
+                            'isys_catg_ip_list__id'
+                        ),
                         idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory('isys_obj', 'LEFT', 'isys_catg_ip_list__isys_obj__id', 'isys_obj__id'),
-                        idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory('isys_cats_net_ip_addresses_list', 'LEFT',
-                            'isys_catg_ip_list__isys_cats_net_ip_addresses_list__id', 'isys_cats_net_ip_addresses_list__id', '', 'gw', 'gw')
+                        idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory(
+                            'isys_cats_net_ip_addresses_list',
+                            'LEFT',
+                            'isys_catg_ip_list__isys_cats_net_ip_addresses_list__id',
+                            'isys_cats_net_ip_addresses_list__id',
+                            '',
+                            'gw',
+                            'gw'
+                        )
                     ]
                 ],
                 C__PROPERTY__UI       => [
@@ -1791,15 +1826,22 @@ class isys_cmdb_dao_category_s_net extends isys_cmdb_dao_category_specific
                         'isys_cats_net_list_2_isys_catg_ip_list',
                         'isys_cats_net_list__id'
                     ],
-                    C__PROPERTY__DATA__SELECT     => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory('SELECT CONCAT(isys_obj_type__title, \' > \', isys_obj__title, \' > \', isys_cats_net_ip_addresses_list__title, \' {\', isys_obj__id, \'}\')
+                    C__PROPERTY__DATA__SELECT     => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory(
+                        'SELECT CONCAT(isys_obj_type__title, \' > \', isys_obj__title, \' > \', isys_cats_net_ip_addresses_list__title, \' {\', isys_obj__id, \'}\')
                             FROM isys_cats_net_list AS dns_server
                             INNER JOIN isys_cats_net_list_2_isys_catg_ip_list AS con ON con.isys_cats_net_list__id = dns_server.isys_cats_net_list__id
                             INNER JOIN isys_catg_ip_list AS ip ON ip.isys_catg_ip_list__id = con.isys_catg_ip_list__id
                             INNER JOIN isys_cats_net_ip_addresses_list ON isys_cats_net_ip_addresses_list__id = ip.isys_catg_ip_list__isys_cats_net_ip_addresses_list__id
                             INNER JOIN isys_obj ON isys_obj__id = ip.isys_catg_ip_list__isys_obj__id
-                            INNER JOIN isys_obj_type ON isys_obj_type__id = isys_obj__isys_obj_type__id', 'isys_cats_net_list', 'dns_server.isys_cats_net_list__id',
-                        'dns_server.isys_cats_net_list__isys_obj__id', '', '', idoit\Module\Report\SqlQuery\Structure\SelectCondition::factory([]),
-                        idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['dns_server.isys_cats_net_list__isys_obj__id']))
+                            INNER JOIN isys_obj_type ON isys_obj_type__id = isys_obj__isys_obj_type__id',
+                        'isys_cats_net_list',
+                        'dns_server.isys_cats_net_list__id',
+                        'dns_server.isys_cats_net_list__isys_obj__id',
+                        '',
+                        '',
+                        idoit\Module\Report\SqlQuery\Structure\SelectCondition::factory([]),
+                        idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['dns_server.isys_cats_net_list__isys_obj__id'])
+                    )
                 ],
                 C__PROPERTY__UI       => [
                     C__PROPERTY__UI__ID     => 'C__CATS__NET__ASSIGNED_DNS_SERVER',
@@ -1836,13 +1878,19 @@ class isys_cmdb_dao_category_s_net extends isys_cmdb_dao_category_specific
                         'isys_cats_net_list_2_isys_net_dns_domain',
                         'isys_cats_net_list__id'
                     ],
-                    C__PROPERTY__DATA__SELECT       => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory('SELECT dns.isys_net_dns_domain__title
+                    C__PROPERTY__DATA__SELECT       => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory(
+                        'SELECT dns.isys_net_dns_domain__title
                             FROM isys_cats_net_list AS dns_domain
                             INNER JOIN isys_cats_net_list_2_isys_net_dns_domain AS con ON con.isys_cats_net_list__id = dns_domain.isys_cats_net_list__id
-                            INNER JOIN isys_net_dns_domain AS dns ON dns.isys_net_dns_domain__id = con.isys_net_dns_domain__id', 'isys_cats_net_list',
-                        'dns_domain.isys_cats_net_list__id', 'dns_domain.isys_cats_net_list__isys_obj__id', '', '',
+                            INNER JOIN isys_net_dns_domain AS dns ON dns.isys_net_dns_domain__id = con.isys_net_dns_domain__id',
+                        'isys_cats_net_list',
+                        'dns_domain.isys_cats_net_list__id',
+                        'dns_domain.isys_cats_net_list__isys_obj__id',
+                        '',
+                        '',
                         idoit\Module\Report\SqlQuery\Structure\SelectCondition::factory([]),
-                        idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['dns_domain.isys_cats_net_list__isys_obj__id']))
+                        idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['dns_domain.isys_cats_net_list__isys_obj__id'])
+                    )
                 ],
                 C__PROPERTY__UI       => [
                     C__PROPERTY__UI__ID     => 'C__CATS__NET__DNS_DOMAIN',
@@ -1912,14 +1960,21 @@ class isys_cmdb_dao_category_s_net extends isys_cmdb_dao_category_specific
                 ],
                 C__PROPERTY__DATA     => [
                     C__PROPERTY__DATA__FIELD  => 'isys_obj__id',
-                    C__PROPERTY__DATA__SELECT => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory('SELECT CONCAT(isys_obj_type__title, \' > \', obj.isys_obj__title, \' {\', obj.isys_obj__id, \'}\')
+                    C__PROPERTY__DATA__SELECT => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory(
+                        'SELECT CONCAT(isys_obj_type__title, \' > \', obj.isys_obj__title, \' {\', obj.isys_obj__id, \'}\')
                             FROM isys_cats_net_list AS layer2_assignment
                             INNER JOIN isys_cats_layer2_net_2_layer3 AS con ON con.isys_obj__id = layer2_assignment.isys_cats_net_list__isys_obj__id
                             INNER JOIN isys_cats_layer2_net_list AS l2 ON l2.isys_cats_layer2_net_list__id= con.isys_cats_layer2_net_list__id
                             INNER JOIN isys_obj AS obj ON obj.isys_obj__id = l2.isys_cats_layer2_net_list__isys_obj__id
-                            INNER JOIN isys_obj_type ON isys_obj_type__id = obj.isys_obj__isys_obj_type__id', 'isys_cats_net_list', 'layer2_assignment.isys_cats_net_list__id',
-                        'layer2_assignment.isys_cats_net_list__isys_obj__id', '', '', idoit\Module\Report\SqlQuery\Structure\SelectCondition::factory([]),
-                        idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['layer2_assignment.isys_cats_net_list__isys_obj__id']))
+                            INNER JOIN isys_obj_type ON isys_obj_type__id = obj.isys_obj__isys_obj_type__id',
+                        'isys_cats_net_list',
+                        'layer2_assignment.isys_cats_net_list__id',
+                        'layer2_assignment.isys_cats_net_list__isys_obj__id',
+                        '',
+                        '',
+                        idoit\Module\Report\SqlQuery\Structure\SelectCondition::factory([]),
+                        idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['layer2_assignment.isys_cats_net_list__isys_obj__id'])
+                    )
                 ],
                 C__PROPERTY__UI       => [
                     C__PROPERTY__UI__ID     => 'C__CATS__NET__LAYER2',
@@ -1960,15 +2015,22 @@ class isys_cmdb_dao_category_s_net extends isys_cmdb_dao_category_specific
                 ],
                 C__PROPERTY__DATA     => [
                     C__PROPERTY__DATA__FIELD  => 'isys_obj__id',
-                    C__PROPERTY__DATA__SELECT => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory('SELECT (CASE
+                    C__PROPERTY__DATA__SELECT => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory(
+                        'SELECT (CASE
                                 WHEN IS_IPV4(isys_cats_net_list__address_range_from) THEN
                                     CONCAT(isys_cats_net_list__address_range_from, \' - \', isys_cats_net_list__address_range_to)
                                 WHEN IS_IPV6(isys_cats_net_list__address_range_from) THEN
                                     CONCAT(INET6_NTOA(INET6_ATON(isys_cats_net_list__address_range_from)), \' - \', INET6_NTOA(INET6_ATON(isys_cats_net_list__address_range_to)))
                              END)
-                            FROM isys_cats_net_list', 'isys_cats_net_list', 'isys_cats_net_list__id', 'isys_cats_net_list__isys_obj__id', '', '',
+                            FROM isys_cats_net_list',
+                        'isys_cats_net_list',
+                        'isys_cats_net_list__id',
+                        'isys_cats_net_list__isys_obj__id',
+                        '',
+                        '',
                         idoit\Module\Report\SqlQuery\Structure\SelectCondition::factory([]),
-                        idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['isys_cats_net_list__isys_obj__id']))
+                        idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['isys_cats_net_list__isys_obj__id'])
+                    )
                 ],
                 C__PROPERTY__PROVIDES => [
                     C__PROPERTY__PROVIDES__LIST       => true,
@@ -1983,13 +2045,20 @@ class isys_cmdb_dao_category_s_net extends isys_cmdb_dao_category_specific
                 ],
                 C__PROPERTY__DATA     => [
                     C__PROPERTY__DATA__FIELD  => 'isys_obj__id',
-                    C__PROPERTY__DATA__SELECT => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory('SELECT (CASE
+                    C__PROPERTY__DATA__SELECT => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory(
+                        'SELECT (CASE
                                 WHEN IS_IPV6(isys_cats_net_list__address) THEN CONCAT(INET6_NTOA(INET6_ATON(isys_cats_net_list__address)), \' / \', isys_cats_net_list__cidr_suffix)
                                 WHEN IS_IPV4(isys_cats_net_list__address) THEN CONCAT(INET_NTOA(INET_ATON(isys_cats_net_list__address)), \' / \', isys_cats_net_list__cidr_suffix)
                                 ELSE ' . $this->convert_sql_text(isys_tenantsettings::get('gui.empty_value', '-')) . ' END)
-                            FROM isys_cats_net_list', 'isys_cats_net_list', 'isys_cats_net_list__id', 'isys_cats_net_list__isys_obj__id', '', '',
+                            FROM isys_cats_net_list',
+                        'isys_cats_net_list',
+                        'isys_cats_net_list__id',
+                        'isys_cats_net_list__isys_obj__id',
+                        '',
+                        '',
                         idoit\Module\Report\SqlQuery\Structure\SelectCondition::factory([]),
-                        idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['isys_cats_net_list__isys_obj__id']))
+                        idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['isys_cats_net_list__isys_obj__id'])
+                    )
                 ],
                 C__PROPERTY__PROVIDES => [
                     C__PROPERTY__PROVIDES__LIST       => true,
@@ -2076,7 +2145,7 @@ class isys_cmdb_dao_category_s_net extends isys_cmdb_dao_category_specific
                     }
 
                     $l_dialog_admin = new isys_cmdb_dao_dialog_admin($this->get_database_component());
-                    foreach ($p_category_data['properties']['dns_domain'][C__DATA__VALUE] AS $l_index => $l_dns_domain) {
+                    foreach ($p_category_data['properties']['dns_domain'][C__DATA__VALUE] as $l_index => $l_dns_domain) {
                         if (!is_numeric($l_dns_domain)) {
                             // Create/Retrieve dns domain
                             $p_category_data['properties']['dns_domain'][C__DATA__VALUE][$l_index] = $l_dialog_admin->get_id('isys_net_dns_domain', $l_dns_domain);
@@ -2095,7 +2164,7 @@ class isys_cmdb_dao_category_s_net extends isys_cmdb_dao_category_specific
                     if (is_array(current($p_category_data['properties']['dns_server'][C__DATA__VALUE]))) {
                         $l_dns_server_arr = $p_category_data['properties']['dns_server'][C__DATA__VALUE];
                         $p_category_data['properties']['dns_server'][C__DATA__VALUE] = [];
-                        foreach ($l_dns_server_arr AS $l_dns_server_content) {
+                        foreach ($l_dns_server_arr as $l_dns_server_content) {
                             if (isset($l_dns_server_content['ref_id'])) {
                                 $p_category_data['properties']['dns_server'][C__DATA__VALUE][] = $l_dns_server_content['ref_id'];
                             }
@@ -2132,13 +2201,23 @@ class isys_cmdb_dao_category_s_net extends isys_cmdb_dao_category_specific
                 }
 
                 // Save category data:
-                $l_indicator = $this->save($p_category_data['data_id'], C__RECORD_STATUS__NORMAL, $p_category_data['properties']['title'][C__DATA__VALUE],
-                    $p_category_data['properties']['type'][C__DATA__VALUE], $p_category_data['properties']['address'][C__DATA__VALUE],
-                    $p_category_data['properties']['netmask'][C__DATA__VALUE], $p_category_data['properties']['gateway'][C__DATA__VALUE],
-                    $p_category_data['properties']['range_from'][C__DATA__VALUE], $p_category_data['properties']['range_to'][C__DATA__VALUE],
-                    $p_category_data['properties']['description'][C__DATA__VALUE], $p_category_data['properties']['cidr_suffix'][C__DATA__VALUE],
-                    $p_category_data['properties']['dns_server'][C__DATA__VALUE], $p_category_data['properties']['dns_domain'][C__DATA__VALUE],
-                    $p_category_data['properties']['reverse_dns'][C__DATA__VALUE], $p_category_data['properties']['layer2_assignments'][C__DATA__VALUE]);
+                $l_indicator = $this->save(
+                    $p_category_data['data_id'],
+                    C__RECORD_STATUS__NORMAL,
+                    $p_category_data['properties']['title'][C__DATA__VALUE],
+                    $p_category_data['properties']['type'][C__DATA__VALUE],
+                    $p_category_data['properties']['address'][C__DATA__VALUE],
+                    $p_category_data['properties']['netmask'][C__DATA__VALUE],
+                    $p_category_data['properties']['gateway'][C__DATA__VALUE],
+                    $p_category_data['properties']['range_from'][C__DATA__VALUE],
+                    $p_category_data['properties']['range_to'][C__DATA__VALUE],
+                    $p_category_data['properties']['description'][C__DATA__VALUE],
+                    $p_category_data['properties']['cidr_suffix'][C__DATA__VALUE],
+                    $p_category_data['properties']['dns_server'][C__DATA__VALUE],
+                    $p_category_data['properties']['dns_domain'][C__DATA__VALUE],
+                    $p_category_data['properties']['reverse_dns'][C__DATA__VALUE],
+                    $p_category_data['properties']['layer2_assignments'][C__DATA__VALUE]
+                );
             }
         }
 
@@ -2169,7 +2248,7 @@ class isys_cmdb_dao_category_s_net extends isys_cmdb_dao_category_specific
                 $l_return['netmask'] = isys_application::instance()->container->get('language')
                     ->get('LC__UNIVERSAL__FIELD_VALUE_IS_INVALID');
             }
-        } else if ($p_data['type'] == defined_or_default('C__CATS_NET_TYPE__IPV6')) {
+        } elseif ($p_data['type'] == defined_or_default('C__CATS_NET_TYPE__IPV6')) {
             if (filter_var($p_data['address_v6'], FILTER_VALIDATE_IP, FILTER_FLAG_IPV6) === false) {
                 $l_return['address_v6'] = isys_application::instance()->container->get('language')
                     ->get('LC__UNIVERSAL__FIELD_VALUE_IS_INVALID');
@@ -2192,14 +2271,14 @@ class isys_cmdb_dao_category_s_net extends isys_cmdb_dao_category_specific
      */
     private function merge_posted_ip_data($p_net_type)
     {
-        $l_subnet = $l_gw = $l_from = $l_to = $l_net = "";
+        $l_subnet = $l_gw = $l_from = $l_to = $l_net = '';
 
         if ($p_net_type == 1001 || $p_net_type == defined_or_default('C__CATS_NET_TYPE__IPV4')) {
             $l_subnet = $_POST['C__CATS__NET__MASK_V4'];
             $l_from = $_POST['C__CATS__NET__ADDRESS_RANGE_FROM_V4'];
             $l_to = $_POST['C__CATS__NET__ADDRESS_RANGE_TO_V4'];
             $l_net = $_POST['C__CATS__NET__NET_V4'];
-        } elseif ($p_net_type == 'C__CATS_NET_TYPE__IPV6') {
+        } elseif ($p_net_type == defined_or_default('C__CATS_NET_TYPE__IPV6')) {
             $l_gw = $_POST['C__CATS__NET__DEF_GW_V6'];
             $l_subnet = $_POST['C__CATS__NET__MASK_V6'];
             $l_from = $_POST['C__CATS__NET__ADDRESS_RANGE_FROM'];
@@ -2211,8 +2290,8 @@ class isys_cmdb_dao_category_s_net extends isys_cmdb_dao_category_specific
             C__IP__SUBNET  => $l_subnet,
             C__IP__GATEWAY => $l_gw,
             C__IP__NET     => $l_net,
-            "ADDRESS_FROM" => $l_from,
-            "ADDRESS_TO"   => $l_to
+            'ADDRESS_FROM' => $l_from,
+            'ADDRESS_TO'   => $l_to
         ];
     }
 

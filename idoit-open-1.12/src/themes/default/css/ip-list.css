@@ -1,141 +1,106 @@
 #ip-table {
-	float: left;
-	width: 68%;
-	min-width: auto;
+    float: left;
+    width: 68%;
+    min-width: auto;
 }
 
 #ip-table tr.used td:nth-child(2) {
-	font-weight: bold;
+    font-weight: bold;
 }
 
 #ip-table tr[data-ip] button {
-	opacity: .3;
+    opacity: .3;
 }
 
 #ip-table tr:hover button:not([disabled]) {
-	opacity: 1;
+    opacity: 1;
 }
 
 #ip-table td > span,
 #ip-table td > a {
-	display: block;
-	width: 100%;
-	text-overflow: ellipsis;
-	overflow: hidden;
+    display: block;
+    width: 100%;
+    text-overflow: ellipsis;
+    overflow: hidden;
 }
 
-#ip-table td.sel {
-	background: #000 !important;
-}
-
-.reserved {
-	background: #C3F4C3 !important;
-}
-
-.default-gateway {
-	background: #FFFFAF !important;
-}
-
-.static-address {
-	background: #E8E8E8 !important;
-}
-
-.static-address.even {
-	background: #E0E0E0 !important;
-}
-
-.unnumbered {
-	background: #FFDEB7 !important;
-}
-
-.unnumbered.even {
-	background: #F7D7B2 !important;
-}
-
-.dhcp-address {
-	background: #E2F4FF !important;
-}
-
-.dhcp-address.even {
-	background: #D6EFFF !important;
-}
-
-.dhcp-reserved-address {
-	background: #A8D7FF !important;
-}
-
-.dhcp-reserved-address.even {
-	background: #91CDFF !important;
-}
-
-.slaac {
-	background: #FFFFFF !important;
-}
+#ip-table td.sel {background: #000000 !important;}
+.reserved {background: #c3f4c3 !important;}
+.default-gateway {background: #ffffaf !important;}
+.static-address {background: #e8e8e8 !important;}
+.static-address.even {background: #e0e0e0 !important;}
+.unnumbered {background: #ffdeb7 !important;}
+.unnumbered.even {background: #f7d7b2 !important;}
+.dhcp-address {background: #e2f4ff !important;}
+.dhcp-address.even {background: #d6efff !important;}
+.dhcp-reserved-address {background: #a8d7ff !important;}
+.dhcp-reserved-address.even {background: #91cdff !important;}
+.slaac {background: #ffffff !important;}
 
 .slaac-dhcp {
-	background: #E2F4FF url('[{$dir_images}]list/ip_list_slaac_dhcp.png') !important;
+    background: #e2f4ff url('[{$dir_images}]list/ip_list_slaac_dhcp.png') !important;
 }
 
 .slaac-dhcp.even {
-	background: #E2F4FF url('[{$dir_images}]list/ip_list_slaac_dhcp.png') 46px 0 !important;
+    background: #e2f4ff url('[{$dir_images}]list/ip_list_slaac_dhcp.png') 46px 0 !important;
 }
 
 #box-scroller {
-	position: absolute;
-	width: 30%;
-	top: 45px;
-	right: 0;
+    position: absolute;
+    width: 30%;
+    top: 45px;
+    right: 0;
 }
 
 #box-scroller h3 {
-	text-shadow: 0 1px 0 #fff;
-	line-height: 20px;
-	color: #dd3333;
-	padding: 5px;
-	background: #e4e4e4 url('[{$dir_images}]gradient.png') repeat-x;
-	cursor: pointer;
+    text-shadow: 0 1px 0 #ffffff;
+    line-height: 20px;
+    color: #dd3333;
+    padding: 5px;
+    background: #e4e4e4 url('[{$dir_images}]gradient.png') repeat-x;
+    cursor: pointer;
 }
 
 #box-scroller li {
-	height: 30px;
-	line-height: 29px;
-	padding: 0 5px;
-	background: #f3f3f3;
+    height: 30px;
+    line-height: 29px;
+    padding: 0 5px;
+    background: #f3f3f3;
 }
 
 #box-scroller li:nth-child(2n+1) {
-	background: #fff;
+    background: #ffffff;
 }
 
 #box-scroller button {
-	float: right;
+    float: right;
 }
 
 #box-scroller li button {
-	margin-top: 3px;
+    margin-top: 3px;
 }
 
 #box-scroller.v6 {
-	position: absolute;
-	width: 30%;
-	top: 0;
-	right: 0;
+    position: absolute;
+    width: 30%;
+    top: 0;
+    right: 0;
 }
 
 #box-scroller.condensed-half {
-	width: 22%;
+    width: 22%;
 }
 
 #ip-table.condensed-half {
-	width: 75%;
+    width: 75%;
 }
 
 #box-scroller.condensed {
-	width: 120px;
+    width: 120px;
 }
 
 #ip-table.condensed {
-	width: 100%;
+    width: 100%;
 }
 
 #box-scroller.condensed tbody,
@@ -143,26 +108,26 @@
 #box-scroller.condensed #hide-show-unused,
 #box-scroller.condensed #hide-show-unused span,
 #box-scroller.condensed-half #hide-show-unused span {
-	display: none;
+    display: none;
 }
 
 #box-scroller.condensed:hover {
-	width: auto;
+    width: auto;
 }
 
 #box-scroller.condensed:hover #hide-show-unused {
-	display: block;
+    display: block;
 }
 
 #box-scroller.condensed:hover tbody {
-	display: table-row-group;
+    display: table-row-group;
 }
 
 #separator-line {
-	height: 5px;
-	background: #888;
+    height: 5px;
+    background: #888888;
 }
 
 #new-dhcp-area {
-	cursor: pointer;
+    cursor: pointer;
 }

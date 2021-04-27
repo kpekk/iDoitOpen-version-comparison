@@ -122,6 +122,10 @@ class IndexingListener implements EventSubscriberInterface
 
     public function onRawDataProgressStart(GenericEvent $event)
     {
+        if ($this->output->getVerbosity() < OutputInterface::VERBOSITY_VERBOSE) {
+            return;
+        }
+
         $this->totalRows += $event->getArgument('count');
         $this->output->writeln('Start reading ' . $event->getArgument('count') . ' rows for ' . $event->getArgument('context'));
 
@@ -135,7 +139,9 @@ class IndexingListener implements EventSubscriberInterface
      */
     public function onRawDataProgressAdvance(GenericEvent $event)
     {
-        $this->progressBar->advance();
+        if ($this->progressBar !== null) {
+            $this->progressBar->advance();
+        }
     }
 
     /**
@@ -143,7 +149,9 @@ class IndexingListener implements EventSubscriberInterface
      */
     public function onRawDataProgressFinish(GenericEvent $event)
     {
-        $this->progressBar->finish();
+        if ($this->progressBar !== null) {
+            $this->progressBar->finish();
+        }
 
         $this->output->writeln('');
         $this->output->writeln('Finished reading ' . $event->getArgument('count') . ' rows');
@@ -154,6 +162,10 @@ class IndexingListener implements EventSubscriberInterface
         $this->output->writeln('');
         $this->output->writeln('Start mapping ' . $event->getArgument('count') . ' rows to ' . $event->getArgument('countOverall') . ' documents for ' .
             $event->getArgument('context'));
+
+        if ($this->output->getVerbosity() < OutputInterface::VERBOSITY_VERBOSE) {
+            return;
+        }
 
         $this->progressBar = new ProgressBar($this->output, $event->getArgument('countOverall'));
         $this->progressBar->setFormat($this->progressBarFormat);
@@ -166,7 +178,10 @@ class IndexingListener implements EventSubscriberInterface
     public function onDocumentMappingProgressAdvance(GenericEvent $event)
     {
         ++$this->totalDocumentsMapped;
-        $this->progressBar->advance($event->hasArgument('steps') ? $event->getArgument('steps') : 1);
+
+        if ($this->progressBar !== null) {
+            $this->progressBar->advance($event->hasArgument('steps') ? $event->getArgument('steps') : 1);
+        }
     }
 
     /**
@@ -174,7 +189,9 @@ class IndexingListener implements EventSubscriberInterface
      */
     public function onDocumentMappingProgressFinish(GenericEvent $event)
     {
-        $this->progressBar->finish();
+        if ($this->progressBar !== null) {
+            $this->progressBar->finish();
+        }
     }
 
     /**
@@ -195,6 +212,10 @@ class IndexingListener implements EventSubscriberInterface
         $this->output->writeln('');
         $this->output->writeln('Start ' . $event->getArgument('action') . ' documents');
 
+        if ($this->output->getVerbosity() < OutputInterface::VERBOSITY_VERBOSE) {
+            return;
+        }
+
         $this->progressBar = new ProgressBar($this->output, $event->getArgument('count'));
         $this->progressBar->setFormat($this->progressBarFormat);
         $this->progressBar->start();
@@ -206,7 +227,10 @@ class IndexingListener implements EventSubscriberInterface
     public function onDocumentInsertProgressAdvance(GenericEvent $event)
     {
         ++$this->totalDocumentsInserted;
-        $this->progressBar->advance();
+
+        if ($this->progressBar !== null) {
+            $this->progressBar->advance();
+        }
     }
 
     /**
@@ -214,7 +238,9 @@ class IndexingListener implements EventSubscriberInterface
      */
     public function onDocumentInsertProgressFinish(GenericEvent $event)
     {
-        $this->progressBar->finish();
+        if ($this->progressBar !== null) {
+            $this->progressBar->finish();
+        }
 
         $this->output->writeln('');
         $this->output->writeln('Finished ' . $event->getArgument('action') . ' documents!');

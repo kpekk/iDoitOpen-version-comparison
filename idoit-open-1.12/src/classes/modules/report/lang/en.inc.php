@@ -213,5 +213,8 @@ return [
     'LC__REPORT__PLACEHOLDER__PLACEHOLDER__OBJECT'                                 => 'Object Id e.g. 10',
     'LC__REPORT__PLACEHOLDER__PLACEHOLDER__REGEX'                                  => 'Regular expression e.g. .*',
     'LC__REPORT__FORM__ADVANCED_OPTIONS'                                           => 'Advanced options',
+    'LC__REPORT__FORM__ADVANCED_OPTIONS_SHOW'                                      => 'Show',
+    'LC__REPORT__FORM__ADVANCED_OPTIONS_HIDE'                                      => 'Hide',
     'LC__REPORT__FORM__SHOW_HTML'                                                  => 'Show HTML',
+    'LC__REPORT__POPUP__REPORT_PREVIEW__POSSIBLE_SQL_INJECTION'                    => 'The query contains a possible SQL injection. Please check the used query.'
 ];

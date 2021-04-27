@@ -191,20 +191,14 @@ class Synchronizer
                     ''
                 );
 
-                // Update object
-                $this->categoryDao->update_object(
-                    $objectId,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    null,
-                    microtime(true)
-                );
+                // Update object last updated
+                $database = $this->categoryDao->get_database_component();
+
+                $updated = "'" . date('Y-m-d H:i:s', microtime(true)) . "'";
+
+                $updateObjectQuery = 'UPDATE isys_obj SET isys_obj__updated = ' . $updated . ' WHERE isys_obj__id = ' . $this->categoryDao->convert_sql_int($objectId);
+
+                $database->query($updateObjectQuery) && $database->commit();
             }
 
             \idoit\Module\Cmdb\Search\Index\Signals::instance()->onMultiEditSaved($this->categoryDao, [], $changes);

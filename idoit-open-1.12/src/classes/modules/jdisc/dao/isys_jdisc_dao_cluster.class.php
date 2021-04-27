@@ -194,7 +194,7 @@ class isys_jdisc_dao_cluster extends isys_jdisc_dao_data
                              * @var $l_clusterservice array
                              */
                             $l_clusterservice = $this->does_clusterservice_exist_in_idoit($l_row['clusterservice']);
-                            if (!empty($l_clusterservice)) {
+                            if (!$l_clusterservice) {
                                 // Unset the cache entry, when we create the software.
                                 unset($this->m_missing_clusterservice_cache[$l_row['clusterservice']]);
                                 $l_new_obj = $l_dao->insert_new_obj(

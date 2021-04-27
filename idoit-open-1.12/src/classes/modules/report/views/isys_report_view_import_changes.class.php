@@ -5,26 +5,86 @@
  *
  * @package     i-doit
  * @subpackage  Reports
- * @author      Van Quyen Hoang <qhoang@i-doit.org>
+ * @author      Van Quyen Hoang <qhoang@i-doit.com>
  * @copyright   Copyright 2011 - synetics GmbH
  * @license     http://www.gnu.org/licenses/agpl-3.0.html GNU AGPLv3
- * @since       1.0
  */
 class isys_report_view_import_changes extends isys_report_view
 {
     private $m_dao;
 
     /**
-     * Method for ajax-requests.
+     * @return string
+     */
+    public static function name()
+    {
+        return 'LC__REPORT__VIEW__IMPORT_CHANGES';
+    }
+
+    /**
+     * @return string
+     */
+    public static function description()
+    {
+        return 'LC__REPORT__VIEW__IMPORT_CHANGES__DESCRIPTION';
+    }
+
+    /**
+     * @return string
+     */
+    public function template()
+    {
+        return isys_module_report::getPath() . 'templates/view_import_changes.tpl';
+    }
+
+    /**
+     * @return string
+     */
+    public static function viewtype()
+    {
+        return 'Import';
+    }
+
+    /**
      *
-     * @author  Van Quyen Hoang <qhoang@i-doit.org>
+     */
+    public function start()
+    {
+        $this->m_dao = isys_cmdb_dao::instance($this->database);
+
+        $l_rules = [
+            'C__IMPORT_TYPES'                    => [
+                'p_arData'     => $this->get_import_types(),
+                'p_strClass'   => 'input-mini',
+                'p_bDbFieldNN' => true
+            ],
+            'C__IMPORT_TYPES__TIMEPERIOD__START' => [
+                'p_strClass' => 'input-small',
+                'p_strStyle' => 'width:70%;',
+                'p_bTime'    => true
+            ],
+            'C__IMPORT_TYPES__TIMEPERIOD__END'   => [
+                'p_strClass' => 'input-small',
+                'p_strStyle' => 'width:70%;',
+                'p_bTime'    => true
+            ]
+        ];
+
+        // Finally assign the data to the template.
+        $this->template
+            ->activate_editmode()
+            ->assign('ajax_url', isys_glob_add_to_query('ajax', 1))
+            ->smarty_tom_add_rules("tom.content.bottom.content", $l_rules);
+    }
+
+    /**
+     * @throws isys_exception_database
+     * @throws isys_exception_general
      */
     public function ajax_request()
     {
-        global $g_comp_database;
-
         if (!isset($this->m_dao)) {
-            $this->m_dao = isys_cmdb_dao::instance($g_comp_database);
+            $this->m_dao = isys_cmdb_dao::instance($this->database);
         }
 
         $l_return = [];
@@ -49,107 +109,8 @@ class isys_report_view_import_changes extends isys_report_view
     }
 
     /**
-     * Method for retrieving the language constant of the report-description.
-     *
-     * @return  string
-     * @author  Van Quyen Hoang <qhoang@i-doit.org>
-     * @todo    Should we update the parent method to retrieve this automatically?
+     * @return array
      */
-    public static function description()
-    {
-        return 'LC__REPORT__VIEW__IMPORT_CHANGES__DESCRIPTION';
-    }
-
-    /**
-     * Initialize method.
-     *
-     * @return  boolean
-     * @author  Van Quyen Hoang <qhoang@i-doit.org>
-     */
-    public function init()
-    {
-        return true;
-    }
-
-    /**
-     * Method for retrieving the language constant of the report-name.
-     *
-     * @return  string
-     * @author  Van Quyen Hoang <qhoang@i-doit.org>
-     * @todo    Should we update the parent method to retrieve this automatically?
-     */
-    public static function name()
-    {
-        return 'LC__REPORT__VIEW__IMPORT_CHANGES';
-    }
-
-    /**
-     * Start-method - Implement the logic for displaying your data here.
-     *
-     * @author  Van Quyen Hoang <qhoang@i-doit.org>
-     */
-    public function start()
-    {
-        $this->m_dao = isys_cmdb_dao::instance(isys_application::instance()->database);
-
-        $l_rules = [
-            'C__IMPORT_TYPES'                    => [
-                'p_arData'     => $this->get_import_types(),
-                'p_strClass'   => 'input-mini',
-                'p_bDbFieldNN' => true
-            ],
-            'C__IMPORT_TYPES__TIMEPERIOD__START' => [
-                'p_strClass' => 'input-small',
-                'p_strStyle' => 'width:70%;',
-                'p_bTime'    => true
-            ],
-            'C__IMPORT_TYPES__TIMEPERIOD__END'   => [
-                'p_strClass' => 'input-small',
-                'p_strStyle' => 'width:70%;',
-                'p_bTime'    => true
-            ]
-        ];
-
-        // Finally assign the data to the template.
-        isys_application::instance()->template->activate_editmode()
-            ->assign('ajax_url', isys_glob_add_to_query('ajax', 1))
-            ->smarty_tom_add_rules("tom.content.bottom.content", $l_rules);
-    }
-
-    /**
-     * Method for retrieving the template-name of this report.
-     *
-     * @return  string
-     * @author  Van Quyen Hoang <qhoang@i-doit.org>
-     * @todo    Should we update the parent method to retrieve this automatically?
-     */
-    public function template()
-    {
-        return 'view_import_changes.tpl';
-    }
-
-    /**
-     * Method for declaring the type of this report.
-     *
-     * @return  integer
-     * @author  Van Quyen Hoang <qhoang@i-doit.org>
-     */
-    public static function type()
-    {
-        return self::c_php_view;
-    }
-
-    /**
-     * Method for returning the views viewtype.
-     *
-     * @static
-     * @return  string
-     */
-    public static function viewtype()
-    {
-        return 'Import';
-    }
-
     private function get_import_types()
     {
         $l_sql = 'SELECT * FROM isys_import_type';
@@ -163,30 +124,26 @@ class isys_report_view_import_changes extends isys_report_view
         return $l_return;
     }
 
+    /**
+     * @param $p_import_id
+     *
+     * @return string
+     * @throws isys_exception_database
+     * @throws isys_exception_general
+     */
     private function load_import_changes($p_import_id)
     {
-        global $g_comp_database;
-
-        $l_listdao = isys_component_dao_logbook::instance($g_comp_database);
+        $l_listdao = isys_component_dao_logbook::instance($this->database);
         $l_listres = $l_listdao->get_result_by_import_id($p_import_id);
 
         if ($l_listres->num_rows() > 0) {
-            $l_strLogbTitle = isys_application::instance()->container->get('language')
-                ->get("LC__CMDB__LOGBOOK__TITLE");
-            $l_strLogbDate = isys_application::instance()->container->get('language')
-                ->get("LC__CMDB__LOGBOOK__DATE");
-            $l_strLogbLevel = isys_application::instance()->container->get('language')
-                ->get("LC__CMDB__LOGBOOK__LEVEL");
-            $l_strChgFields = isys_application::instance()->container->get('language')
-                ->get("LC__CMDB__LOGBOOK__CHANGED_FIELDS");
-
             $l_arTableHeader = [
-                "+"                              => "",
-                "isys_logbook__title"            => $l_strLogbTitle,
-                "isys_logbook__user_name_static" => "User",
-                "isys_logbook__changes"          => $l_strChgFields,
-                "isys_logbook__date"             => $l_strLogbDate,
-                "isys_logbook_level__title"      => $l_strLogbLevel
+                '+'                              => '',
+                'isys_logbook__title'            => $this->language->get('LC__CMDB__LOGBOOK__TITLE'),
+                'isys_logbook__user_name_static' => 'User',
+                'isys_logbook__changes'          => $this->language->get('LC__CMDB__LOGBOOK__CHANGED_FIELDS'),
+                'isys_logbook__date'             => $this->language->get('LC__CMDB__LOGBOOK__DATE'),
+                'isys_logbook_level__title'      => $this->language->get('LC__CMDB__LOGBOOK__LEVEL')
             ];
 
             $l_objList = new isys_component_list_logbook(null, $l_listres, $l_listdao);
@@ -197,23 +154,23 @@ class isys_report_view_import_changes extends isys_report_view
             $l_objList->config($l_arTableHeader, $l_strRowLink);
 
             return $l_objList->getTempTableHtml($l_filter);
-        } else {
-            return isys_application::instance()->container->get('language')
-                ->get('LC__REPORT__VIEW__IMPORT_CHANGES__NO_CHANGES_FOUND');
         }
 
-        return '';
+        return $this->language->get('LC__REPORT__VIEW__IMPORT_CHANGES__NO_CHANGES_FOUND');
     }
 
     /**
-     * @param $p_type
+     * @param        $p_type
+     * @param string $p_timeperiod_start
+     * @param string $p_timeperiod_end
      *
      * @return array
      */
     private function load_executed_imports($p_type, $p_timeperiod_start = '', $p_timeperiod_end = '')
     {
-        $l_sql = 'SELECT * FROM isys_import ' . 'INNER JOIN isys_import_type ON isys_import_type__id = isys_import__isys_import_type__id ' .
-            'WHERE isys_import_type__const = ' . $this->m_dao->convert_sql_text($p_type);
+        $l_sql = 'SELECT * FROM isys_import
+            INNER JOIN isys_import_type ON isys_import_type__id = isys_import__isys_import_type__id
+            WHERE isys_import_type__const = ' . $this->m_dao->convert_sql_text($p_type);
 
         if ($p_timeperiod_start !== '' && $p_timeperiod_end !== '') {
             $l_sql .= ' AND isys_import__import_date BETWEEN ' . $this->m_dao->convert_sql_text($p_timeperiod_start) . ' AND ' .
@@ -257,11 +214,8 @@ class isys_report_view_import_changes extends isys_report_view
                     ];
                     break;
             }
-
         }
 
         return $l_return;
     }
 }
-
-?>

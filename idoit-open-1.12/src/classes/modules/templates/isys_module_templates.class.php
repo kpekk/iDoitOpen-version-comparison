@@ -908,7 +908,7 @@ class isys_module_templates extends isys_module implements isys_module_interface
      * @throws isys_exception_general
      * @throws Exception
      */
-    public function apply_mass_change($p_objects, $p_template, $p_empty_fields, $p_multivalue_categories, $p_html_output = true)
+    public function apply_mass_change($p_objects, $p_template, $p_empty_fields, $p_multivalue_categories, $p_html_output = true, $overwriteCmdbStatus = true)
     {
         assert(is_array($p_objects));
         assert(is_int($p_template) && $p_template > 0);
@@ -950,7 +950,8 @@ class isys_module_templates extends isys_module implements isys_module_interface
         $l_import->set_multivalue_categories_mode($p_multivalue_categories);
         $l_import->set_logbook_event('C__LOGBOOK_ENTRY__MASS_CHANGE_APPLIED');
 
-        $l_xml_template = $l_export->export($p_template, $this->get_export_cats(), C__RECORD_STATUS__TEMPLATE, false, true)
+        $l_xml_template = $l_export->setOverwriteCmdbStatusOnMassChange($overwriteCmdbStatus)
+            ->export($p_template, $this->get_export_cats(), C__RECORD_STATUS__TEMPLATE, false, true)
             ->parse()
             ->get_export();
 
@@ -1352,7 +1353,7 @@ class isys_module_templates extends isys_module implements isys_module_interface
                 }
                 $l_multivalue_categories = intval($p_post['multivalue_categories']);
 
-                $this->apply_mass_change($l_object_list, $l_template, $l_empty_fields, $l_multivalue_categories, true);
+                $this->apply_mass_change($l_object_list, $l_template, $l_empty_fields, $l_multivalue_categories, true, (bool)$p_post['overwrite-cmdb-status']);
             } catch (Exception $e) {
                 echo($e->getMessage());
             } //try/catch

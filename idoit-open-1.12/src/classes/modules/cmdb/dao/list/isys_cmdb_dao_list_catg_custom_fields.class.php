@@ -272,8 +272,8 @@ class isys_cmdb_dao_list_catg_custom_fields extends isys_component_dao_category_
                             switch ($l_property[C__PROPERTY__DATA][C__PROPERTY__DATA__TYPE]) {
                                 case C__TYPE__DATE:
                                     // @see  ID-4984  Prepend a hidden date in format "yyyy-mm-dd".
-                                    $l_arr[$l_counter][$l_prop_key] = '<span class="hide">' . $l_val['isys_catg_custom_fields_list__field_content'] . '</span>' .
-                                        isys_application::instance()->container->locales->fmt_date($l_val['isys_catg_custom_fields_list__field_content']);
+                                    $l_arr[$l_counter][$l_prop_key] = '<span data-sort="' . htmlentities($l_val['isys_catg_custom_fields_list__field_content']) . '">' .
+                                        isys_application::instance()->container->locales->fmt_date($l_val['isys_catg_custom_fields_list__field_content']) . '</span>';
                                     break;
                                 case C__TYPE__INT:
                                     switch ($l_property[C__PROPERTY__UI][C__PROPERTY__UI__PARAMS]['popup']) {

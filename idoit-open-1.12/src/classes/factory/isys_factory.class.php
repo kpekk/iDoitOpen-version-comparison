@@ -5,8 +5,7 @@
  *
  * Class factory
  *
- * @deprecated  Please use something else - if it is REALLY NECESSARY, use idoit\Component\Provider\Factory
- *
+ * @deprecated  Please use something else!
  * @package     i-doit
  * @subpackage  Factory
  * @author      Benjamin Heisig <bheisig@synetics.de>
@@ -16,31 +15,27 @@
 class isys_factory
 {
     /**
-     * Contains self representations of factorized classes.
-     *
-     * @var  array  Associative array of instances
+     * @var array
      */
     protected static $m_instances = [];
 
     /**
-     * Gets an instance of a class.
+     * @param  string $className
+     * @param  mixed  $parameter
      *
-     * @param   string $p_class
-     * @param   mixed  $p_params
-     *
-     * @return  Object
+     * @deprecated
+     * @return mixed
      */
-    public static function get_instance($p_class, $p_params = null)
+    public static function get_instance($className, $parameter = null)
     {
-        if (isset(self::$m_instances[$p_class])) {
-            return self::$m_instances[$p_class];
+        if (isset(self::$m_instances[$className])) {
+            return self::$m_instances[$className];
         }
 
-        if (method_exists($p_class, 'get_instance')) {
-            return (self::$m_instances[$p_class] = call_user_func_array([$p_class, 'get_instance'], $p_params));
+        if (method_exists($className, 'get_instance')) {
+            return (self::$m_instances[$className] = call_user_func_array([$className, 'get_instance'], $parameter));
         }
 
-        // @todo Find a way to call the constructor and pass variable params - "call_user_func_array(array($p_class, '__construct') ..." does not work.
-        return (self::$m_instances[$p_class] = new $p_class($p_params));
+        return (self::$m_instances[$className] = new $className($parameter));
     }
 }

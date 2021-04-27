@@ -331,8 +331,8 @@ class isys_popup_browser_cable_connection_ng extends isys_popup_browser_object_n
 
         if (strpos($this->m_params['name'], '[') !== false && strpos($this->m_params['name'], ']') !== false) {
             $l_tmp = explode('[', $this->m_params['name']);
-            $l_view = $l_tmp[0] . '__VIEW[' . $l_tmp[1];
-            $l_hidden = $l_tmp[0] . '__HIDDEN[' . $l_tmp[1];
+            $l_view = $l_tmp[0] . '__VIEW[' . implode('[', array_slice($l_tmp, 1));
+            $l_hidden = $l_tmp[0] . '__HIDDEN[' . implode('[', array_slice($l_tmp, 1));
 
             $l_attr = [
                 'hidden'     => $l_hidden,

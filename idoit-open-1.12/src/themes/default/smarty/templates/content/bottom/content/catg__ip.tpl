@@ -735,7 +735,7 @@
 							message = '[{isys type="lang" ident="LC__CMDB__CATG__IP__IP_IS_INSIDE_RANGE_OF_DHCP"}]';
 							break;
 						case 3:
-							message = '[{isys type="lang" ident="LC__UNIVERSAL__NOT_AVAILABLE"}]';
+							message = '[{isys type="lang" ident="LC__CMDB__CATG__IP__IP_IS_NOT_AVAILABLE"}]'.replace(':net', $netSelectionView.getValue());
 							break;
 						case 4:
 							message = '[{isys type="lang" ident="LC__CMDB__CATG__IP__IP_NO_RANGE_AVAILABLE_FOR"}]: [{isys type="lang" ident="LC__CMDB__CATS__NET__DHCP"}]';
@@ -768,7 +768,7 @@
 					// We enable the "save"-button and display a nice message to the user.
 					isys_glob_enable_save();
 
-					message = '[{isys type="lang" ident="LC__UNIVERSAL__AVAILABLE"}]';
+					message = '[{isys type="lang" ident="LC__CMDB__CATG__IP__IP_IS_AVAILABLE"}]'.replace(':net', $netSelectionView.getValue());
 					boxCssClass= 'box-green';
 					break;
 
@@ -776,12 +776,12 @@
 					// We enable the "save"-button and display a nice message to the user.
 					isys_glob_enable_save();
 
-					message = '[{isys type="lang" ident="LC__UNIVERSAL__AVAILABLE"}]';
+					message = '[{isys type="lang" ident="LC__CMDB__CATG__IP__IP_IS_AVAILABLE"}]'.replace(':net', $netSelectionView.getValue());
 					boxCssClass= 'box-yellow';
 
 					switch(error_level) {
 						case 1:
-							message = '[{isys type="lang" ident="LC__CMDB__CATG__IP__IP_ALREADY_IN_USE"}]';
+							message = '[{isys type="lang" ident="LC__CMDB__CATG__IP__IP_ALREADY_IN_USE"}]'.replace(':net', $netSelectionView.getValue());
 							break;
 					}
 

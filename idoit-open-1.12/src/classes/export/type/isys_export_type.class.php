@@ -1,6 +1,7 @@
 <?php
 
 /**
+ * @deprecated This should not be used!
  * @package    i-doit
  * @subpackage Export
  * @author     Dennis Stücken <dstuecken@i-doit.org>
@@ -16,7 +17,7 @@ abstract class isys_export_type
      *
      * @var string
      */
-    protected $m_encoding = "utf-8";
+    protected $m_encoding = 'utf-8';
 
     /**
      * Holds the export in array structure
@@ -30,14 +31,14 @@ abstract class isys_export_type
      *
      * @var string
      */
-    protected $m_export_formatted = "";
+    protected $m_export_formatted = '';
 
     /**
      * File extension
      *
      * @var string
      */
-    protected $m_extension = "txt";
+    protected $m_extension = 'txt';
 
     abstract public function parse($p_array);
 
@@ -69,8 +70,6 @@ abstract class isys_export_type
         return $this->m_export;
     }
 
-    /* <abstract methods> */
-
     /**
      * Set formatted export
      *
@@ -79,14 +78,5 @@ abstract class isys_export_type
     protected function set_formatted_export($p_string)
     {
         $this->m_export_formatted = $p_string;
-    }    // Parses ARRAY and formats into XML/CSV/Whatever
-
-    /* </abstract methods> */
-
-    public function __construct()
-    {
-
     }
 }
-
-?>

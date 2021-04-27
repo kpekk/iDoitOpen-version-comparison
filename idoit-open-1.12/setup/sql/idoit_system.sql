@@ -1,5 +1,5 @@
 --
--- i-doit system dump for version 1.12
+-- i-doit system dump for version 1.12.2
 --
 -- For manual installations you need to insert your tenant connection info into isys_mandator in order to connect to a tenant.
 --
@@ -155,9 +155,9 @@ CREATE TABLE `isys_db_init` (
   PRIMARY KEY (`isys_db_init__id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-INSERT INTO `isys_db_init` VALUES (1,'title','i-doit 1.12');
-INSERT INTO `isys_db_init` VALUES (2,'revision','201811200');
-INSERT INTO `isys_db_init` VALUES (3,'version','1.12');
+INSERT INTO `isys_db_init` VALUES (1,'title','i-doit 1.12.2');
+INSERT INTO `isys_db_init` VALUES (2,'revision','201911202');
+INSERT INTO `isys_db_init` VALUES (3,'version','1.12.2');
 INSERT INTO `isys_db_init` VALUES (4,'type','pro');
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -182,13 +182,24 @@ CREATE TABLE `isys_licence` (
   `isys_licence__isys_licence__id` int(10) unsigned DEFAULT NULL,
   `isys_licence__contract` varchar(10) COLLATE utf8_unicode_ci DEFAULT NULL,
   `isys_licence__type` int(10) NOT NULL,
-  `isys_licence__key` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `isys_licence__data` text COLLATE utf8_unicode_ci,
-  `isys_licence__expires` int(10) DEFAULT NULL,
+  `isys_licence__key` longtext COLLATE utf8_unicode_ci,
+  `isys_licence__data` longtext COLLATE utf8_unicode_ci,
+  `isys_licence__expires` datetime DEFAULT NULL,
   `isys_licence__datetime` datetime DEFAULT NULL,
+  `isys_licence__license_objects` int(10) unsigned DEFAULT '0',
   PRIMARY KEY (`isys_licence__id`),
   KEY `isys_licence__isys_mandator__id` (`isys_licence__isys_mandator__id`),
   CONSTRAINT `isys_licence_ibfk_1` FOREIGN KEY (`isys_licence__isys_mandator__id`) REFERENCES `isys_mandator` (`isys_mandator__id`) ON DELETE CASCADE ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET character_set_client = utf8 */;
+CREATE TABLE `isys_licence_communication` (
+  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `created` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `status` int(3) unsigned NOT NULL,
+  `licenses_count` int(11) unsigned NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `created` (`created`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
@@ -207,6 +218,7 @@ CREATE TABLE `isys_mandator` (
   `isys_mandator__apikey` varchar(100) COLLATE utf8_unicode_ci DEFAULT NULL,
   `isys_mandator__sort` int(10) unsigned DEFAULT NULL,
   `isys_mandator__active` int(10) unsigned DEFAULT '1',
+  `isys_mandator__license_objects` int(10) unsigned DEFAULT '0',
   PRIMARY KEY (`isys_mandator__id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -261,13 +273,12 @@ CREATE TABLE `isys_settings` (
   PRIMARY KEY (`isys_settings__key`,`isys_settings__isys_mandator__id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
+INSERT INTO `isys_settings` VALUES ('admin.active_license_distribution','1',0);
 INSERT INTO `isys_settings` VALUES ('api.authenticated-users-only','1',0);
 INSERT INTO `isys_settings` VALUES ('api.status','1',0);
 INSERT INTO `isys_settings` VALUES ('api.validation','1',0);
 INSERT INTO `isys_settings` VALUES ('auth.active','1',0);
 INSERT INTO `isys_settings` VALUES ('barcode.type','qr',0);
-INSERT INTO `isys_settings` VALUES ('cmdb.renew-properties','1',1);
-INSERT INTO `isys_settings` VALUES ('cmdb.renew-properties','1',0);
 INSERT INTO `isys_settings` VALUES ('cmdb.base-object-list.config.C__CMDB__OBJTYPE__CABLE_TRAY','[[1,\"title\",\"isys_obj__title\",\"LC__UNIVERSAL__TITLE\",\"isys_cmdb_dao_category_g_global::get_properties\",false,\"LC__CMDB__CATG__GLOBAL\",null],[1,\"location_path\",\"isys_catg_location_list__parentid\",\"LC__CMDB__CATG__LOCATION_PATH\",\"isys_cmdb_dao_category_g_location::get_properties\",false,\"LC__CMDB__CATG__LOCATION\",null],[1,\"created\",\"isys_obj__created\",\"LC__TASK__DETAIL__WORKORDER__CREATION_DATE\",\"isys_cmdb_dao_category_g_global::get_properties\",false,\"LC__CMDB__CATG__GLOBAL\",null],[1,\"changed\",\"isys_obj__updated\",\"LC__CMDB__LAST_CHANGE\",\"isys_cmdb_dao_category_g_global::get_properties\",false,\"LC__CMDB__CATG__GLOBAL\",null],[1,\"cmdb_status\",\"isys_cmdb_status__title\",\"LC__UNIVERSAL__CMDB_STATUS\",\"isys_cmdb_dao_category_g_global::get_properties\",false,\"LC__CMDB__CATG__GLOBAL\",null]]',1);
 INSERT INTO `isys_settings` VALUES ('cmdb.base-object-list.config.C__CMDB__OBJTYPE__CONDUIT','[[1,\"title\",\"isys_obj__title\",\"LC__UNIVERSAL__TITLE\",\"isys_cmdb_dao_category_g_global::get_properties\",false,\"LC__CMDB__CATG__GLOBAL\",null],[1,\"location_path\",\"isys_catg_location_list__parentid\",\"LC__CMDB__CATG__LOCATION_PATH\",\"isys_cmdb_dao_category_g_location::get_properties\",false,\"LC__CMDB__CATG__LOCATION\",null],[1,\"created\",\"isys_obj__created\",\"LC__TASK__DETAIL__WORKORDER__CREATION_DATE\",\"isys_cmdb_dao_category_g_global::get_properties\",false,\"LC__CMDB__CATG__GLOBAL\",null],[1,\"changed\",\"isys_obj__updated\",\"LC__CMDB__LAST_CHANGE\",\"isys_cmdb_dao_category_g_global::get_properties\",false,\"LC__CMDB__CATG__GLOBAL\",null],[1,\"cmdb_status\",\"isys_cmdb_status__title\",\"LC__UNIVERSAL__CMDB_STATUS\",\"isys_cmdb_dao_category_g_global::get_properties\",false,\"LC__CMDB__CATG__GLOBAL\",null]]',1);
 INSERT INTO `isys_settings` VALUES ('cmdb.base-object-list.config.C__OBJECT_TYPE__GROUP','[[1,\"title\",\"isys_obj__title\",\"LC__UNIVERSAL__TITLE\",\"isys_cmdb_dao_category_g_global::get_properties\",false,\"LC__CMDB__CATG__GLOBAL\",null],[1,\"cmdb_status\",\"isys_cmdb_status__title\",\"LC__UNIVERSAL__CMDB_STATUS\",\"isys_cmdb_dao_category_g_global::get_properties\",false,\"LC__CMDB__CATG__GLOBAL\",null]]',1);
@@ -448,6 +459,8 @@ INSERT INTO `isys_settings` VALUES ('cmdb.objtype.83.auto-inventory-no','',0);
 INSERT INTO `isys_settings` VALUES ('cmdb.objtype.89.auto-inventory-no','',0);
 INSERT INTO `isys_settings` VALUES ('cmdb.objtype.90.auto-inventory-no','',0);
 INSERT INTO `isys_settings` VALUES ('cmdb.quickpurge','0',0);
+INSERT INTO `isys_settings` VALUES ('cmdb.renew-properties','1',0);
+INSERT INTO `isys_settings` VALUES ('cmdb.renew-properties','1',1);
 INSERT INTO `isys_settings` VALUES ('cmdb.unique.hostname','0',0);
 INSERT INTO `isys_settings` VALUES ('cmdb.unique.ip-address','0',0);
 INSERT INTO `isys_settings` VALUES ('cmdb.unique.layer-2-net','0',0);

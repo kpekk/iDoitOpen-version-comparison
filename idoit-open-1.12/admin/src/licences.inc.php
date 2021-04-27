@@ -6,7 +6,19 @@
  * @copyright  synetics GmbH
  * @license    http://www.gnu.org/licenses/agpl-3.0.html GNU AGPLv3
  */
-global $g_comp_database, $g_config, $g_absdir;
+
+use Carbon\Carbon;
+use GuzzleHttp\Exception\GuzzleException;
+use idoit\Module\License\Event\License\LegacyLicenseRemovedEvent;
+use idoit\Module\License\Exception\LicenseExistsException;
+use idoit\Module\License\Exception\LicenseInvalidException;
+use idoit\Module\License\Exception\LicenseParseException;
+use idoit\Module\License\Exception\LicenseServerAuthenticationException;
+use idoit\Module\License\Exception\LicenseServerConnectionException;
+use idoit\Module\License\Exception\LicenseServerNoLicensesException;
+use idoit\Module\License\LicenseService;
+
+global $g_comp_database, $g_config, $g_absdir, $g_license_token;
 
 $l_template = isys_component_template::instance();
 
@@ -22,8 +34,11 @@ $app = isys_application::instance();
 $l_licences = new isys_module_licence();
 $l_dao_mandator = new isys_component_dao_mandator($app->database_system);
 
+$licenses = [];
 $l_licences_single = [];
 $l_licences_hosting = [];
+
+global $licenseService;
 
 /* Request processing */
 switch ($_POST["action"]) {
@@ -47,39 +62,139 @@ switch ($_POST["action"]) {
                     } else {
                         $app->database_system->query("DELETE FROM isys_licence WHERE isys_licence__id = " . (int)$l_licence_id . ";");
                     }
+
+                    $licenseService->getEventDispatcher()->dispatch(
+                        LegacyLicenseRemovedEvent::NAME,
+                        new LegacyLicenseRemovedEvent()
+                    );
                 }
             }
         }
 
         break;
-    case "add":
+    case "web_license_save_token":
+        $licenseService->setEncryptionToken($_POST['license_token']);
 
-        $mandatorDatabase = null;
-        switch ($_POST["licence_type"]) {
-            case "subscription":
-                $_POST["licence_type"] = C__LICENCE_TYPE__SINGLE;
-                $l_tenant = $_POST["mandator"];
-                $mandatorDatabase = connect_mandator($l_tenant);
-                break;
-
-            case "hosting":
-                $_POST["licence_type"] = C__LICENCE_TYPE__HOSTING;
-                $l_tenant = -1;
-                break;
-
-            case "buyers-hosting":
-                $_POST["licence_type"] = C__LICENCE_TYPE__BUYERS_LICENCE_HOSTING;
-                $l_tenant = -1;
-                break;
-
-            case "buyers":
-                $_POST["licence_type"] = C__LICENCE_TYPE__BUYERS_LICENCE;
-                $l_tenant = $_POST["mandator"];
-                $mandatorDatabase = connect_mandator($l_tenant);
-                break;
+        try {
+            $webLicensesString = $licenseService->getLicensesFromServer();
+        } catch (GuzzleException $exception) {
+            $l_template->assign('error', $exception->getMessage());
+        } catch (LicenseServerAuthenticationException $exception) {
+            $l_template->assign('error', $exception->getMessage());
+        } catch (LicenseServerConnectionException $exception) {
+            $l_template->assign('error', $exception->getMessage());
+        } catch (LicenseServerNoLicensesException $exception) {
+            $l_template->assign('note', $exception->getMessage());
         }
 
-        isys_module_system::handle_licence_installation($l_tenant, $mandatorDatabase);
+        if (empty($l_template->get_template_vars('error'))) {
+            global $g_db_system, $g_admin_auth, $g_crypto_hash, $g_disable_addon_upload;
+
+            // Update config
+            write_config($g_absdir . '/setup/config_template.inc.php', $g_absdir . '/src/config.inc.php', [
+                '%config.adminauth.username%' => array_keys($g_admin_auth)[0],
+                '%config.adminauth.password%' => $g_admin_auth[array_keys($g_admin_auth)[0]],
+                '%config.db.type%'            => $g_db_system['type'],
+                '%config.db.host%'            => $g_db_system['host'],
+                '%config.db.port%'            => $g_db_system['port'],
+                '%config.db.username%'        => $g_db_system['user'],
+                '%config.db.password%'        => $g_db_system['pass'],
+                '%config.db.name%'            => $g_db_system['name'],
+                '%config.crypt.hash%'         => $g_crypto_hash,
+                '%config.admin.disable_addon_upload%' => $g_disable_addon_upload,
+                '%config.license.token%' => $_POST['license_token']
+            ]);
+
+            $g_license_token = $_POST['license_token'];
+        }
+
+        try {
+            foreach ($licenseService->parseEncryptedLicenses($webLicensesString) as $license) {
+                $licenseService->installLicense($license);
+            }
+        } catch (LicenseExistsException $exception) {
+            $l_template->assign('note', 'Some licenses were already existing');
+        } catch (LicenseInvalidException $exception) {
+            $l_template->assign('note', 'Some licenses were skipped because they were invalid');
+        } catch (LicenseParseException $exception) {
+            $l_template->assign('error', 'Given licenses could not be installed because string is malformed');
+        } catch (\Exception $exception) {
+            $l_template->assign('error', 'An error occured');
+        }
+        break;
+    case "web_license_check_licenses":
+        try {
+            $webLicensesString = $licenseService->getLicensesFromServer();
+        } catch (GuzzleException $exception) {
+            $l_template->assign('error', $exception->getMessage());
+        } catch (LicenseServerAuthenticationException $exception) {
+            $l_template->assign('error', $exception->getMessage());
+        } catch (LicenseServerConnectionException $exception) {
+            $l_template->assign('error', $exception->getMessage());
+        } catch (LicenseServerNoLicensesException $exception) {
+            $l_template->assign('note', $exception->getMessage());
+        }
+
+        try {
+            foreach ($licenseService->parseEncryptedLicenses($webLicensesString) as $license) {
+                try {
+                    $licenseService->installLicense($license);
+                } catch (LicenseExistsException $exception) {
+                    $l_template->assign('note', 'Some licenses were already existing');
+                } catch (LicenseInvalidException $exception) {
+                    $l_template->assign('note', 'Some licenses were skipped because they were expired');
+                } catch (\Exception $exception) {
+                    $l_template->assign('error', 'An error occured');
+                }
+            }
+        } catch (LicenseParseException $exception) {
+            $l_template->assign('error', 'Given licenses could not be installed because string is malformed');
+        }
+        break;
+    case "web_license_remove_token":
+        global $g_db_system, $g_admin_auth, $g_crypto_hash, $g_disable_addon_upload;
+
+        // Update config
+        write_config($g_absdir . '/setup/config_template.inc.php', $g_absdir . '/src/config.inc.php', [
+            '%config.adminauth.username%' => array_keys($g_admin_auth)[0],
+            '%config.adminauth.password%' => $g_admin_auth[array_keys($g_admin_auth)[0]],
+            '%config.db.type%'            => $g_db_system['type'],
+            '%config.db.host%'            => $g_db_system['host'],
+            '%config.db.port%'            => $g_db_system['port'],
+            '%config.db.username%'        => $g_db_system['user'],
+            '%config.db.password%'        => $g_db_system['pass'],
+            '%config.db.name%'            => $g_db_system['name'],
+            '%config.crypt.hash%'         => $g_crypto_hash,
+            '%config.admin.disable_addon_upload%' => $g_disable_addon_upload,
+            '%config.license.token%' => ''
+        ]);
+
+        $g_license_token = '';
+        $licenseService->setEncryptionToken('');
+        $licenseService->deleteLicenses([LicenseService::C__LICENCE_TYPE__NEW__IDOIT, LicenseService::C__LICENCE_TYPE__NEW__ADDON]);
+
+        break;
+    case "add":
+        $mandatorDatabase = null;
+
+        if (!empty($_POST['license_file_raw'])) {
+            // Handle new licenses
+            try {
+                foreach ($licenseService->parseEncryptedLicenses($_POST['license_file_raw']) as $license) {
+                    $licenseService->installLicense($license);
+                }
+            } catch (LicenseExistsException $exception) {
+                // do nothing
+            } catch (LicenseInvalidException $exception) {
+                // do nothing
+            } catch (LicenseParseException $exception) {
+                $l_template->assign('error', 'Given licenses could not be installed because string is malformed');
+            } catch (\Exception $exception) {
+                $l_template->assign('error', 'An error occured');
+            }
+        } else {
+            isys_module_system::handle_licence_installation($l_tenant, $mandatorDatabase);
+        }
 
         $l_frontend_error = $l_template->get_template_vars('error');
 
@@ -89,186 +204,84 @@ switch ($_POST["action"]) {
         }
 
         break;
-    case "save":
-
-        try {
-            $l_hosting_licences = $l_licences->get_installed_licences($app->database_system, null, null, "AND ISNULL(isys_licence__isys_mandator__id)");
-
-            if (is_array($l_hosting_licences)) {
-                $l_hosting_count = [];
-                foreach ($l_hosting_licences as $l_lic) {
-                    $l_d = unserialize($l_lic["licence_data"]);
-                    $l_hosting_count[$l_lic['id']] += $l_d[C__LICENCE__OBJECT_COUNT];
-                }
-
-                if (is_array($_POST["object_count"])) {
-                    $l_count_check = [];
-
-                    foreach ($_POST["object_count"] as $l_licence_id => $l_object_count) {
-                        list($licenceId, $parentLicenceKey) = explode('_', $l_licence_id);
-                        if (isset($l_hosting_count[$parentLicenceKey])) {
-                            if (is_numeric($l_object_count)) {
-                                $l_count_check[$parentLicenceKey] += $l_object_count;
-                            }
-                        }
-                    }
-
-                    foreach ($l_hosting_count as $licenceKey => $maxObjects) {
-                        /* Calculate max count*/
-                        if ($maxObjects < $l_count_check[$licenceKey] && $maxObjects !== 0) {
-                            throw new Exception("Error! Combined object count of " . $l_count_check[$licenceKey] . " is higher than the maximum allowed count of " .
-                                $l_hosting_count[$licenceKey] . ". " . "Licences are not saved!");
-                        }
-                    }
-
-                    /* Set new object counts */
-                    foreach ($_POST["object_count"] as $l_licence_id => $l_object_count) {
-                        if ($l_object_count > 0) {
-                            $l_lic = $l_licences->get_licence($app->database_system, $l_licence_id);
-                            $l_lic_row = $l_lic->get_row();
-                            $l_lic_serialized_data = $l_lic_row["isys_licence__data"];
-
-                            $l_lic_data = unserialize($l_lic_serialized_data);
-
-                            if ($l_lic_data === null) {
-                                $l_lic_data = unserialize(isys_glob_replace_accent($l_lic_serialized_data));
-                            }
-
-                            unset($l_lic_data[C__LICENCE__KEY]);
-
-                            if (!is_numeric($l_object_count)) {
-                                throw new Exception("Object count not numeric.");
-                            }
-
-                            /* Round object count. If user types in a float value */
-                            $l_object_count = round($l_object_count);
-
-                            $l_lic_data[C__LICENCE__TYPE] = C__LICENCE_TYPE__HOSTING_SINGLE;
-                            $l_lic_data[C__LICENCE__OBJECT_COUNT] = $l_object_count;
-                            $l_lic_data[C__LICENCE__KEY] = sha1(serialize($l_lic_data));
-
-                            $l_licences->update_licence($app->database_system, $l_licence_id, $l_lic_data);
-                        } else {
-                            throw new Exception("Object count must be higher than 0.");
-                        }
-                    }
-                }
-            }
-        } catch (Exception $e) {
-            $l_template->assign("error", $e->getMessage());
-        }
-
-        break;
-    case "attach":
-
-        try {
-            $l_lic = $l_licences->get_licence($app->database_system, $_GET["licence_id"]);
-            $l_hosting_licences = $l_licences->get_installed_licences($app->database_system, null, C__LICENCE_TYPE__HOSTING_SINGLE);
-
-            $l_lic_row = $l_lic->get_row();
-            // @todo  Check if "utf8_decode" is necessary!
-            $l_lic_serialized_data = utf8_decode($l_lic_row["isys_licence__data"]);
-            $l_lic_data = unserialize($l_lic_serialized_data);
-            if (!$l_lic_data) {
-                $l_lic_data = unserialize($l_lic_row["isys_licence__data"]);
-            }
-
-            /* Multi client limitation; fixed to 50 if not available in licence: */
-            if (isset($l_lic_data[C__LICENCE__MAX_CLIENTS]) && $l_lic_data[C__LICENCE__MAX_CLIENTS] > 0) {
-                $l_multi_client_max = $l_lic_data[C__LICENCE__MAX_CLIENTS];
-            } else {
-                $l_multi_client_max = 50;
-            }
-
-            header('Content-Type: application/json');
-            if ((is_array($l_hosting_licences) || $l_hosting_licences instanceof Countable) && count($l_hosting_licences) <= $l_multi_client_max) {
-                if (is_numeric($_POST["mandator"])) {
-                    $mandatorDatabase = connect_mandator($_POST["mandator"]);
-
-                    $l_licence_type = $l_lic_data[C__LICENCE__TYPE] ==
-                    C__LICENCE_TYPE__BUYERS_LICENCE_HOSTING ? C__LICENCE_TYPE__BUYERS_LICENCE : C__LICENCE_TYPE__HOSTING_SINGLE;
-
-                    $l_licence = [
-                        C__LICENCE__OBJECT_COUNT  => 1,
-                        C__LICENCE__DB_NAME       => $mandatorDatabase->get_db_name(),
-                        C__LICENCE__CUSTOMER_NAME => $l_lic_data[C__LICENCE__CUSTOMER_NAME],
-                        C__LICENCE__REG_DATE      => $l_lic_data[C__LICENCE__REG_DATE],
-                        C__LICENCE__RUNTIME       => $l_lic_data[C__LICENCE__RUNTIME],
-                        C__LICENCE__EMAIL         => $l_lic_data[C__LICENCE__EMAIL],
-                        C__LICENCE__DATA          => $l_lic_data[C__LICENCE__DATA],
-                        C__LICENCE__TYPE          => $l_licence_type
-                    ];
-
-                    // @todo  Check if "utf8_encode" is necessary!
-                    $l_licence[C__LICENCE__KEY] = sha1(utf8_encode(serialize($l_licence)));
-
-                    $l_licences->install($app->database_system, $l_licence, $_POST["mandator"], $l_lic_row["isys_licence__id"]);
-                }
-            } else {
-                throw new Exception(sprintf('You are only allowed to licence at least %s clients with this licence', $l_multi_client_max));
-            }
-        } catch (Exception $e) {
-            die(json_encode([
-                'success' => false,
-                'error'   => $e->getMessage()
-            ]));
-        }
-        echo json_encode(['success' => true]);
-        die;
 }
 
 try {
-    $l_free_objects = 0;
-    $inUse = [];
-    $distributed = [];
-
     if ($app->database_system) {
-        // Single licences.
-        if (($l_licences_single = $l_licences->get_installed_licences(
-            $app->database_system,
-            null,
-            null,
-            "AND (isys_licence__type = " . C__LICENCE_TYPE__HOSTING_SINGLE . " " . "OR isys_licence__type = " . C__LICENCE_TYPE__SINGLE . " " . "OR isys_licence__type = " .
-            C__LICENCE_TYPE__BUYERS_LICENCE . ") " . "AND !ISNULL(isys_licence__isys_mandator__id)"
-        ))) {
+        $totalObjects = 0;
+
+        // New licenses
+        $licenseEntities = $licenseService->getLicenses();
+
+        foreach ($licenseEntities as $id => $licenseEntity) {
+            $start = \Carbon\Carbon::createFromTimestamp($licenseEntity->getValidityFrom()->getTimestamp());
+            $end = \Carbon\Carbon::createFromTimestamp($licenseEntity->getValidityTo()->getTimestamp());
+
+            $invalid = !(\Carbon\Carbon::now()->between($start, $end));
+
+            $start = $start->format('l, F j, Y H:i');
+            $end = $end->format('l, F j, Y H:i');
+
+            $licenses[$licenseEntity->getProductType()][$id] = [
+                'label' => $licenseEntity->getProductName() ?: $licenseEntity->getProductIdentifier(),
+                'licenseType' => $licenseEntity->getProductType(),
+                'start' =>  $start,
+                'end' => $end,
+                'objects' => $licenseEntity->getObjects(),
+                'tenants' => $licenseEntity->getTenants(),
+                'environment' => $licenseEntity->getEnvironment()
+            ];
         }
 
-        // Multi-tenant licences.
-        if (($l_licences_hosting = $l_licences->get_installed_licences($app->database_system, null, null, "AND ISNULL(isys_licence__isys_mandator__id)"))) {
-        }
-    }
+        $oldLicenses = $licenseService->getLegacyLicenses();
 
-    if (is_array($l_licences_single)) {
-        foreach ($l_licences_single as $l_tmp) {
-            $l_hosting_mandators_exclude[$l_tmp["mandator"]] = true;
+        foreach ($oldLicenses as $oldLicense) {
+            $start = Carbon::createFromTimestamp($oldLicense[LicenseService::C__LICENCE__REG_DATE]);
+            $end = Carbon::parse($oldLicense[LicenseService::LEGACY_LICENSE_EXPIRES]);
 
-            if ($l_tmp['parent_licence'] > 0) {
-                $inUse[$l_tmp['parent_licence']] += $l_tmp["in_use"];
-                $distributed[$l_tmp['parent_licence']] += $l_tmp["objcount"];
+            $invalid = !(\Carbon\Carbon::now()->between($start, $end));
+
+            $start = $start->format('l, F j, Y H:i');
+            $end = $end->format('l, F j, Y H:i');
+
+            $label = 'Subscription (Classic)';
+            $tenants = 1;
+
+            if (in_array(
+                $oldLicense[LicenseService::LEGACY_LICENSE_TYPE],
+                LicenseService::LEGACY_LICENSE_TYPES_HOSTING,
+                false
+            )) {
+                $label = 'Hosting (Classic)';
+                $tenants = 50;
             }
+
+            $licenses['idoit'][$oldLicense[LicenseService::LEGACY_LICENSE_ID]] = [
+                'label' => $label,
+                'start' =>  $start,
+                'end' => $end,
+                'objects' => $oldLicense[LicenseService::C__LICENCE__OBJECT_COUNT],
+                'tenants' => $tenants,
+                'environment' => 'production',
+                'invalid' => $invalid
+            ];
         }
     }
 
-    $l_tenants = $l_dao_mandator->get_mandator(null, 1);
-    while ($l_dbdata = $l_tenants->get_row()) {
-        $l_arMandators[$l_dbdata["isys_mandator__id"]] = $l_dbdata["isys_mandator__title"] . " (" . $l_dbdata["isys_mandator__db_name"] . ")";
-
-        if (!isset($l_hosting_mandators_exclude[$l_dbdata["isys_mandator__id"]])) {
-            $l_hosting_mandators[$l_dbdata["isys_mandator__id"]] = $l_dbdata["isys_mandator__title"] . " (" . $l_dbdata["isys_mandator__db_name"] . ")";
-        }
-    }
-
-    if (isset($l_hosting_mandators)) {
-        $l_template->assign("hosting_mandators", $l_hosting_mandators);
-    }
-    if (isset($l_arMandators)) {
-        $l_template->assign("mandators", $l_arMandators);
-    }
 } catch (isys_exception_database $e) {
     $l_template->assign("error", $e->getMessage());
 }
 
-$l_template->assign("licences_single", $l_licences_single);
-$l_template->assign("licences_hosting", $l_licences_hosting);
-$l_template->assign("objectsInUse", $inUse);
-$l_template->assign("objectsDistributed", $distributed);
+$l_template->assign("licences", $licenses);
+$l_template->assign("licensedAddOns", $licenseService->getLicensedAddOns());
+$l_template->assign("totalLicenseObjects", $licenseService->getTotalObjects());
+$l_template->assign("licenseObjectsUsed", $licenseService->getUsedLicenseObjects(true));
+$l_template->assign("totalTenants", $licenseService->getTotalTenants());
+$l_template->assign("licenseToken", $g_license_token);
+
+$lastCommunicationLog = $licenseService->getLastLicenseServerCommuncation();
+
+$l_template->assign(
+    "lastCommunicationLog",
+    ($lastCommunicationLog !== null ? sprintf('Last check on %s: %s, %d licenses retrieved', \Carbon\Carbon::parse($lastCommunicationLog['created'])->format('l, F j, Y H:i'), (in_array($lastCommunicationLog['status'], LicenseService::HTTP_STATUS_POSITIVE, false) ? 'OK' : 'ERROR'), $lastCommunicationLog['licenses_count']) : '')
+);

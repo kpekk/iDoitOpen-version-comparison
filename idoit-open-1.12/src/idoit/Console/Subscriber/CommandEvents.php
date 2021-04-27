@@ -23,8 +23,7 @@ class CommandEvents implements EventSubscriberInterface
     {
         return [
             ConsoleEvents::COMMAND   => 'onCommandStart',
-            ConsoleEvents::TERMINATE => 'onCommandShutdown',
-            ConsoleEvents::ERROR     => 'onCommandFailure'
+            ConsoleEvents::TERMINATE => 'onCommandShutdown'
         ];
     }
 
@@ -82,14 +81,6 @@ class CommandEvents implements EventSubscriberInterface
                 ->writeln('<info>Logout for User</info>', OutputInterface::VERBOSITY_DEBUG);
             $command->logout();
         }
-    }
-
-    public function onCommandFailure(ConsoleErrorEvent $event)
-    {
-        $event->setExitCode(0);
-        $event->getOutput()
-            ->writeln('<error>' . $event->getError()
-                    ->getMessage() . '</error>');
     }
 
     private function advancedIniParsing(array &$ini)

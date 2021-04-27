@@ -6,39 +6,49 @@
 abstract class isys_report_view implements isys_report_view_interface
 {
     /**
-     *
+     * @todo        Remove in i-doit 1.13
+     * @deprecated  Unused constant, will be removed in i-doit 1.13
      */
     const c_sql_view = 1;
+
     /**
-     *
+     * @todo        Remove in i-doit 1.13
+     * @deprecated  Unused constant, will be removed in i-doit 1.13
      */
     const c_php_view = 2;
 
     /**
-     * @return mixed
+     * @var isys_component_template_language_manager
      */
-    abstract public function ajax_request();
+    protected $language;
 
     /**
-     * @return mixed
+     * @var isys_component_template
      */
-    abstract public function start();
+    protected $template;
 
     /**
-     * Returns the report-view's template.
-     *
-     * @return  null
+     * @var isys_component_database
      */
-    public function template()
+    protected $database;
+
+    /**
+     * @return void
+     */
+    public function ajax_request()
     {
-        return null;
+        isys_core::send_header('Content-Type', 'application/json');
+
+        echo '{"success":true, "data":null, "message":""}';
+        die;
     }
 
     /**
      * Determines, if a report view is brought in by an external source (module?).
      *
-     * @return  boolean
-     * @author  Leonard Fischer <lfischer@i-doit.com>
+     * @todo        Remove in i-doit 1.13
+     * @deprecated  Unused method, will be removed in i-doit 1.13
+     * @return      boolean
      */
     public function external()
     {
@@ -46,11 +56,15 @@ abstract class isys_report_view implements isys_report_view_interface
     }
 
     /**
-     * Naked constructor.
+     * isys_report_view constructor.
+     *
+     * @throws Exception
      */
     public function __construct()
     {
-        ;
+        $this->template = isys_application::instance()->container->get('template');
+        $this->language = isys_application::instance()->container->get('language');
+        $this->database = isys_application::instance()->container->get('database');
     }
 }
 
@@ -65,27 +79,44 @@ abstract class isys_report_view implements isys_report_view_interface
 interface isys_report_view_interface
 {
     /**
-     * @return mixed
+     * Method for processing the report view logic itself.
+     *
+     * @return void
      */
-    public function init();
+    public function start();
 
     /**
-     * @return mixed
+     * Will be called for ajax requests, should directly use ECHO and end the request.
+     *
+     * @return void
+     */
+    public function ajax_request();
+
+    /**
+     * Returns the absolute path to the report-views template.
+     *
+     * @return string
+     */
+    public function template();
+
+    /**
+     * Returns a language constant of the report-views name.
+     *
+     * @return string
      */
     public static function name();
 
     /**
-     * @return mixed
+     * Returns a language constant of the report-views description.
+     *
+     * @return string
      */
     public static function description();
 
     /**
-     * @return mixed
-     */
-    public static function type();
-
-    /**
-     * @return mixed
+     * Returns a language constant of the report-views type.
+     *
+     * @return string
      */
     public static function viewtype();
 }

@@ -26,151 +26,68 @@ class isys_report_view_rack_connections extends isys_report_view
     private $m_encoding = 'UTF-8';
 
     /**
-     * Mapping for the table header
-     *
-     * @return array
-     * @author Van Quyen Hoang <qhoang@i-doit.org>
+     * @return string
      */
-    private static function get_header_fields($p_category = null)
+    public static function name()
     {
-        $l_return = filter_array_by_keys_of_defined_constants([
-            'C__CATG__CONNECTOR'           => [
-                isys_application::instance()->container->get('language')
-                    ->get('LC__CMDB__OBJTYPE__ENCLOSURE'),
-                isys_application::instance()->container->get('language')
-                    ->get('LC__CMDB__CATG__RACKUNITS_ABBR'),
-                isys_application::instance()->container->get('language')
-                    ->get('LC_UNIVERSAL__OBJECT'),
-                isys_application::instance()->container->get('language')
-                    ->get('LC__CATG__STORAGE_CONNECTION_TYPE'),
-                isys_application::instance()->container->get('language')
-                    ->get('LC__CMDB__CATG__NETWORK__TARGET_OBJECT') . ' (' . isys_application::instance()->container->get('language')
-                    ->get('LC__CMDB__CATG__UI_ASSIGNED_UI') . ')',
-                isys_application::instance()->container->get('language')
-                    ->get('LC__REPORT__VIEW__RACKS_CONNECTIONS__TARGET_CONNECTOR'),
-                isys_application::instance()->container->get('language')
-                    ->get('LC__CATG__CONNECTOR__CATEGORY_TYPE'),
-                isys_application::instance()->container->get('language')
-                    ->get('LC__REPORT__VIEW__RACKS_CONNECTIONS__SIBLING_CONNECTOR'),
-                isys_application::instance()->container->get('language')
-                    ->get('LC__CATG__CONNECTOR__CONNECTED_NET'),
-                isys_application::instance()->container->get('language')
-                    ->get('LC__CATG__CONNECTOR__CONNECTION_TYPE'),
-                isys_application::instance()->container->get('language')
-                    ->get('LC__CATG__CONNECTOR__INOUT')
-            ],
-            'C__CATG__CONTROLLER_FC_PORT'  => [
-                isys_application::instance()->container->get('language')
-                    ->get('LC__CMDB__OBJTYPE__ENCLOSURE'),
-                isys_application::instance()->container->get('language')
-                    ->get('LC__CMDB__CATG__RACKUNITS_ABBR'),
-                isys_application::instance()->container->get('language')
-                    ->get('LC_UNIVERSAL__OBJECT'),
-                isys_application::instance()->container->get('language')
-                    ->get('LC__CATG__STORAGE_CONNECTION_TYPE'),
-                isys_application::instance()->container->get('language')
-                    ->get('LC__CMDB__CATG__NETWORK__TARGET_OBJECT') . ' (' . isys_application::instance()->container->get('language')
-                    ->get('LC__CMDB__CATG__UI_ASSIGNED_UI') . ')',
-                isys_application::instance()->container->get('language')
-                    ->get('LC__REPORT__VIEW__RACKS_CONNECTIONS__TARGET_CONNECTOR'),
-                isys_application::instance()->container->get('language')
-                    ->get('LC__CATG__CONTROLLER_FC_PORT_TYPE'),
-                isys_application::instance()->container->get('language')
-                    ->get('LC__CATG__CONTROLLER_FC_CONTROLLER'),
-                isys_application::instance()->container->get('language')
-                    ->get('LC__CATG__CONTROLLER_FC_PORT_MEDIUM'),
-                isys_application::instance()->container->get('language')
-                    ->get('LC__CMDB__CATG__PORT__SPEED'),
-                isys_application::instance()->container->get('language')
-                    ->get('LC__CMDB__CATG__PORT__SPEED_UNIT'),
-                isys_application::instance()->container->get('language')
-                    ->get('LC__CATG__CONTROLLER_FC_PORT_NODE_WWN'),
-                isys_application::instance()->container->get('language')
-                    ->get('LC__CATG__CONTROLLER_FC_PORT_PORT_WWN'),
-                isys_application::instance()->container->get('language')
-                    ->get('LC__CMDB__CATS__SAN_ZONE')
-            ],
-            'C__CATG__UNIVERSAL_INTERFACE' => [
-                isys_application::instance()->container->get('language')
-                    ->get('LC__CMDB__OBJTYPE__ENCLOSURE'),
-                isys_application::instance()->container->get('language')
-                    ->get('LC__CMDB__CATG__RACKUNITS_ABBR'),
-                isys_application::instance()->container->get('language')
-                    ->get('LC_UNIVERSAL__OBJECT'),
-                isys_application::instance()->container->get('language')
-                    ->get('LC__CATG__STORAGE_CONNECTION_TYPE'),
-                isys_application::instance()->container->get('language')
-                    ->get('LC__CMDB__CATG__NETWORK__TARGET_OBJECT') . ' (' . isys_application::instance()->container->get('language')
-                    ->get('LC__CMDB__CATG__UI_ASSIGNED_UI') . ')',
-                isys_application::instance()->container->get('language')
-                    ->get('LC__REPORT__VIEW__RACKS_CONNECTIONS__TARGET_CONNECTOR'),
-                isys_application::instance()->container->get('language')
-                    ->get('LC__CMDB__CATG__UI_CONNECTION_TYPE'),
-                isys_application::instance()->container->get('language')
-                    ->get('LC__CMDB__CATG__UI_PLUG_TYPE')
-            ],
-            'C__CATG__NETWORK_PORT'        => [
-                isys_application::instance()->container->get('language')
-                    ->get('LC__CMDB__OBJTYPE__ENCLOSURE'),
-                isys_application::instance()->container->get('language')
-                    ->get('LC__CMDB__CATG__RACKUNITS_ABBR'),
-                isys_application::instance()->container->get('language')
-                    ->get('LC_UNIVERSAL__OBJECT'),
-                isys_application::instance()->container->get('language')
-                    ->get('LC__CATG__STORAGE_CONNECTION_TYPE'),
-                isys_application::instance()->container->get('language')
-                    ->get('LC__CMDB__CATG__NETWORK__TARGET_OBJECT') . ' (' . isys_application::instance()->container->get('language')
-                    ->get('LC__CMDB__CATG__UI_ASSIGNED_UI') . ')',
-                isys_application::instance()->container->get('language')
-                    ->get('LC__REPORT__VIEW__RACKS_CONNECTIONS__TARGET_CONNECTOR'),
-                isys_application::instance()->container->get('language')
-                    ->get('LC__CMDB__CATG__TYPE'),
-                isys_application::instance()->container->get('language')
-                    ->get('LC__CMDB__CATS__SWITCH_FC_ACTIVE'),
-                isys_application::instance()->container->get('language')
-                    ->get('LC__CMDB__LAYER2_NET'),
-                isys_application::instance()->container->get('language')
-                    ->get('LC__CMDB__CATG__PORT__STANDARD'),
-                isys_application::instance()->container->get('language')
-                    ->get('LC__CMDB__CATG__PORT__MODE'),
-                isys_application::instance()->container->get('language')
-                    ->get('LC__CMDB__CATG__PORT__NEGOTIATION'),
-                isys_application::instance()->container->get('language')
-                    ->get('LC__CMDB__CATG__PORT__DUPLEX'),
-                isys_application::instance()->container->get('language')
-                    ->get('LC__CMDB__CATG__PORT__SPEED'),
-                isys_application::instance()->container->get('language')
-                    ->get('LC__CMDB__CATG__PORT__SPEED_UNIT'),
-                isys_application::instance()->container->get('language')
-                    ->get('LC__CMDB__CATG__PORT__MAC')
-            ]
-        ]);
-
-        if (!empty($p_category)) {
-            return $l_return[$p_category];
-        }
-
-        return $l_return;
+        return 'LC__REPORT__VIEW__RACKS_CONNECTIONS';
     }
 
     /**
-     * Gets the categories for the dialog field
-     *
-     * @return array
-     * @author Van Quyen Hoang <qhoang@i-doit.org>
+     * @return string
      */
-    private static function get_categories_for_view()
+    public static function description()
     {
-        return filter_array_by_keys_of_defined_constants([
-            'C__CATG__CONNECTOR'           => isys_application::instance()->container->get('language')
-                ->get('LC__CMDB__CATG__CONNECTORS'),
-            'C__CATG__CONTROLLER_FC_PORT'  => isys_application::instance()->container->get('language')
-                ->get('LC__STORAGE_FCPORT'),
-            'C__CATG__UNIVERSAL_INTERFACE' => isys_application::instance()->container->get('language')
-                ->get('LC__CMDB__CATG__UNIVERSAL_INTERFACE'),
-            'C__CATG__NETWORK_PORT'        => isys_application::instance()->container->get('language')
-                ->get('LC__CMDB__CATG__NETWORK_TREE_CONFIG_PORT')
-        ]);
+        return 'LC__REPORT__VIEW__RACKS_CONNECTIONS_DESCRIPTION';
+    }
+
+    /**
+     * @return string
+     */
+    public function template()
+    {
+        return isys_module_report::getPath() . 'templates/view_rack_connections.tpl';
+    }
+
+    /**
+     * @return string
+     */
+    public static function viewtype()
+    {
+        return 'LC__CMDB__OBJTYPE__CATG';
+    }
+
+    /**
+     * Start-method - Implement the logic for displaying your data here.
+     *
+     * @global  isys_component_database $g_comp_database
+     * @author  Van Quyen Hoang <qhoang@i-doit.org>
+     */
+    public function start()
+    {
+        $l_rules = [
+            'C__VIEW_RACK_CONNECTIONS__SELECTED_CATEGORY' => [
+                'p_arData'        => $this->getCategoriesForView(),
+                'p_strSelectedID' => defined_or_default('C__CATG__NETWORK_PORT'),
+                'p_strClass'      => 'input-small',
+                'p_bDbFieldNN'    => true
+            ],
+            'C__VIEW_RACK_CONNECTIONS__OBJECT_FILTER'     => [
+                'p_strClass'      => 'input-small',
+                'catFilter'       => 'C__CATS__ENCLOSURE',
+                'multiselection'  => true,
+                'secondSelection' => false
+            ]
+        ];
+
+        isys_application::instance()->template->activate_editmode()
+            ->assign('download_link', 'temp/csv_export_report_view_rack_connections.csv')
+            ->assign('no_entries_found', isys_application::instance()->container->get('language')
+                ->get('LC__CMDB__FILTER__NOTHING_FOUND_STD'))
+            ->assign('header_json', isys_format_json::encode($this->getHeaderFields()))
+            ->assign('ajax_url', isys_glob_add_to_query('ajax', 1))
+            ->assign('categories', $this->getCategoriesForView())
+            ->smarty_tom_add_rules("tom.content.bottom.content", $l_rules);
     }
 
     /**
@@ -208,7 +125,7 @@ class isys_report_view_rack_connections extends isys_report_view
                 $this->modify_row($l_row, $l_selectedcategory);
                 $l_result[] = $l_row;
 
-                foreach ($l_row AS $l_val) {
+                foreach ($l_row as $l_val) {
                     $this->m_csv_arr[$l_counter][] = strip_tags($l_val);
                 }
 
@@ -226,114 +143,96 @@ class isys_report_view_rack_connections extends isys_report_view
     }
 
     /**
-     * Method for retrieving the language constant of the report-description.
-     *
-     * @return  string
-     * @author  Van Quyen Hoang <qhoang@i-doit.org>
-     * @todo    Should we update the parent method to retrieve this automatically?
+     * @return array
      */
-    public static function description()
+    private function getCategoriesForView()
     {
-        return 'LC__REPORT__VIEW__RACKS_CONNECTIONS_DESCRIPTION';
+        return filter_array_by_keys_of_defined_constants([
+            'C__CATG__CONNECTOR'           => $this->language->get('LC__CMDB__CATG__CONNECTORS'),
+            'C__CATG__CONTROLLER_FC_PORT'  => $this->language->get('LC__STORAGE_FCPORT'),
+            'C__CATG__UNIVERSAL_INTERFACE' => $this->language->get('LC__CMDB__CATG__UNIVERSAL_INTERFACE'),
+            'C__CATG__NETWORK_PORT'        => $this->language->get('LC__CMDB__CATG__NETWORK_TREE_CONFIG_PORT')
+        ]);
     }
 
     /**
-     * Initialize method.
+     * @param null $p_category
      *
-     * @return  boolean
-     * @author  Van Quyen Hoang <qhoang@i-doit.org>
+     * @return array
      */
-    public function init()
+    private function getHeaderFields($p_category = null)
     {
-        return true;
-    }
-
-    /**
-     * Method for retrieving the language constant of the report-name.
-     *
-     * @return  string
-     * @author  Van Quyen Hoang <qhoang@i-doit.org>
-     * @todo    Should we update the parent method to retrieve this automatically?
-     */
-    public static function name()
-    {
-        return 'LC__REPORT__VIEW__RACKS_CONNECTIONS';
-    }
-
-    /**
-     * Start-method - Implement the logic for displaying your data here.
-     *
-     * @global  isys_component_database $g_comp_database
-     * @author  Van Quyen Hoang <qhoang@i-doit.org>
-     */
-    public function start()
-    {
-        $l_rules = [
-            'C__VIEW_RACK_CONNECTIONS__SELECTED_CATEGORY' => [
-                'p_arData'        => $this->get_categories_for_view(),
-                'p_strSelectedID' => defined_or_default('C__CATG__NETWORK_PORT'),
-                'p_strClass'      => 'input-small',
-                'p_bDbFieldNN'    => true
+        $l_return = filter_array_by_keys_of_defined_constants([
+            'C__CATG__CONNECTOR'           => [
+                $this->language->get('LC__CMDB__OBJTYPE__ENCLOSURE'),
+                $this->language->get('LC__CMDB__CATG__RACKUNITS_ABBR'),
+                $this->language->get('LC_UNIVERSAL__OBJECT'),
+                $this->language->get('LC__CATG__STORAGE_CONNECTION_TYPE'),
+                $this->language->get('LC__CMDB__CATG__NETWORK__TARGET_OBJECT') . ' (' . $this->language->get('LC__CMDB__CATG__UI_ASSIGNED_UI') . ')',
+                $this->language->get('LC__REPORT__VIEW__RACKS_CONNECTIONS__TARGET_CONNECTOR'),
+                $this->language->get('LC__CATG__CONNECTOR__CATEGORY_TYPE'),
+                $this->language->get('LC__REPORT__VIEW__RACKS_CONNECTIONS__SIBLING_CONNECTOR'),
+                $this->language->get('LC__CATG__CONNECTOR__CONNECTED_NET'),
+                $this->language->get('LC__CATG__CONNECTOR__CONNECTION_TYPE'),
+                $this->language->get('LC__CATG__CONNECTOR__INOUT')
             ],
-            'C__VIEW_RACK_CONNECTIONS__OBJECT_FILTER'     => [
-                'p_strClass'      => 'input-small',
-                'catFilter'       => 'C__CATS__ENCLOSURE',
-                'multiselection'  => true,
-                'secondSelection' => false
+            'C__CATG__CONTROLLER_FC_PORT'  => [
+                $this->language->get('LC__CMDB__OBJTYPE__ENCLOSURE'),
+                $this->language->get('LC__CMDB__CATG__RACKUNITS_ABBR'),
+                $this->language->get('LC_UNIVERSAL__OBJECT'),
+                $this->language->get('LC__CATG__STORAGE_CONNECTION_TYPE'),
+                $this->language->get('LC__CMDB__CATG__NETWORK__TARGET_OBJECT') . ' (' . $this->language->get('LC__CMDB__CATG__UI_ASSIGNED_UI') . ')',
+                $this->language->get('LC__REPORT__VIEW__RACKS_CONNECTIONS__TARGET_CONNECTOR'),
+                $this->language->get('LC__CATG__CONTROLLER_FC_PORT_TYPE'),
+                $this->language->get('LC__CATG__CONTROLLER_FC_CONTROLLER'),
+                $this->language->get('LC__CATG__CONTROLLER_FC_PORT_MEDIUM'),
+                $this->language->get('LC__CMDB__CATG__PORT__SPEED'),
+                $this->language->get('LC__CMDB__CATG__PORT__SPEED_UNIT'),
+                $this->language->get('LC__CATG__CONTROLLER_FC_PORT_NODE_WWN'),
+                $this->language->get('LC__CATG__CONTROLLER_FC_PORT_PORT_WWN'),
+                $this->language->get('LC__CMDB__CATS__SAN_ZONE')
+            ],
+            'C__CATG__UNIVERSAL_INTERFACE' => [
+                $this->language->get('LC__CMDB__OBJTYPE__ENCLOSURE'),
+                $this->language->get('LC__CMDB__CATG__RACKUNITS_ABBR'),
+                $this->language->get('LC_UNIVERSAL__OBJECT'),
+                $this->language->get('LC__CATG__STORAGE_CONNECTION_TYPE'),
+                $this->language->get('LC__CMDB__CATG__NETWORK__TARGET_OBJECT') . ' (' . $this->language->get('LC__CMDB__CATG__UI_ASSIGNED_UI') . ')',
+                $this->language->get('LC__REPORT__VIEW__RACKS_CONNECTIONS__TARGET_CONNECTOR'),
+                $this->language->get('LC__CMDB__CATG__UI_CONNECTION_TYPE'),
+                $this->language->get('LC__CMDB__CATG__UI_PLUG_TYPE')
+            ],
+            'C__CATG__NETWORK_PORT'        => [
+                $this->language->get('LC__CMDB__OBJTYPE__ENCLOSURE'),
+                $this->language->get('LC__CMDB__CATG__RACKUNITS_ABBR'),
+                $this->language->get('LC_UNIVERSAL__OBJECT'),
+                $this->language->get('LC__CATG__STORAGE_CONNECTION_TYPE'),
+                $this->language->get('LC__CMDB__CATG__NETWORK__TARGET_OBJECT') . ' (' . $this->language->get('LC__CMDB__CATG__UI_ASSIGNED_UI') . ')',
+                $this->language->get('LC__REPORT__VIEW__RACKS_CONNECTIONS__TARGET_CONNECTOR'),
+                $this->language->get('LC__CMDB__CATG__TYPE'),
+                $this->language->get('LC__CMDB__CATS__SWITCH_FC_ACTIVE'),
+                $this->language->get('LC__CMDB__LAYER2_NET'),
+                $this->language->get('LC__CMDB__CATG__PORT__STANDARD'),
+                $this->language->get('LC__CMDB__CATG__PORT__MODE'),
+                $this->language->get('LC__CMDB__CATG__PORT__NEGOTIATION'),
+                $this->language->get('LC__CMDB__CATG__PORT__DUPLEX'),
+                $this->language->get('LC__CMDB__CATG__PORT__SPEED'),
+                $this->language->get('LC__CMDB__CATG__PORT__SPEED_UNIT'),
+                $this->language->get('LC__CMDB__CATG__PORT__MAC')
             ]
-        ];
+        ]);
 
-        isys_application::instance()->template->activate_editmode()
-            ->assign('download_link', 'temp/csv_export_report_view_rack_connections.csv')
-            ->assign('no_entries_found', isys_application::instance()->container->get('language')
-                ->get('LC__CMDB__FILTER__NOTHING_FOUND_STD'))
-            ->assign('header_json', isys_format_json::encode($this->get_header_fields()))
-            ->assign('ajax_url', isys_glob_add_to_query('ajax', 1))
-            ->assign('categories', $this->get_categories_for_view())
-            ->smarty_tom_add_rules("tom.content.bottom.content", $l_rules);
+        if (!empty($p_category)) {
+            return $l_return[$p_category];
+        }
+
+        return $l_return;
     }
 
     /**
-     * Method for retrieving the template-name of this report.
+     * @param $p_category
      *
-     * @return  string
-     * @author  Van Quyen Hoang <qhoang@i-doit.org>
-     * @todo    Should we update the parent method to retrieve this automatically?
-     */
-    public function template()
-    {
-        return 'view_rack_connections.tpl';
-    }
-
-    /**
-     * Method for declaring the type of this report.
-     *
-     * @return  integer
-     * @author  Van Quyen Hoang <qhoang@i-doit.org>
-     */
-    public static function type()
-    {
-        return self::c_php_view;
-    }
-
-    /**
-     * Method for declaring the view-type.
-     *
-     * @return  string
-     * @author  Van Quyen Hoang <qhoang@i-doit.org>
-     */
-    public static function viewtype()
-    {
-        return 'LC__CMDB__OBJTYPE__CATG';
-    }
-
-    /**
-     * Gets the needed query for the report view.
-     *
-     * @param   integer $p_category
-     *
-     * @return  string
-     * @author  Van Quyen Hoang <qhoang@i-doit.org>
+     * @return string
      */
     private function get_view_query($p_category)
     {
@@ -483,23 +382,16 @@ class isys_report_view_rack_connections extends isys_report_view
         }
         if ($p_category == defined_or_default('C__CATG__CONNECTOR')) {
             if ($p_row['6'] === 'C__CATG__CONTROLLER_FC_PORT' || $p_row['6'] == defined_or_default('C__CATG__CONTROLLER_FC_PORT')) {
-                $p_row['6'] = htmlentities(isys_application::instance()->container->get('language')
-                    ->get('LC__STORAGE_FCPORT'));
+                $p_row['6'] = htmlentities($this->language->get('LC__STORAGE_FCPORT'));
             } elseif ($p_row['6'] === 'C__CATG__POWER_CONSUMER' || $p_row['6'] = defined_or_default('C__CATG__POWER_CONSUMER')) {
-                $p_row['6'] = htmlentities(isys_application::instance()->container->get('language')
-                    ->get('LC__CMDB__CATG__POWER_CONSUMER'));
-            } elseif (
-                $p_row['6'] === 'C__CATG__NETWORK_PORT' || $p_row['6'] == defined_or_default('C__CATG__NETWORK_PORT') ||
-                $p_row['6'] === 'C__CMDB__SUBCAT__NETWORK_PORT' || $p_row['6'] == defined_or_default('C__CMDB__SUBCAT__NETWORK_PORT')
-            ) {
-                $p_row['6'] = htmlentities(isys_application::instance()->container->get('language')
-                    ->get('LC__CATD__PORT'));
+                $p_row['6'] = htmlentities($this->language->get('LC__CMDB__CATG__POWER_CONSUMER'));
+            } elseif ($p_row['6'] === 'C__CATG__NETWORK_PORT' || $p_row['6'] == defined_or_default('C__CATG__NETWORK_PORT') ||
+                $p_row['6'] === 'C__CMDB__SUBCAT__NETWORK_PORT' || $p_row['6'] == defined_or_default('C__CMDB__SUBCAT__NETWORK_PORT')) {
+                $p_row['6'] = htmlentities($this->language->get('LC__CATD__PORT'));
             } elseif ($p_row['6'] === 'C__CATG__CONNECTOR' || $p_row['6'] == defined_or_default('C__CATG__CONNECTOR')) {
-                $p_row['6'] = htmlentities(isys_application::instance()->container->get('language')
-                    ->get('LC__CMDB__CATG__CONNECTORS'));
+                $p_row['6'] = htmlentities($this->language->get('LC__CMDB__CATG__CONNECTORS'));
             } elseif ($p_row['6'] === 'C__CATG__UNIVERSAL_INTERFACE' || $p_row['6'] == defined_or_default('C__CATG__UNIVERSAL_INTERFACE')) {
-                $p_row['6'] = htmlentities(isys_application::instance()->container->get('language')
-                    ->get('LC__CMDB__CATG__UNIVERSAL_INTERFACE'));
+                $p_row['6'] = htmlentities($this->language->get('LC__CMDB__CATG__UNIVERSAL_INTERFACE'));
             }
             $p_row['7'] = htmlentities($p_row['7']);
             $p_row['9'] = htmlentities($p_row['9']);
@@ -512,11 +404,9 @@ class isys_report_view_rack_connections extends isys_report_view
             }
             unset($p_row['lnet_obj_id']);
         } elseif ($p_category == defined_or_default('C__CATG__CONTROLLER_FC_PORT')) {
-            $p_row['6'] = htmlentities(isys_application::instance()->container->get('language')
-                ->get($p_row['6']));
+            $p_row['6'] = htmlentities($this->language->get($p_row['6']));
             $p_row['7'] = htmlentities(($p_row['controller1'] != '') ? $p_row['controller1'] : $p_row['controller2']);
-            $p_row['8'] = htmlentities(isys_application::instance()->container->get('language')
-                ->get($p_row['8']));
+            $p_row['8'] = htmlentities($this->language->get($p_row['8']));
             $p_row['9'] = isys_convert::speed($p_row['9'], $p_row['isys_port_speed__id'], C__CONVERT_DIRECTION__BACKWARD);
             if ($p_row['san_obj_id'] > 0) {
                 $p_row['13'] = '<a href="' . isys_glob_build_url('objID=' . $p_row['san_obj_id']) . '">' . htmlentities($p_row['13']) . '</a>';
@@ -527,25 +417,18 @@ class isys_report_view_rack_connections extends isys_report_view
             unset($p_row['isys_port_speed__id']);
             unset($p_row['san_obj_id']);
         } elseif ($p_category == defined_or_default('C__CATG__UNIVERSAL_INTERFACE')) {
-            $p_row['6'] = htmlentities(isys_application::instance()->container->get('language')
-                ->get($p_row['6']));
-            $p_row['7'] = htmlentities(isys_application::instance()->container->get('language')
-                ->get($p_row['7']));
+            $p_row['6'] = htmlentities($this->language->get($p_row['6']));
+            $p_row['7'] = htmlentities($this->language->get($p_row['7']));
         } elseif (is_value_in_constants($p_category, ['C__CATG__NETWORK_PORT', 'C__CMDB__SUBCAT__NETWORK_PORT'])) {
             if ($p_row['layer2_obj_id'] > 0) {
                 $p_row['8'] = '<a href="' . isys_glob_build_url('objID=' . $p_row['layer2_obj_id']) . '">' . htmlentities($p_row['8']) . '</a>';
             }
 
-            $p_row['6'] = htmlentities(isys_application::instance()->container->get('language')
-                ->get($p_row['6']));
-            $p_row['9'] = htmlentities(isys_application::instance()->container->get('language')
-                ->get($p_row['9']));
-            $p_row['10'] = htmlentities(isys_application::instance()->container->get('language')
-                ->get($p_row['10']));
-            $p_row['11'] = htmlentities(isys_application::instance()->container->get('language')
-                ->get($p_row['11']));
-            $p_row['12'] = htmlentities(isys_application::instance()->container->get('language')
-                ->get($p_row['12']));
+            $p_row['6'] = htmlentities($this->language->get($p_row['6']));
+            $p_row['9'] = htmlentities($this->language->get($p_row['9']));
+            $p_row['10'] = htmlentities($this->language->get($p_row['10']));
+            $p_row['11'] = htmlentities($this->language->get($p_row['11']));
+            $p_row['12'] = htmlentities($this->language->get($p_row['12']));
             $p_row['7'] = ($p_row['7'] == 1) ? isys_application::instance()->container->get('language')
                 ->get('LC__UNIVERSAL__YES') : isys_application::instance()->container->get('language')
                 ->get('LC__UNIVERSAL__NO');
@@ -582,24 +465,24 @@ class isys_report_view_rack_connections extends isys_report_view
             $this->m_encoding = $l_encoding;
         }
 
-        $l_header = self::get_header_fields($p_selected_category);
+        $l_header = $this->getHeaderFields($p_selected_category);
 
         $l_filename = isys_glob_get_temp_dir() . "csv_export_report_view_rack_connections.csv";
         $l_csv = implode(';', $l_header) . "\n";
         try {
             $l_handler = fopen($l_filename, 'w');
 
-            foreach ($this->m_csv_arr AS $l_row) {
+            foreach ($this->m_csv_arr as $l_row) {
                 $l_csv_row = '';
 
-                foreach ($l_row AS $l_value) {
+                foreach ($l_row as $l_value) {
                     $l_csv_row .= trim($l_value) . ';';
                 }
 
                 $l_csv .= rtrim($l_csv_row, ';') . "\n";
             }
 
-            if ($this->m_encoding != 'UTF-8') {
+            if ($this->m_encoding !== 'UTF-8') {
                 $l_csv = iconv('UTF-8', $this->m_encoding, $l_csv);
             }
 

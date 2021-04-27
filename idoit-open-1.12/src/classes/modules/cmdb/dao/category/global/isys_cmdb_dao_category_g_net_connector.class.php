@@ -71,10 +71,16 @@ class isys_cmdb_dao_category_g_net_connector extends isys_cmdb_dao_category_glob
             }
         } else {
             $l_dao_listener = isys_cmdb_dao_category_g_net_listener::instance(isys_application::instance()->database);
-            $l_listener = $l_dao_listener->get_data_by_id(intval($p_request->get_data('connected_to')))
-                ->get_row();
-            if (isset($l_listener['isys_catg_net_listener_list__isys_obj__id'])) {
-                $l_return[C__RELATION_OBJECT__MASTER] = $l_listener['isys_catg_net_listener_list__isys_obj__id'];
+            $listenerObject = (int)$p_request->get_data('connected_to');
+            $listenerId = (int)$p_request->get_data('connected_listener');
+
+            if (!$listenerObject && $listenerId > 0) {
+                $listenerObject = $l_dao_listener->get_data_by_id($listenerId)
+                    ->get_row_value('isys_catg_net_listener_list__isys_obj__id');
+            }
+
+            if ($listenerObject > 0) {
+                $l_return[C__RELATION_OBJECT__MASTER] = $listenerObject;
                 $l_return[C__RELATION_OBJECT__SLAVE] = $p_request->get_object_id();
             }
         }
@@ -156,16 +162,31 @@ class isys_cmdb_dao_category_g_net_connector extends isys_cmdb_dao_category_glob
                         'isys_cats_net_ip_addresses_list',
                         'isys_cats_net_ip_addresses_list__id'
                     ],
-                    C__PROPERTY__DATA__SELECT       => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory('SELECT isys_cats_net_ip_addresses_list__title
+                    C__PROPERTY__DATA__SELECT       => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory(
+                        'SELECT isys_cats_net_ip_addresses_list__title
                             FROM isys_catg_net_connector_list
                             INNER JOIN isys_cats_net_ip_addresses_list ON isys_cats_net_ip_addresses_list__id = isys_catg_net_connector_list__ip_addresses_list__id',
-                            'isys_catg_net_connector_list', 'isys_catg_net_connector_list__id', 'isys_catg_net_connector_list__isys_obj__id', '', '', null,
-                            idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['isys_catg_net_connector_list__isys_obj__id'])),
+                            'isys_catg_net_connector_list',
+                        'isys_catg_net_connector_list__id',
+                        'isys_catg_net_connector_list__isys_obj__id',
+                        '',
+                        '',
+                        null,
+                            idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['isys_catg_net_connector_list__isys_obj__id'])
+                    ),
                         C__PROPERTY__DATA__JOIN         => [
-                            idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory('isys_catg_net_connector_list', 'LEFT', 'isys_catg_net_connector_list__isys_obj__id',
-                                'isys_obj__id'),
-                            idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory('isys_cats_net_ip_addresses_list', 'LEFT',
-                                'isys_catg_net_connector_list__ip_addresses_list__id', 'isys_cats_net_ip_addresses_list__id')
+                            idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory(
+                                'isys_catg_net_connector_list',
+                                'LEFT',
+                                'isys_catg_net_connector_list__isys_obj__id',
+                                'isys_obj__id'
+                            ),
+                            idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory(
+                                'isys_cats_net_ip_addresses_list',
+                                'LEFT',
+                                'isys_catg_net_connector_list__ip_addresses_list__id',
+                                'isys_cats_net_ip_addresses_list__id'
+                            )
                         ],
                         C__PROPERTY__DATA__INDEX        => true
                     ],
@@ -187,9 +208,16 @@ class isys_cmdb_dao_category_g_net_connector extends isys_cmdb_dao_category_glob
                 ],
                 C__PROPERTY__DATA => [
                     C__PROPERTY__DATA__FIELD  => 'isys_catg_net_connector_list__port_from',
-                    C__PROPERTY__DATA__SELECT => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory('SELECT isys_catg_net_connector_list__port_from FROM isys_catg_net_connector_list',
-                        'isys_catg_net_connector_list', 'isys_catg_net_connector_list__id', 'isys_catg_net_connector_list__isys_obj__id', '', '', null,
-                        idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['isys_catg_net_connector_list__isys_obj__id']))
+                    C__PROPERTY__DATA__SELECT => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory(
+                        'SELECT isys_catg_net_connector_list__port_from FROM isys_catg_net_connector_list',
+                        'isys_catg_net_connector_list',
+                        'isys_catg_net_connector_list__id',
+                        'isys_catg_net_connector_list__isys_obj__id',
+                        '',
+                        '',
+                        null,
+                        idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['isys_catg_net_connector_list__isys_obj__id'])
+                    )
                 ],
                 C__PROPERTY__UI   => [
                     C__PROPERTY__UI__ID     => 'C__CMDB__CATG__NET_CONNECTOR__PORT_FROM',
@@ -207,9 +235,16 @@ class isys_cmdb_dao_category_g_net_connector extends isys_cmdb_dao_category_glob
                 ],
                 C__PROPERTY__DATA => [
                     C__PROPERTY__DATA__FIELD  => 'isys_catg_net_connector_list__port_to',
-                    C__PROPERTY__DATA__SELECT => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory('SELECT isys_catg_net_connector_list__port_to FROM isys_catg_net_connector_list',
-                        'isys_catg_net_connector_list', 'isys_catg_net_connector_list__id', 'isys_catg_net_connector_list__isys_obj__id', '', '', null,
-                        idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['isys_catg_net_connector_list__isys_obj__id']))
+                    C__PROPERTY__DATA__SELECT => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory(
+                        'SELECT isys_catg_net_connector_list__port_to FROM isys_catg_net_connector_list',
+                        'isys_catg_net_connector_list',
+                        'isys_catg_net_connector_list__id',
+                        'isys_catg_net_connector_list__isys_obj__id',
+                        '',
+                        '',
+                        null,
+                        idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['isys_catg_net_connector_list__isys_obj__id'])
+                    )
                 ],
                 C__PROPERTY__UI   => [
                     C__PROPERTY__UI__ID     => 'C__CMDB__CATG__NET_CONNECTOR__PORT_TO',
@@ -238,25 +273,47 @@ class isys_cmdb_dao_category_g_net_connector extends isys_cmdb_dao_category_glob
                         'isys_catg_net_listener_list__id',
                         'isys_catg_net_listener_list__port_from'
                     ],
-                    C__PROPERTY__DATA__SELECT           => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory('SELECT CONCAT(isys_net_protocol__title, \'/\', isys_cats_net_ip_addresses_list__title, \':\', isys_catg_net_listener_list__port_from, \' | \', isys_obj__title)
+                    C__PROPERTY__DATA__SELECT           => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory(
+                        'SELECT CONCAT(isys_net_protocol__title, \'/\', isys_cats_net_ip_addresses_list__title, \':\', isys_catg_net_listener_list__port_from, \' | \', isys_obj__title)
                             FROM isys_catg_net_connector_list
                             INNER JOIN isys_catg_net_listener_list ON isys_catg_net_listener_list__id = isys_catg_net_connector_list__isys_catg_net_listener_list__id
                             INNER JOIN isys_cats_net_ip_addresses_list ON isys_cats_net_ip_addresses_list__id = isys_catg_net_listener_list__isys_cats_net_ip_addresses_list__id
                             INNER JOIN isys_obj ON isys_obj__id = isys_catg_net_listener_list__isys_obj__id
-                            INNER JOIN isys_net_protocol ON isys_net_protocol__id = isys_catg_net_listener_list__isys_net_protocol__id', 'isys_catg_net_connector_list',
-                        'isys_catg_net_connector_list__id', 'isys_catg_net_connector_list__isys_obj__id', '', '',
+                            INNER JOIN isys_net_protocol ON isys_net_protocol__id = isys_catg_net_listener_list__isys_net_protocol__id',
+                        'isys_catg_net_connector_list',
+                        'isys_catg_net_connector_list__id',
+                        'isys_catg_net_connector_list__isys_obj__id',
+                        '',
+                        '',
                         idoit\Module\Report\SqlQuery\Structure\SelectCondition::factory([]),
-                        idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['isys_catg_net_connector_list__isys_obj__id'])),
+                        idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['isys_catg_net_connector_list__isys_obj__id'])
+                    ),
                     C__PROPERTY__DATA__JOIN             => [
-                        idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory('isys_catg_net_connector_list', 'LEFT', 'isys_catg_net_connector_list__isys_obj__id',
-                            'isys_obj__id'),
-                        idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory('isys_catg_net_listener_list', 'LEFT',
-                            'isys_catg_net_connector_list__isys_catg_net_listener_list__id', 'isys_catg_net_listener_list__id'),
-                        idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory('isys_cats_net_ip_addresses_list', 'LEFT',
-                            'isys_catg_net_listener_list__isys_cats_net_ip_addresses_list__id', 'isys_cats_net_ip_addresses_list__id'),
+                        idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory(
+                            'isys_catg_net_connector_list',
+                            'LEFT',
+                            'isys_catg_net_connector_list__isys_obj__id',
+                            'isys_obj__id'
+                        ),
+                        idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory(
+                            'isys_catg_net_listener_list',
+                            'LEFT',
+                            'isys_catg_net_connector_list__isys_catg_net_listener_list__id',
+                            'isys_catg_net_listener_list__id'
+                        ),
+                        idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory(
+                            'isys_cats_net_ip_addresses_list',
+                            'LEFT',
+                            'isys_catg_net_listener_list__isys_cats_net_ip_addresses_list__id',
+                            'isys_cats_net_ip_addresses_list__id'
+                        ),
                         idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory('isys_obj', 'LEFT', 'isys_catg_net_listener_list__isys_obj__id', 'isys_obj__id'),
-                        idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory('isys_net_protocol', 'LEFT', 'isys_catg_net_listener_list__isys_net_protocol__id',
-                            'isys_net_protocol__id')
+                        idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory(
+                            'isys_net_protocol',
+                            'LEFT',
+                            'isys_catg_net_listener_list__isys_net_protocol__id',
+                            'isys_net_protocol__id'
+                        )
                     ]
                 ],
                 C__PROPERTY__UI       => [
@@ -291,13 +348,19 @@ class isys_cmdb_dao_category_g_net_connector extends isys_cmdb_dao_category_glob
                 ],
                 C__PROPERTY__DATA     => [
                     C__PROPERTY__DATA__FIELD      => 'isys_catg_net_connector_list__isys_catg_net_listener_list__id',
-                    C__PROPERTY__DATA__SELECT     => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory('SELECT CONCAT(isys_obj__title, \' {\', isys_obj__id, \'}\')
+                    C__PROPERTY__DATA__SELECT     => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory(
+                        'SELECT CONCAT(isys_obj__title, \' {\', isys_obj__id, \'}\')
                             FROM isys_catg_net_connector_list
                             INNER JOIN isys_catg_net_listener_list ON isys_catg_net_listener_list__id = isys_catg_net_connector_list__isys_catg_net_listener_list__id
-                            INNER JOIN isys_obj ON isys_obj__id = isys_catg_net_listener_list__isys_obj__id', 'isys_catg_net_connector_list',
-                        'isys_catg_net_connector_list__id', 'isys_catg_net_connector_list__isys_obj__id', '', '',
+                            INNER JOIN isys_obj ON isys_obj__id = isys_catg_net_listener_list__isys_obj__id',
+                        'isys_catg_net_connector_list',
+                        'isys_catg_net_connector_list__id',
+                        'isys_catg_net_connector_list__isys_obj__id',
+                        '',
+                        '',
                         idoit\Module\Report\SqlQuery\Structure\SelectCondition::factory([]),
-                        idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['isys_catg_net_connector_list__isys_obj__id'])),
+                        idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['isys_catg_net_connector_list__isys_obj__id'])
+                    ),
                     C__PROPERTY__DATA__REFERENCES => [
                         'isys_catg_net_listener_list',
                         'isys_catg_net_listener_list__id',
@@ -342,14 +405,25 @@ class isys_cmdb_dao_category_g_net_connector extends isys_cmdb_dao_category_glob
                         'isys_obj',
                         'isys_obj__id'
                     ],
-                    C__PROPERTY__DATA__SELECT      => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory('SELECT CONCAT(isys_obj__title, \' {\', isys_obj__id, \'}\')
+                    C__PROPERTY__DATA__SELECT      => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory(
+                        'SELECT CONCAT(isys_obj__title, \' {\', isys_obj__id, \'}\')
                             FROM isys_catg_net_connector_list
-                            INNER JOIN isys_obj ON isys_obj__id = isys_catg_net_connector_list__gateway', 'isys_catg_net_connector_list', 'isys_catg_net_connector_list__id',
-                        'isys_catg_net_connector_list__isys_obj__id', '', '', idoit\Module\Report\SqlQuery\Structure\SelectCondition::factory([]),
-                        idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['isys_catg_net_connector_list__isys_obj__id'])),
+                            INNER JOIN isys_obj ON isys_obj__id = isys_catg_net_connector_list__gateway',
+                        'isys_catg_net_connector_list',
+                        'isys_catg_net_connector_list__id',
+                        'isys_catg_net_connector_list__isys_obj__id',
+                        '',
+                        '',
+                        idoit\Module\Report\SqlQuery\Structure\SelectCondition::factory([]),
+                        idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['isys_catg_net_connector_list__isys_obj__id'])
+                    ),
                     C__PROPERTY__DATA__JOIN        => [
-                        idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory('isys_catg_net_connector_list', 'LEFT', 'isys_catg_net_connector_list__isys_obj__id',
-                            'isys_obj__id'),
+                        idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory(
+                            'isys_catg_net_connector_list',
+                            'LEFT',
+                            'isys_catg_net_connector_list__isys_obj__id',
+                            'isys_obj__id'
+                        ),
                         idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory('isys_obj', 'LEFT', 'isys_catg_net_connector_list__gateway', 'isys_obj__id')
                     ]
                 ],
@@ -367,9 +441,16 @@ class isys_cmdb_dao_category_g_net_connector extends isys_cmdb_dao_category_glob
                 ],
                 C__PROPERTY__DATA => [
                     C__PROPERTY__DATA__FIELD  => 'isys_catg_net_connector_list__description',
-                    C__PROPERTY__DATA__SELECT => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory('SELECT isys_catg_net_connector_list__description FROM isys_catg_net_connector_list',
-                        'isys_catg_net_connector_list', 'isys_catg_net_connector_list__id', 'isys_catg_net_connector_list__isys_obj__id', '', '', null,
-                        idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['isys_catg_net_connector_list__isys_obj__id']))
+                    C__PROPERTY__DATA__SELECT => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory(
+                        'SELECT isys_catg_net_connector_list__description FROM isys_catg_net_connector_list',
+                        'isys_catg_net_connector_list',
+                        'isys_catg_net_connector_list__id',
+                        'isys_catg_net_connector_list__isys_obj__id',
+                        '',
+                        '',
+                        null,
+                        idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['isys_catg_net_connector_list__isys_obj__id'])
+                    )
                 ],
                 C__PROPERTY__UI   => [
                     C__PROPERTY__UI__ID => 'C__CMDB__CAT__COMMENTARY_' . C__CMDB__CATEGORY__TYPE_GLOBAL . defined_or_default('C__CATG__NET_CONNECTOR', 'C__CATG__NET_CONNECTOR')

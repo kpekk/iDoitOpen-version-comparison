@@ -10,7 +10,7 @@
  * @license     http://www.gnu.org/licenses/agpl-3.0.html GNU AGPLv3
  */
 $g_product_info = [
-    'version' => '1.12',
+    'version' => '1.12.2',
     'step'    => '',
     'type'    => 'OPEN'
 ];

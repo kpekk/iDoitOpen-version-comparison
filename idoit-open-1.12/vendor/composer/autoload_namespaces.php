@@ -9,7 +9,6 @@ return array(
     'Upload' => array($vendorDir . '/codeguy/upload/src'),
     'SimplePie' => array($vendorDir . '/simplepie/simplepie/library'),
     'ProxyManager\\' => array($vendorDir . '/ocramius/proxy-manager/src'),
-    'Pimple' => array($vendorDir . '/pimple/pimple/src'),
     'Pagerfanta\\' => array($vendorDir . '/pagerfanta/pagerfanta/src'),
     'Httpful' => array($vendorDir . '/nategood/httpful/src'),
     'Gaufrette' => array($vendorDir . '/knplabs/gaufrette/src'),

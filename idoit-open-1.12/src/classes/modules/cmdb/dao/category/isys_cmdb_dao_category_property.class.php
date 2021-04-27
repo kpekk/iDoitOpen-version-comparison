@@ -255,20 +255,6 @@ class isys_cmdb_dao_category_property extends isys_cmdb_dao_category
                 'isys_connection__id'
             ]
         ],
-        'isys_catg_its_components_list__isys_obj__id'                                                  => [
-            [
-                'isys_connection',
-                'isys_obj',
-                'isys_connection__isys_obj__id',
-                'isys_obj__id'
-            ],
-            [
-                'isys_catg_its_components_list',
-                'isys_connection',
-                'isys_catg_its_components_list__isys_connection__id',
-                'isys_connection__id'
-            ]
-        ],
         'isys_catg_nagios_refs_services_list__isys_obj__id__service'                                   => [
             [
                 'isys_catg_nagios_refs_services_list',
@@ -360,7 +346,9 @@ class isys_cmdb_dao_category_property extends isys_cmdb_dao_category
         'isys_cmdb_dao_category_s_person_contact_assign::isys_catg_contact_list__isys_obj__id'         => true,
         'isys_cmdb_dao_category_s_person_group_contact_assign::isys_catg_contact_list__isys_obj__id'   => true,
         'isys_cmdb_dao_category_s_organization_contact_assign::isys_catg_contact_list__isys_obj__id'   => true,
-        'isys_cmdb_dao_category_g_group_memberships::isys_cats_group_list__isys_obj__id'               => true
+        'isys_cmdb_dao_category_g_group_memberships::isys_cats_group_list__isys_obj__id'               => true,
+        'isys_cmdb_dao_category_g_itservice::isys_catg_its_components_list__isys_obj__id'              => true,
+        'isys_cmdb_dao_category_g_network_ifacel::isys_catg_log_port_list__isys_catg_log_port_list__id' => true
     ];
 
     /**
@@ -952,8 +940,14 @@ class isys_cmdb_dao_category_property extends isys_cmdb_dao_category
             is_array($_POST['querycondition__HIDDEN'])
         ) {
             foreach ($_POST['querycondition__HIDDEN'] as $index => $condition) {
-                if (isset($condition[0]['value']) && empty($condition[0]['value'])) {
-                    unset($_POST['querycondition__HIDDEN'][$index]);
+                foreach ($condition as $conditionIndex => $conditionValue) {
+                    if (isset($conditionValue['value']) &&
+                        empty($conditionValue['value']) &&
+                        !isset($conditionValue['subcnd']) &&
+                        strpos($_POST['querycondition'][$index][$conditionIndex]['category'], 'C__CATG__CUSTOM_FIELDS') !== false
+                    ) {
+                        unset($_POST['querycondition__HIDDEN'][$index]);
+                    }
                 }
             }
 
@@ -1278,7 +1272,7 @@ class isys_cmdb_dao_category_property extends isys_cmdb_dao_category
                 } elseif ($this->m_property_rows_lvls[$l_select]['data'][C__PROPERTY__INFO][C__PROPERTY__INFO__TYPE] == C__PROPERTY__INFO__TYPE__OBJECT_BROWSER) {
                     if ($l_db_field == $l_table . '__isys_obj__id') {
                         if (isset($this->m_aliases_lvls[$const . '::' . 'isys_connection#' . $l_table . '#' . $l_assigned_property])) {
-                            $l_alias = 'j' . $this->m_aliases_lvls[$const . '::' . 'isys_connection#' . $l_table . '#' . $l_assigned_property];
+                            $l_alias = "j" . $this->retrieve_alias_lvls('isys_connection', $l_table, $l_assigned_property, $const);
 
                             $l_selects[$l_assigned_property . '--' . $l_select] = $l_alias . "." . $l_db_field .
                                 (!$p_leave_field_identifiers ? " AS '" . $this->m_property_rows_lvls[$l_select]['title'] . "#" . $l_referenced_title . "###" .
@@ -1313,7 +1307,7 @@ class isys_cmdb_dao_category_property extends isys_cmdb_dao_category
 
                     // Then we check for special table-names inside the select.
                     if (isset($this->m_aliases_lvls[$const . '::' . $l_table])) {
-                        $l_alias = $this->m_aliases_lvls[$const . '::' . $l_table];
+                        $l_alias = 'j' . $this->m_aliases_lvls[$const . '::' . $l_table];
                     } elseif ($l_table == 'isys_logbook') {
                         $l_alias = 'j' . $this->retrieve_alias_lvls('isys_catg_logb_list', 'isys_logbook', $l_assigned_property, $const);
                     }
@@ -1524,7 +1518,7 @@ class isys_cmdb_dao_category_property extends isys_cmdb_dao_category
 
                     // We have to check for an existing "predefined" alias.
                     if (isset($this->m_aliases_lvls[$const . '::' . $l_table])) {
-                        $l_alias = $this->m_aliases_lvls[$const . '::' . $l_table];
+                        $l_alias = 'j' . $this->m_aliases_lvls[$const . '::' . $l_table];
                     } else {
                         $l_alias = 'j' . $this->retrieve_alias_lvls($l_table, null, $l_assigned_property, $const);
                     }
@@ -1563,7 +1557,7 @@ class isys_cmdb_dao_category_property extends isys_cmdb_dao_category
                             }
 
                             // In Case the alias could not be retrieved
-                            if ($l_alias_sec === '') {
+                            if ($l_alias_sec === '' || $l_alias_sec === 'j') {
                                 foreach ($this->m_aliases_lvls as $l_alias_key => $l_value) {
                                     $l_cache_key = explode('#', $l_alias_key);
                                     list($aliasConst, $aliasTable) = explode('::', $l_cache_key[0]);
@@ -1608,6 +1602,7 @@ class isys_cmdb_dao_category_property extends isys_cmdb_dao_category
                         }
                         if (!isset($this->m_referenced_fields[$l_assigned_property . '--' . $l_prop_data['const'] . '-' . $l_prop_data['key']])) {
                             $this->m_referenced_fields[$l_assigned_property . '--' . $l_prop_data['const'] . '-' . $l_prop_data['key']] = $l_referenced_field;
+                            $this->m_referenced_fields[$l_assigned_property . '--' . $l_prop_id] = $l_referenced_field;
                         }
 
                         if ($l_table !== 'isys_obj') {
@@ -1620,6 +1615,7 @@ class isys_cmdb_dao_category_property extends isys_cmdb_dao_category
                             $l_joins[] = $l_join_type . " JOIN isys_obj AS " . $l_alias . " ON " . $l_alias . '.isys_obj__id = ' . $l_referenced_field;
 
                             $this->m_referenced_fields[$l_assigned_property . '--' . $l_prop_data['const'] . '-' . $l_prop_data['key']] = $l_alias . '.isys_obj__id';
+                            $this->m_referenced_fields[$l_assigned_property . '--' . $l_prop_id] = $l_alias . '.isys_obj__id';
                             $this->m_already_used_aliase[] = $l_alias;
                         }
 
@@ -1630,7 +1626,8 @@ class isys_cmdb_dao_category_property extends isys_cmdb_dao_category
                     if (($l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] !== null &&
                             substr($l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0], 0, 5) == 'isys_') ||
                         $l_prop_data['data'][C__PROPERTY__UI][C__PROPERTY__UI__PARAMS]['p_strPopupType'] == 'browser_location') {
-                        $l_alias_sec = $this->retrieve_alias_lvls($l_table, $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0], $l_assigned_property, $const);
+                        $l_alias_sec = 'j' . $this->retrieve_alias_lvls($l_table, $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0], $l_assigned_property, $const);
+                        $l_alias_third = 'job' . $this->retrieve_alias_lvls($l_table, $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0], $l_assigned_property, $const);
 
                         if (in_array($l_alias_sec, $this->m_already_used_aliase)) {
                             continue;
@@ -1663,8 +1660,8 @@ class isys_cmdb_dao_category_property extends isys_cmdb_dao_category
                                 }
                             }
 
-                            $l_joins[] = $l_join_type . " JOIN " . $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . " AS j" . $l_alias_sec .
-                                " ON j" . $l_alias_sec . "." . $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . "__id = " . $l_alias_obj . '.' .
+                            $l_joins[] = $l_join_type . " JOIN " . $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . " AS " . $l_alias_sec .
+                                " ON " . $l_alias_sec . "." . $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . "__id = " . $l_alias_obj . '.' .
                                 $l_obj_field;
 
                             $l_referenced_field = $l_alias_obj . '.' . $l_obj_field;
@@ -1675,20 +1672,20 @@ class isys_cmdb_dao_category_property extends isys_cmdb_dao_category
                                 }
 
                                 // Join the connection table (isys_connection).
-                                $l_joins[] = "INNER JOIN " . $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . " AS j" . $l_alias_sec . " ON j" .
+                                $l_joins[] = "INNER JOIN " . $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . " AS " . $l_alias_sec . " ON " .
                                     $l_alias_sec . "." . $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . "__isys_obj__id = " .
                                     $l_join_condition_field;
 
                                 if (!in_array($l_alias, $this->m_already_used_aliase)) {
                                     // Join the category table (isys_catg_XXXX_list).
                                     $l_joins[] = $l_join_type . " JOIN " . $l_table . " AS " . $l_alias . " ON " . $l_alias . "." . $l_table . "__" .
-                                        $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . "__id = j" . $l_alias_sec . "." .
+                                        $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . "__id = " . $l_alias_sec . "." .
                                         $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . '__id ' .
                                         $this->addMultivalueStatusFilter($l_alias, $l_table, $l_prop_data['multi']);
                                 }
 
                                 // Join the object table (isys_obj).
-                                $l_joins[] = "INNER JOIN isys_obj AS job" . $l_alias_sec . " ON " . $l_alias . "." . $l_table . "__isys_obj__id = job" . $l_alias_sec .
+                                $l_joins[] = "INNER JOIN isys_obj AS " . $l_alias_third . " ON " . $l_alias . "." . $l_table . "__isys_obj__id = " . $l_alias_third .
                                     '.isys_obj__id ';
                             }
                         } elseif ($l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] == "isys_connection") {
@@ -1700,10 +1697,12 @@ class isys_cmdb_dao_category_property extends isys_cmdb_dao_category
                                 // Special case for application and operating system
                                 switch ($const) {
                                     case 'C__CATG__OPERATING_SYSTEM':
-                                        $l_join_string .= " AND " . $l_alias . "." . $l_table . "__isys_catg_application_priority__id IS NOT NULL ";
+                                        $l_join_string .= " AND " . $l_alias . "." . $l_table . "__isys_catg_application_priority__id = " . defined_or_default('C__CATG__APPLICATION_PRIORITY__PRIMARY') .
+                                            " " . $this->addMultivalueStatusFilter($l_alias, $l_table, true);
                                         break;
                                     case 'C__CATG__APPLICATION':
-                                        $l_join_string .= " AND " . $l_alias . "." . $l_table . "__isys_catg_application_type__id = " . defined_or_default('C__CATG__APPLICATION_TYPE__SOFTWARE');
+                                        $l_join_string .= " AND (" . $l_alias . "." . $l_table . "__isys_catg_application_priority__id IS NULL " .
+                                            "OR " . $l_alias . "." . $l_table . "__isys_catg_application_priority__id = " . defined_or_default('C__CATG__APPLICATION_PRIORITY__SECONDARY') . ")";
                                         break;
                                     default:
                                         break;
@@ -1712,41 +1711,41 @@ class isys_cmdb_dao_category_property extends isys_cmdb_dao_category
                             }
 
                             // Join the connection table (isys_connection).
-                            $l_joins[] = $l_join_type . " JOIN " . $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . " AS j" . $l_alias_sec .
-                                " ON j" . $l_alias_sec . "." . $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . "__id = " . $l_alias . '.' .
+                            $l_joins[] = $l_join_type . " JOIN " . $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . " AS " . $l_alias_sec .
+                                " ON " . $l_alias_sec . "." . $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . "__id = " . $l_alias . '.' .
                                 $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__FIELD];
 
                             // Join the object table (isys_obj).
-                            $l_joins[] = $l_join_type . " JOIN isys_obj AS job" . $l_alias_sec . " ON j" . $l_alias_sec . "." .
-                                $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . "__isys_obj__id = job" . $l_alias_sec . '.isys_obj__id';
+                            $l_joins[] = $l_join_type . " JOIN isys_obj AS " . $l_alias_third. " ON " . $l_alias_sec . "." .
+                                $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . "__isys_obj__id = " . $l_alias_third . '.isys_obj__id';
 
-                            $l_referenced_field = "job" . $l_alias_sec . ".isys_obj__id";
+                            $l_referenced_field = $l_alias_third . ".isys_obj__id";
                         } elseif ($l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] == 'isys_contact') {
                             if (!in_array($l_alias, $this->m_already_used_aliase)) {
                                 $l_joins[] = $l_join_type . " JOIN " . $l_table . " AS " . $l_alias . " ON " . $l_alias . "." . $l_table . "__isys_obj__id = " .
                                     $l_join_condition_field . ' ' . $this->addMultivalueStatusFilter($l_alias, $l_table, $l_prop_data['multi']);
                             }
 
-                            $l_joins[] = $l_join_type . " JOIN " . $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . " AS j" . $l_alias_sec .
-                                " ON j" . $l_alias_sec . "." . $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . "__id = " . $l_alias . '.' .
+                            $l_joins[] = $l_join_type . " JOIN " . $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . " AS " . $l_alias_sec .
+                                " ON " . $l_alias_sec . "." . $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . "__id = " . $l_alias . '.' .
                                 $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__FIELD];
 
-                            $l_alias_third = $this->retrieve_alias_lvls(
+                            $l_alias_third = 'j' . $this->retrieve_alias_lvls(
                                 $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0],
                                 'isys_contact_2_isys_obj',
                                 $l_assigned_property,
                                 $const
                             );
-                            $l_alias_fourth = $this->retrieve_alias_lvls('isys_obj', 'isys_contact_2_isys_obj', $l_assigned_property, $const);
+                            $l_alias_fourth = 'job' . $this->retrieve_alias_lvls('isys_obj', 'isys_contact_2_isys_obj', $l_assigned_property, $const);
 
-                            $l_joins[] = "LEFT JOIN isys_contact_2_isys_obj AS j" . $l_alias_third . " ON j" . $l_alias_sec . "." .
-                                $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . "__id = j" . $l_alias_third .
+                            $l_joins[] = "LEFT JOIN isys_contact_2_isys_obj AS " . $l_alias_third . " ON " . $l_alias_sec . "." .
+                                $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . "__id = " . $l_alias_third .
                                 '.isys_contact_2_isys_obj__isys_contact__id';
 
-                            $l_joins[] = $l_join_type . " JOIN isys_obj AS job" . $l_alias_fourth . " ON job" . $l_alias_fourth . ".isys_obj__id = j" . $l_alias_third .
+                            $l_joins[] = $l_join_type . " JOIN isys_obj AS " . $l_alias_fourth . " ON " . $l_alias_fourth . ".isys_obj__id = " . $l_alias_third .
                                 '.isys_contact_2_isys_obj__isys_obj__id';
 
-                            $l_referenced_field = "job" . $l_alias_fourth . ".isys_obj__id";
+                            $l_referenced_field = $l_alias_fourth . ".isys_obj__id";
                         } else {
                             if (!in_array($l_alias, $this->m_already_used_aliase)) {
                                 $l_joins[] = $l_join_type . " JOIN " . $l_table . " AS " . $l_alias . " ON " . $l_alias . "." . $l_table . "__isys_obj__id = " .
@@ -1754,12 +1753,12 @@ class isys_cmdb_dao_category_property extends isys_cmdb_dao_category
                                 $l_referenced_field = $l_alias . "." . $l_table . "__isys_obj__id";
                             }
 
-                            if (!in_array('j' . $l_alias_sec, $this->m_already_used_aliase)) {
-                                $l_joins[] = $l_join_type . " JOIN " . $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . " AS j" . $l_alias_sec .
-                                    " ON j" . $l_alias_sec . "." . $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . "__id = " . $l_alias . '.' .
+                            if (!in_array($l_alias_sec, $this->m_already_used_aliase)) {
+                                $l_joins[] = $l_join_type . " JOIN " . $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . " AS " . $l_alias_sec .
+                                    " ON " . $l_alias_sec . "." . $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . "__id = " . $l_alias . '.' .
                                     $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__FIELD];
 
-                                $l_referenced_field = "j" . $l_alias_sec . "." . $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . "__id";
+                                $l_referenced_field = $l_alias_sec . "." . $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . "__id";
                             }
 
                             // Reference to category table
@@ -1769,7 +1768,7 @@ class isys_cmdb_dao_category_property extends isys_cmdb_dao_category
                                 ) && (strpos($l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0], 'catg') !== false ||
                                     strpos($l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0], 'cats') !== false) &&
                                 strpos($l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0], 'list') !== false) {
-                                $l_alias_third = $this->retrieve_alias_lvls(
+                                $l_alias_third = 'j' . $this->retrieve_alias_lvls(
                                     $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0],
                                     'isys_obj',
                                     $l_assigned_property,
@@ -1781,7 +1780,7 @@ class isys_cmdb_dao_category_property extends isys_cmdb_dao_category
                                 }
 
                                 $l_already_joined_tables[] = $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . '#isys_obj#' . $l_assigned_property;
-                                $l_joins[] = $l_join_type . " JOIN isys_obj AS j" . $l_alias_third . " ON j" . $l_alias_third . ".isys_obj__id = j" . $l_alias_sec . "." .
+                                $l_joins[] = $l_join_type . " JOIN isys_obj AS " . $l_alias_third . " ON " . $l_alias_third . ".isys_obj__id = " . $l_alias_sec . "." .
                                     $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . '__isys_obj__id';
                             }
                         }
@@ -1879,9 +1878,25 @@ class isys_cmdb_dao_category_property extends isys_cmdb_dao_category
                                         $this->m_already_used_aliase[] = $l_alias;
                                     }
                                 }
-                                // Special Handling
-                                if (isset($this->m_aliases_lvls[$const . '::' . $l_table . '#isys_catg_connector_list#isys_obj' . '#' . $l_assigned_property])) {
+
+                                if (isset($this->m_aliases_lvls[$const . '::' . 'isys_catg_connector_list#' . $l_table . '#' . $l_assigned_property])) {
                                     $l_alias_sec = $l_alias;
+                                    $l_alias = 'j' . $this->m_aliases_lvls[$const . '::' . 'isys_catg_connector_list#' . $l_table . '#' . $l_assigned_property];
+
+                                    if (in_array($l_alias, $this->m_already_used_aliase)) {
+                                        continue;
+                                    }
+
+                                    $l_join_string = $l_join_type . " JOIN " . $l_table . " AS " . $l_alias . " ON " . $l_alias . "." . $l_table . "__isys_catg_connector_list__id = " .
+                                        $l_alias_sec . ".isys_catg_connector_list__id " . $this->addMultivalueStatusFilter($l_alias, $l_table, 1);
+
+                                    $l_joins[] = $l_join_string;
+
+                                    $this->m_already_used_aliase[] = $l_alias;
+                                }
+
+                                // Special Handling
+                                if (isset($this->m_aliases_lvls[$const . '::' . $l_table . '#isys_catg_connector_list#isys_obj' . '#' . $l_assigned_property]) && $l_alias_sec) {
                                     $l_alias = 'j' . $this->m_aliases_lvls[$const . '::' . $l_table . '#isys_catg_connector_list#isys_obj' . '#' . $l_assigned_property];
                                     if (!in_array($l_alias, $this->m_already_used_aliase)) {
                                         $l_already_joined_tables[] = $l_table . '#isys_catg_connector_list#isys_obj';
@@ -2241,7 +2256,7 @@ class isys_cmdb_dao_category_property extends isys_cmdb_dao_category
                     } else {
                         if ($this->m_property_rows[$l_select]['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] != 'isys_obj' &&
                             isset($this->m_aliases[$const . '::' . $this->m_property_rows[$l_select]['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0]])) {
-                            $l_selects[$l_select] = $this->m_aliases[$const . '::' . $this->m_property_rows[$l_select]['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0]] . "." .
+                            $l_selects[$l_select] = 'j' . $this->m_aliases[$const . '::' . $this->m_property_rows[$l_select]['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0]] . "." .
                                 $this->m_property_rows[$l_select]['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . "__title" .
                                 (!$p_leave_field_identifiers ? " AS '" . $this->m_property_rows[$l_select]['title'] . "###" . $this->m_property_rows[$l_select][$l_cat] .
                                     "'" : $l_field_name);
@@ -2311,6 +2326,14 @@ class isys_cmdb_dao_category_property extends isys_cmdb_dao_category
                             continue;
                         }
                     }
+                } else {
+                    if (isset($this->m_aliases[$const . '::isys_obj#' . $l_table])) {
+                        $l_alias = 'j' . $this->m_aliases[$const . '::isys_obj#' . $l_table];
+                        $l_selects[$l_select] = $l_alias . "." . $l_alias_field .
+                            (!$p_leave_field_identifiers ? " AS '" . $this->m_property_rows[$l_select]['title'] . "###" . $this->m_property_rows[$l_select][$l_cat] .
+                                "'" : $l_field_name);
+                        continue;
+                    }
                 }
             }
 
@@ -2318,7 +2341,7 @@ class isys_cmdb_dao_category_property extends isys_cmdb_dao_category
 
             // Then we check for special table-names inside the select.
             if (isset($this->m_aliases[$const . '::' . $l_table])) {
-                $l_alias = $this->m_aliases[$const . '::' . $l_table];
+                $l_alias = ($const !== 'C__CATG__GLOBAL' ? 'j' : '') . $this->m_aliases[$const . '::' . $l_table];
             } elseif (isset($this->m_aliases[$const . '::' . $l_table . '#main_obj'])) {
                 $l_alias = 'j' . $this->m_aliases[$const . '::' . $l_table . '#main_obj'];
             } elseif ($l_table == 'isys_logbook') {
@@ -2542,7 +2565,7 @@ class isys_cmdb_dao_category_property extends isys_cmdb_dao_category
 
                 // We have to check for an existing "predefined" alias.
                 if (isset($this->m_aliases[$const . '::' . $l_table])) {
-                    $l_alias = $this->m_aliases[$const . '::' . $l_table];
+                    $l_alias = ($const !== 'C__CATG__GLOBAL' ? 'j' : '') . $this->m_aliases[$const . '::' . $l_table];
                 } else {
                     $l_alias = 'j' . $this->retrieve_alias($l_table, null, $const);
                 }
@@ -2653,7 +2676,8 @@ class isys_cmdb_dao_category_property extends isys_cmdb_dao_category
                         $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] !== null &&
                         substr($l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0], 0, 5) == 'isys_') ||
                     $l_prop_data['data'][C__PROPERTY__UI][C__PROPERTY__UI__PARAMS]['p_strPopupType'] == 'browser_location') {
-                    $l_alias_sec = $this->retrieve_alias($l_table, $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0], $const);
+                    $l_alias_sec = 'j' . $this->retrieve_alias($l_table, $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0], $const);
+                    $l_alias_third = 'job' . $this->retrieve_alias($l_table, $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0], $const);
 
                     if (in_array($l_alias_sec, $this->m_already_used_aliase)) {
                         continue;
@@ -2665,7 +2689,7 @@ class isys_cmdb_dao_category_property extends isys_cmdb_dao_category
                             continue;
                         }
 
-                        $l_joins[] = $l_join_type . " JOIN " . $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . " AS j" . $l_alias_sec . " ON j" .
+                        $l_joins[] = $l_join_type . " JOIN " . $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . " AS " . $l_alias_sec . " ON " .
                             $l_alias_sec . "." . $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . "__id = obj_main." .
                             $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__FIELD];
                     } elseif ($l_prop_data['data'][C__PROPERTY__INFO][C__PROPERTY__INFO__BACKWARD] === true) {
@@ -2675,19 +2699,19 @@ class isys_cmdb_dao_category_property extends isys_cmdb_dao_category
                             }
 
                             // Join the connection table (isys_connection).
-                            $l_joins[] = "INNER JOIN " . $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . " AS j" . $l_alias_sec . " ON j" .
+                            $l_joins[] = "INNER JOIN " . $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . " AS " . $l_alias_sec . " ON " .
                                 $l_alias_sec . "." . $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . "__isys_obj__id = obj_main.isys_obj__id";
 
                             if (!in_array($l_alias, $this->m_already_used_aliase)) {
                                 // Join the category table (isys_catg_XXXX_list).
                                 $l_joins[] = $l_join_type . " JOIN " . $l_table . " AS " . $l_alias . " ON " . $l_alias . "." . $l_table . "__" .
-                                    $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . "__id = j" . $l_alias_sec . "." .
+                                    $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . "__id = " . $l_alias_sec . "." .
                                     $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . '__id ' .
                                     $this->addMultivalueStatusFilter($l_alias, $l_table, $l_prop_data['multi']);
                             }
 
                             // Join the object table (isys_obj).
-                            $l_joins[] = "INNER JOIN isys_obj AS job" . $l_alias_sec . " ON " . $l_alias . "." . $l_table . "__isys_obj__id = job" . $l_alias_sec .
+                            $l_joins[] = "INNER JOIN isys_obj AS " . $l_alias_third . " ON " . $l_alias . "." . $l_table . "__isys_obj__id = " . $l_alias_third .
                                 '.isys_obj__id';
                         }
                     } elseif ($l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] == 'isys_contact') {
@@ -2700,14 +2724,14 @@ class isys_cmdb_dao_category_property extends isys_cmdb_dao_category
                             continue;
                         }
 
-                        $l_joins[] = $l_join_type . " JOIN " . $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . " AS j" . $l_alias_sec . " ON j" .
+                        $l_joins[] = $l_join_type . " JOIN " . $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . " AS " . $l_alias_sec . " ON " .
                             $l_alias_sec . "." . $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . "__id = " . $l_alias . '.' .
                             $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__FIELD];
 
                         $l_alias_third = "j" . $this->retrieve_alias($l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0], 'isys_contact_2_isys_obj', $const);
                         $l_alias_fourth = "job" . $this->retrieve_alias('isys_obj', 'isys_contact_2_isys_obj', $const);
 
-                        $l_joins[] = "LEFT JOIN isys_contact_2_isys_obj AS " . $l_alias_third . " ON j" . $l_alias_sec . "." .
+                        $l_joins[] = "LEFT JOIN isys_contact_2_isys_obj AS " . $l_alias_third . " ON " . $l_alias_sec . "." .
                             $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . "__id = " . $l_alias_third .
                             '.isys_contact_2_isys_obj__isys_contact__id';
 
@@ -2726,10 +2750,12 @@ class isys_cmdb_dao_category_property extends isys_cmdb_dao_category
                             // Special case for application and operating system
                             switch ($const) {
                                 case 'C__CATG__OPERATING_SYSTEM':
-                                    $l_joins[$l_alias] .= " AND " . $l_alias . "." . $l_table . "__isys_catg_application_priority__id IS NOT NULL ";
+                                    $l_joins[$l_alias] .= " AND " . $l_alias . "." . $l_table . "__isys_catg_application_priority__id = " . defined_or_default('C__CATG__APPLICATION_PRIORITY__PRIMARY') .
+                                        " " . $this->addMultivalueStatusFilter($l_alias, $l_table, true);
                                     break;
                                 case 'C__CATG__APPLICATION':
-                                    $l_joins[$l_alias] .= " AND " . $l_alias . "." . $l_table . "__isys_catg_application_type__id = " . defined_or_default('C__CATG__APPLICATION_TYPE__SOFTWARE');
+                                    $l_joins[$l_alias] .= " AND (" . $l_alias . "." . $l_table . "__isys_catg_application_priority__id IS NULL " .
+                                        "OR " . $l_alias . "." . $l_table . "__isys_catg_application_priority__id = " . defined_or_default('C__CATG__APPLICATION_PRIORITY__SECONDARY') . ")";
                                     break;
                                 default:
                                     break;
@@ -2741,13 +2767,13 @@ class isys_cmdb_dao_category_property extends isys_cmdb_dao_category
                         }
 
                         // Join the connection table (isys_connection).
-                        $l_joins[] = $l_join_type . " JOIN " . $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . " AS j" . $l_alias_sec . " ON j" .
+                        $l_joins[] = $l_join_type . " JOIN " . $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . " AS " . $l_alias_sec . " ON " .
                             $l_alias_sec . "." . $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . "__id = " . $l_alias . '.' .
                             $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__FIELD];
 
                         // Join the object table (isys_obj).
-                        $l_joins[] = $l_join_type . " JOIN isys_obj AS job" . $l_alias_sec . " ON j" . $l_alias_sec . "." .
-                            $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . "__isys_obj__id = job" . $l_alias_sec . '.isys_obj__id';
+                        $l_joins[] = $l_join_type . " JOIN isys_obj AS " . $l_alias_third . " ON " . $l_alias_sec . "." .
+                            $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . "__isys_obj__id = " . $l_alias_third . '.isys_obj__id';
                     } elseif ($l_table == "isys_logbook" && isset($l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0])) {
                         $l_alias = 'j' . $this->retrieve_alias('isys_obj', 'isys_catg_logb_list', $const);
                         $l_alias_sec = 'j' . $this->retrieve_alias('isys_catg_logb_list', 'isys_logbook', $const);
@@ -2782,7 +2808,7 @@ class isys_cmdb_dao_category_property extends isys_cmdb_dao_category
                             continue;
                         }
 
-                        $l_joins[] = $l_join_type . " JOIN " . $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . " AS j" . $l_alias_sec . " ON j" .
+                        $l_joins[] = $l_join_type . " JOIN " . $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . " AS " . $l_alias_sec . " ON " .
                             $l_alias_sec . "." . $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][1] . " = " . $l_alias . '.' .
                             $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__FIELD];
 
@@ -2791,14 +2817,14 @@ class isys_cmdb_dao_category_property extends isys_cmdb_dao_category
                             (strpos($l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0], 'catg') !== false ||
                                 strpos($l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0], 'cats') !== false) &&
                             strpos($l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0], 'list') !== false) {
-                            $l_alias_third = $this->retrieve_alias($l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0], 'isys_obj', $const);
+                            $l_alias_third = 'j' . $this->retrieve_alias($l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0], 'isys_obj', $const);
 
                             if (in_array($l_alias_third, $this->m_already_used_aliase)) {
                                 continue;
                             }
 
                             $l_already_joined_tables[] = $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . '#isys_obj';
-                            $l_joins[] = $l_join_type . " JOIN isys_obj AS j" . $l_alias_third . " ON j" . $l_alias_third . ".isys_obj__id = j" . $l_alias_sec . "." .
+                            $l_joins[] = $l_join_type . " JOIN isys_obj AS " . $l_alias_third . " ON " . $l_alias_third . ".isys_obj__id = " . $l_alias_sec . "." .
                                 $l_prop_data['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0] . '__isys_obj__id';
                         }
                     }
@@ -2890,20 +2916,18 @@ class isys_cmdb_dao_category_property extends isys_cmdb_dao_category
                         if (isset($this->m_aliases[$const . '::' . $l_table . '#main_obj'])) {
                             $l_alias = "j" . $this->m_aliases[$const . '::' . $l_table . '#main_obj'];
 
-                            if (!isset($l_joins[$l_alias])) {
-                                if (in_array($l_alias, $this->m_already_used_aliase)) {
-                                    $l_already_joined_tables[] = $l_table . '#main_obj';
+                            if (!isset($l_joins[$l_alias]) && !in_array($l_alias, $this->m_already_used_aliase)) {
+                                $l_already_joined_tables[] = $l_table . '#main_obj';
 
-                                    $l_join_string = $l_join_type . " JOIN " . $l_table . " AS " . $l_alias . " ON " . $l_alias . "." . $l_table .
-                                        "__isys_obj__id = obj_main.isys_obj__id " . $this->addMultivalueStatusFilter($l_alias, $l_table, 1);
+                                $l_join_string = $l_join_type . " JOIN " . $l_table . " AS " . $l_alias . " ON " . $l_alias . "." . $l_table .
+                                    "__isys_obj__id = obj_main.isys_obj__id " . $this->addMultivalueStatusFilter($l_alias, $l_table, 1);
 
-                                    $l_joins[] = $l_join_string;
+                                $l_joins[] = $l_join_string;
 
-                                    $this->m_already_used_aliase[] = $l_alias;
-                                }
+                                $this->m_already_used_aliase[] = $l_alias;
                             }
                         }
-                        if (isset($this->m_aliases[$const . '::' . 'isys_catg_connector_list#' . $l_table]) && $l_table != 'isys_catg_connector_list') {
+                        if (isset($this->m_aliases[$const . '::' . $l_table . '#isys_catg_connector_list']) && $l_table != 'isys_catg_connector_list') {
                             $l_alias_sec = $l_alias;
                             $l_alias = 'j' . $this->m_aliases[$const . '::' . $l_table . '#isys_catg_connector_list'];
 
@@ -2934,8 +2958,24 @@ class isys_cmdb_dao_category_property extends isys_cmdb_dao_category
                                 $l_joins[] = $l_join_string . ' ' . $this->addMultivalueStatusFilter($l_alias, 'isys_catg_connector_list', 1);
                                 $this->m_already_used_aliase[] = $l_alias;
                             }
-                            if (isset($this->m_aliases[$const . '::' . $l_table . '#isys_catg_connector_list#isys_obj'])) {
+
+                            if (isset($this->m_aliases[$const . '::' . 'isys_catg_connector_list#' . $l_table])) {
                                 $l_alias_sec = $l_alias;
+                                $l_alias = 'j' . $this->m_aliases[$const . '::' . 'isys_catg_connector_list#' . $l_table];
+
+                                if (in_array($l_alias, $this->m_already_used_aliase)) {
+                                    continue;
+                                }
+
+                                $l_join_string = $l_join_type . " JOIN " . $l_table . " AS " . $l_alias . " ON " . $l_alias . "." . $l_table . "__isys_catg_connector_list__id = " .
+                                    $l_alias_sec . ".isys_catg_connector_list__id " . $this->addMultivalueStatusFilter($l_alias, $l_table, 1);
+
+                                $l_joins[] = $l_join_string;
+
+                                $this->m_already_used_aliase[] = $l_alias;
+                            }
+
+                            if (isset($this->m_aliases[$const . '::' . $l_table . '#isys_catg_connector_list#isys_obj']) && $l_alias_sec) {
                                 $l_alias = 'j' . $this->m_aliases[$const . '::' . $l_table . '#isys_catg_connector_list#isys_obj'];
 
                                 if (in_array($l_alias, $this->m_already_used_aliase)) {
@@ -3023,7 +3063,10 @@ class isys_cmdb_dao_category_property extends isys_cmdb_dao_category
                     }
 
                     $l_already_joined_tables[] = $l_table . '#isys_obj';
-                    $l_join = $l_join_type . " JOIN " . $l_table . " AS " . $l_alias . " ON " . $l_alias . "." . $l_table . "__isys_obj__id = obj_main.isys_obj__id " .
+
+                    $referenceField = ($l_table === 'isys_obj' ? 'isys_obj__id': $l_table . '__isys_obj__id');
+
+                    $l_join = $l_join_type . " JOIN " . $l_table . " AS " . $l_alias . " ON " . $l_alias . "." . $referenceField . " = obj_main.isys_obj__id " .
                         $this->addMultivalueStatusFilter($l_alias, $l_table, $l_prop_data['multi']);
                     $l_join .= $this->add_join_condition($l_prop_data['data'][C__PROPERTY__DATA], $l_table, $l_alias);
                     $l_joins[$l_alias] = $l_join;
@@ -3242,14 +3285,19 @@ class isys_cmdb_dao_category_property extends isys_cmdb_dao_category
                                     false) {
                                     $l_alias = $this->retrieve_alias('isys_cable_connection', 'isys_obj', $const);
                                     $l_condition_field = "j" . $l_alias . "." . $l_alias_field;
+                                } elseif (strpos($this->m_property_rows[$l_select]['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__FIELD], '__isys_catg_log_port_list__id') !== false) {
+                                    $l_alias = $this->retrieve_alias('isys_catg_log_port_list', 'isys_catg_log_port_list', $const);
+                                    $l_condition_field = 'j' . $l_alias . '.' . $l_table . '__id';
                                 } elseif (strpos($this->m_property_rows[$l_select]['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__FIELD], 'isys_catg_connector_list__id') !==
                                     false) {
                                     if ($l_table != 'isys_catg_connector_list') {
-                                        $l_alias = $this->retrieve_alias('isys_catg_connector_list#isys_obj', $l_table, $const);
+                                        $l_alias = $this->retrieve_alias('isys_catg_connector_list#isys_catg_connector_list', $l_table, $const);
+                                        $field = 'isys_catg_connector_list__id';
                                     } else {
                                         $l_alias = $this->retrieve_alias('isys_obj', 'isys_catg_connector_list', $const);
+                                        $field = 'isys_obj__id';
                                     }
-                                    $l_condition_field = "j" . $l_alias . "." . $l_alias_field;
+                                    $l_condition_field = "j" . $l_alias . "." . $field;
                                 } elseif ($this->m_property_rows[$l_select][C__PROPERTY__DATA][C__PROPERTY__INFO][C__PROPERTY__INFO__TYPE] == C__PROPERTY__INFO__TYPE__MULTISELECT ||
                                     $this->m_property_rows[$l_select]['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__FIELD] === 'isys_cats_database_schema_list__isys_cats_db_instance_list__id') {
                                     // VQH: Find a better solution for isys_cats_database_schema_list__isys_cats_db_instance_list__id
@@ -3855,7 +3903,7 @@ class isys_cmdb_dao_category_property extends isys_cmdb_dao_category
         $propField = $p_props['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__FIELD];
         $specialJoinKey = $daoClass . '::' . $propField;
 
-        if ($this->m_special_joins[$specialJoinKey] === true && isset($p_props['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__JOIN])) {
+        if (isset($this->m_special_joins[$specialJoinKey]) && isset($p_props['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__JOIN])) {
             $this->createSpecialAliase($specialJoinKey, $p_props['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__JOIN], $p_props['const'], $p_assigned_property);
 
             return;
@@ -4335,7 +4383,7 @@ class isys_cmdb_dao_category_property extends isys_cmdb_dao_category
             } else {
                 // We have to check for an existing "predefined" alias.
                 if (isset($this->m_aliases_lvls[$l_table])) {
-                    $l_alias = $this->m_aliases_lvls[$l_table];
+                    $l_alias = 'j' . $this->m_aliases_lvls[$l_table];
                 } else {
                     $l_alias = 'j' . $this->retrieve_alias_lvls($l_table, null, $l_assigned_key, $const);
                 }
@@ -4419,11 +4467,13 @@ class isys_cmdb_dao_category_property extends isys_cmdb_dao_category
                     $l_condition_field = "j" . $l_alias . ".isys_obj__id";
                 } elseif (strpos($this->m_property_rows_lvls[$l_select]['data'][C__PROPERTY__DATA][C__PROPERTY__DATA__FIELD], 'isys_catg_connector_list__id') !== false) {
                     if ($l_table != 'isys_catg_connector_list') {
-                        $l_alias = $this->retrieve_alias_lvls('isys_catg_connector_list#isys_obj', $l_table, $l_assigned_key, $const);
+                        $l_alias = $this->retrieve_alias_lvls('isys_catg_connector_list#isys_catg_connector_list', $l_table, $l_assigned_key, $const);
+                        $field = "isys_catg_connector_list__id";
                     } else {
                         $l_alias = $this->retrieve_alias_lvls('isys_catg_connector_list', 'isys_obj', $l_assigned_key, $const);
+                        $field = "isys_obj__id";
                     }
-                    $l_condition_field = "j" . $l_alias . ".isys_obj__id";
+                    $l_condition_field = "j" . $l_alias . "." . $field;
                 } else {
                     if ($l_ref_table == '' && !in_array($l_alias, $this->m_already_used_aliase)) {
                         $l_alias = 'j' . $this->retrieve_alias_lvls($l_table, 'isys_obj', $l_assigned_key, $const);
@@ -4697,10 +4747,10 @@ class isys_cmdb_dao_category_property extends isys_cmdb_dao_category
                     // Only if table exists in condition and if no alias is being used
                     if (strpos($l_condition, $p_table) !== false && (substr_count($l_condition, '.') < 2 || strpos($l_condition, '.') === false)) {
                         if (strpos($l_condition, '.') !== false) {
-                            $l_newCondition[] = preg_replace('/[a-z0-9]+(?=\.)/', $p_alias, $l_condition);
+                            $l_newCondition[] = preg_replace('/\S+(?=\.)/', $p_alias, $l_condition);
                         } else {
                             // Special case if table is isys_obj
-                            if ($p_table == 'isys_obj') {
+                            if ($p_table === 'isys_obj') {
                                 $l_newCondition[] = str_replace($p_table . '__', $p_alias . '.' . $p_table . '__', $l_condition);
                             } else {
                                 $l_newCondition[] = str_replace($p_table, $p_alias . '.' . $p_table, $l_condition);
@@ -4760,7 +4810,13 @@ class isys_cmdb_dao_category_property extends isys_cmdb_dao_category
      */
     private function createSpecialAliase($specialJoinKey, $propertyDataJoin, $categoryConst, $assignedProperty = '')
     {
-        $this->m_special_joins[$specialJoinKey] = [];
+        $updateSpecialJoins = false;
+
+        if ($this->m_special_joins[$specialJoinKey] === true) {
+            $this->m_special_joins[$specialJoinKey] = [];
+            $updateSpecialJoins = true;
+        }
+
         $lastTable = 'isys_obj';
 
         if ($assignedProperty !== '') {
@@ -4781,12 +4837,14 @@ class isys_cmdb_dao_category_property extends isys_cmdb_dao_category
             $onRight = ($lastTable === 'isys_obj') ? $dataJoin->getOnRight() : $dataJoin->getOnLeft();
             $lastTable = $table;
 
-            $this->m_special_joins[$specialJoinKey][] = [
-                $table,
-                $refTable,
-                $onLeft,
-                $onRight
-            ];
+            if ($updateSpecialJoins) {
+                $this->m_special_joins[$specialJoinKey][] = [
+                    $table,
+                    $refTable,
+                    $onLeft,
+                    $onRight
+                ];
+            }
 
             // First Key
             $key = $categoryConst . '::' . $table . '#' . $refTable . $keyAddition;

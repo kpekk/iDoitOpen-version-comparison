@@ -10,7 +10,7 @@
 </head>
 <body>
 
-<form name="install_form" enctype="multipart/form-data" method="POST">
+<form id="isys_form" name="install_form" enctype="multipart/form-data" method="POST">
 	<div id="mainContainer" [{if $g_current_step == 1}]class="fadeIn"[{/if}]>
 		<table id="mainTable" cellpadding="0" cellspacing="0">
 			<tr>
@@ -68,11 +68,10 @@
 				<td id="mainDialog" nowrap="nowrap" class="p10">
 					<img src="[{$g_config.www_dir}]setup/images/main_installing.gif" style="display:none;float:left;margin-top:3px;" id="loadingGif" />
 					<input type="hidden" name="step" value="[{$g_current_step}]" />
-					[{if $g_current_step gt 1 and $g_current_step lt count($g_steps)-1}]
-						<input type="button" class="button" name="prev" id="btn_prev" value="&laquo; Previous"
-						       onClick="this.form.step.value=[{$g_current_step-1}]; this.form.submit();" />
+					[{if $g_current_step > 1 && $g_current_step < count($g_steps)-1}]
+						<input type="button" class="button" name="prev" id="btn_prev" value="&laquo; Previous" />
 					[{/if}]
-					[{if $g_current_step gt 0 and $g_current_step lt count($g_steps)-1}]
+					[{if $g_current_step > 0 && $g_current_step < count($g_steps)-1}]
 						[{if !$g_stop}]
 							<input type="button" class="button" name="next" id="btn_next" value="Next &raquo;" />
 							<input type="hidden" name="debug_log" value="[{$debug_log}]" />
@@ -87,41 +86,51 @@
 </form>
 
 <script language="JavaScript" type="text/javascript">
-	// Activate button for current step
-	g_current_step = [{$g_current_step|default:'0'}];
+    var $form           = $('isys_form'),
+        currentStep     = parseInt('[{$g_current_step|default:'0'}]'),
+        $previousButton = $('btn_prev'),
+        $nextButton     = $('btn_next'),
+        $currentStep    = $('mainStep' + currentStep),
+        $contentArea    = $('content'),
+        $contentTable;
 
-	var e = $('mainStep[{$g_current_step}]');
-	if (e) e.className += ' mainMenuButtonActive';
+    if ($previousButton) {
+        $previousButton.on('click', function () {
+            $form.down('[name="step"]').setValue(currentStep - 1);
+            $form.submit();
+        })
+    }
 
-	if ($('btn_next')) {
+    if ($nextButton) {
+        $nextButton.focus();
 
-		$('btn_next').focus();
+        $nextButton.on('click', function () {
+            if (currentStep === 4 || currentStep === 5 || currentStep === 6) {
+                new Effect.Fade('content', {duration: 0.2});
 
-		$('btn_next').on('click', function () {
-			if (g_current_step == 4 || g_current_step == 5 || g_current_step == 6) {
-				new Effect.Fade('content', {duration: 0.2});
+                if ($('loadingTable')) {
+                    $('loadingTable').show();
+                }
 
-				if ($('loadingTable')) $('loadingTable').show();
-				if ($('btn_next'))
-				{
-					$('btn_next').disabled = "disabled";
-					$('btn_next').addClassName('disabled');
-				}
-			}
+                $nextButton.addClassName('disabled').disable();
+            }
 
-			this.form.step.value = [{$g_current_step+1}];
-			this.form.submit();
-		});
-	}
+            $form.down('[name="step"]').setValue(currentStep + 1);
+            $form.submit();
+        });
+    }
 
-	if ($$('.red').length > 0 && $('content'))
-	{
-		var table = $('content').down('table');
-		if (table)
-		{
-			$('content').scrollTop = table.getHeight();
-		}
-	}
+    if ($currentStep) {
+        $currentStep.addClassName('mainMenuButtonActive');
+    }
+
+    if ($$('.red').length > 0 && $contentArea) {
+        $contentTable = $contentArea.down('table')
+
+        if ($contentTable) {
+            $contentArea.scrollTop = $contentTable.getHeight();
+        }
+    }
 </script>
 
 </body>

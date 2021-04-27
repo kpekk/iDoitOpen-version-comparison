@@ -4254,6 +4254,12 @@ class isys_cmdb_dao_category_g_ip extends isys_cmdb_dao_category_global
                 }
             }
 
+            if (isset($p_category_data['properties']['dns_server'][C__DATA__VALUE]) &&
+                isys_format_json::is_json_array($p_category_data['properties']['dns_server'][C__DATA__VALUE])) {
+                $p_category_data['properties']['dns_server'][C__DATA__VALUE] =
+                    isys_format_json::decode($p_category_data['properties']['dns_server'][C__DATA__VALUE]);
+            }
+
             switch ($p_status) {
                 case isys_import_handler_cmdb::C__CREATE:
                     if ($p_object_id > 0) {
@@ -4372,11 +4378,11 @@ class isys_cmdb_dao_category_g_ip extends isys_cmdb_dao_category_global
             }
         }
 
-        if (count($l_errors) > 0) {
+        if (count($l_errors)) {
             return $l_errors;
-        } else {
-            return true;
         }
+
+        return true;
     }
 
     /**
@@ -4425,15 +4431,13 @@ class isys_cmdb_dao_category_g_ip extends isys_cmdb_dao_category_global
     {
         switch ($ipType) {
             case 'ipv6_address':
-                unset($ipData['ipv4_address']);
-                unset($errors['ipv4_address']);
+                unset($ipData['ipv4_address'], $errors['ipv4_address']);
                 $globalNetObject = defined_or_default('C__OBJ__NET_GLOBAL_IPV6');
                 $validateMethod = 'validate_ipv6';
                 break;
             case 'ipv4_address':
             default:
-                unset($ipData['ipv6_address']);
-                unset($errors['ipv6_address']);
+                unset($ipData['ipv6_address'], $errors['ipv6_address']);
                 $globalNetObject = defined_or_default('C__OBJ__NET_GLOBAL_IPV4');
                 $validateMethod = 'validate_ip';
                 break;
@@ -4460,6 +4464,70 @@ class isys_cmdb_dao_category_g_ip extends isys_cmdb_dao_category_global
 
                     $errors[$ipType] = isys_application::instance()->container->get('language')
                         ->get('LC__CATG__IP__UNIQUE_IP_WARNING', [$l_row['isys_obj__title'], $l_row['isys_obj__id']]);
+                }
+            }
+
+            // @see  ID-6570  Fixing the validation for IPv4 and IPv6.
+            if (!isset($errors[$ipType])) {
+                $l_properties = $this->get_properties(C__PROPERTY__WITH__VALIDATION);
+                $ipCheck = $l_properties[$ipType][C__PROPERTY__CHECK];
+
+                $sqlConditions = null;
+                $sqlBase = 'SELECT isys_catg_ip_list__id AS id, isys_obj__id AS objId, isys_obj__title AS objTitle, isys_obj_type__title AS objTypeTitle
+                        FROM isys_cats_net_ip_addresses_list 
+                        INNER JOIN isys_catg_ip_list ON isys_catg_ip_list__isys_cats_net_ip_addresses_list__id = isys_cats_net_ip_addresses_list__id 
+                        INNER JOIN isys_obj ON isys_obj__id = isys_catg_ip_list__isys_obj__id
+                        INNER JOIN isys_obj_type ON isys_obj_type__id = isys_obj__isys_obj_type__id
+                        WHERE isys_cats_net_ip_addresses_list__title = ' . $this->convert_sql_text($ipAddress) . '
+                        AND isys_obj__status = ' . $this->convert_sql_int(C__RECORD_STATUS__NORMAL) . '
+                        AND isys_catg_ip_list__status = ' . $this->convert_sql_int(C__RECORD_STATUS__NORMAL) . '
+                        AND isys_cats_net_ip_addresses_list__status = ' . $this->convert_sql_int(C__RECORD_STATUS__NORMAL) . ' ';
+
+                if (isset($ipCheck['unique_global']) && $ipCheck['unique_global']) {
+                    $message = 'LC__SETTINGS__CMDB__VALIDATION_MESSAGE__UNIQUE_GLOBAL';
+
+                    $sqlConditions = ';';
+                } elseif (isset($ipCheck['unique_objtype']) && $ipCheck['unique_objtype'] && $this->m_object_type_id) {
+                    $message = 'LC__SETTINGS__CMDB__VALIDATION_MESSAGE__UNIQUE_OBJTYPE';
+
+                    $sqlConditions = 'AND isys_obj__isys_obj_type__id = ' . $this->convert_sql_id($this->m_object_type_id) . ';';
+                } elseif (isset($ipCheck['unique_obj']) && $ipCheck['unique_obj'] && $this->m_object_id) {
+                    $message = 'LC__SETTINGS__CMDB__VALIDATION_MESSAGE__UNIQUE_OBJ';
+
+                    $sqlConditions = 'AND isys_catg_ip_list__isys_obj__id = ' . $this->convert_sql_id($this->m_object_id) . ';';
+                }
+
+                if ($sqlConditions) {
+                    $result = $this->retrieve($sqlBase . $sqlConditions);
+
+                    if ($result !== false && is_countable($result) && count($result)) {
+                        $language = isys_application::instance()->container->get('language');
+                        $objects = [];
+
+                        while ($objectRow = $result->get_row()) {
+                            // This is necessary to not count the current table entry.
+                            if ($l_properties[$ipType][C__PROPERTY__CHECK][C__PROPERTY__CHECK__UNIQUE_OBJ] && $this->get_list_id() > 0 && $objectRow['id'] == $this->get_list_id()) {
+                                continue;
+                            }
+
+                            // Only add the object to the list if it's not the own object OR if the address has to be unique inside this object.
+                            if ($objectRow['objId'] != $this->m_object_id || $l_properties[$ipType][C__PROPERTY__CHECK][C__PROPERTY__CHECK__UNIQUE_OBJ]) {
+                                $objects[] = '<span>' . $language->get($objectRow['objTypeTitle']) . ' » ' . $objectRow['objTitle'] . '</span>';
+                            }
+                        }
+
+                        // Remove duplicates
+                        $objects = array_unique($objects);
+
+                        if ($objectCount = count($objects)) {
+                            if ($objectCount > self::UNIQUE_VALIDATION_OBJECT_COUNT) {
+                                $objects = array_slice($objects, 0, self::UNIQUE_VALIDATION_OBJECT_COUNT);
+                                $objects[] = $language->get('LC__SETTINGS__CMDB__VALIDATION_MESSAGE__UNIQUE_AND_MORE', ($objectCount - self::UNIQUE_VALIDATION_OBJECT_COUNT));
+                            }
+
+                            $errors[$ipType] = $language->get($message) . '<ul class="m0 mt10 list-style-none"><li>' . implode('</li><li>', $objects) . '</li></ul>';
+                        }
+                    }
                 }
             }
         }

@@ -105,7 +105,9 @@ class isys_cmdb_dao_category_g_custom_fields extends isys_cmdb_dao_category_glob
         // Check whether selectedIds is an array
         if (is_array($selectedIds)) {
             // Filter to get only valid ids
-            $selectedIds = array_map(function($value) {return (int)$value;}, array_filter($selectedIds, 'is_numeric'));
+            $selectedIds = array_map(function ($value) {
+                return (int)$value;
+            }, array_filter($selectedIds, 'is_numeric'));
 
             // Check whether there are any valid ids
             if (is_countable($selectedIds) && count($selectedIds)) {
@@ -231,6 +233,16 @@ class isys_cmdb_dao_category_g_custom_fields extends isys_cmdb_dao_category_glob
     }
 
     /**
+     * Set category info
+     *
+     * @param $customId
+     */
+    public function setCategoryInfo($customId)
+    {
+        $this->m_category_config = isys_custom_fields_dao::instance($this->m_db)->get_data($customId)->get_row();
+    }
+
+    /**
      * Fetches custom category info from db
      *
      * @param $p_custom_id
@@ -239,9 +251,15 @@ class isys_cmdb_dao_category_g_custom_fields extends isys_cmdb_dao_category_glob
      */
     public function get_category_info($p_custom_id)
     {
-        return $this->m_category_config = (!is_countable($this->m_category_config) || count($this->m_category_config) === 0) ? isys_custom_fields_dao::instance($this->m_db)
-            ->get_data($p_custom_id)
-            ->get_row() : $this->m_category_config;
+        // @see  ID-6697  It is possible that a different category info was cached before.
+        if (!isset($this->m_category_config['isysgui_catg_custom__id']) ||
+            !is_countable($this->m_category_config) ||
+            count($this->m_category_config) === 0 ||
+            $this->m_category_config['isysgui_catg_custom__id'] != $p_custom_id) {
+            $this->setCategoryInfo($p_custom_id);
+        }
+
+        return $this->m_category_config;
     }
 
     /**
@@ -944,6 +962,9 @@ class isys_cmdb_dao_category_g_custom_fields extends isys_cmdb_dao_category_glob
                 // Add object and category entry ID.
                 $l_catentries[$dataId]['isys_catg_custom_fields_list__id'] = $l_row['isys_catg_custom_fields_list__data__id'];
                 $l_catentries[$dataId]['isys_catg_custom_fields_list__isys_obj__id'] = $l_row['isys_catg_custom_fields_list__isys_obj__id'];
+
+                // @see API-158 / ID-6593 Set the object id.
+                $l_catentries[$dataId]['isys_obj__id'] = $l_row['isys_catg_custom_fields_list__isys_obj__id'];
             }
         }
 
@@ -1139,6 +1160,7 @@ class isys_cmdb_dao_category_g_custom_fields extends isys_cmdb_dao_category_glob
                                     $l_return[$l_tag][C__PROPERTY__FORMAT][C__PROPERTY__FORMAT__CALLBACK][] = 'exportCustomFieldCalendar';
                                     break;
 
+                                case 'file':
                                 case 'browser_object':
                                     $l_return[$l_tag][C__PROPERTY__UI][C__PROPERTY__UI__TYPE] = C__PROPERTY__UI__TYPE__POPUP;
                                     $l_return[$l_tag][C__PROPERTY__INFO][C__PROPERTY__INFO__TYPE] = C__PROPERTY__INFO__TYPE__OBJECT_BROWSER;
@@ -1433,6 +1455,7 @@ class isys_cmdb_dao_category_g_custom_fields extends isys_cmdb_dao_category_glob
     public function rank_record($p_category_id, $p_direction, $p_table, $p_checkMethod = null, $p_purge = false)
     {
         $l_custom_id = ($this->get_catg_custom_id()) ?: $this->get_category_id();
+        $categoryTitle = $this->get_category_title($l_custom_id);
 
         $l_table = 'isys_catg_custom_fields_list';
         $l_sql_condition = ' WHERE ' . $l_table . '__isysgui_catg_custom__id = ' . $l_custom_id . ' AND ' . $l_table . '__data__id = ' . $this->convert_sql_id($p_category_id);
@@ -1481,15 +1504,19 @@ class isys_cmdb_dao_category_g_custom_fields extends isys_cmdb_dao_category_glob
                         $l_sql_update = 'DELETE FROM ' . $l_table . $l_sql_condition;
 
                         $l_targetStatus = C__RECORD_STATUS__PURGE;
+                        $logbookConstEvent = 'C__LOGBOOK_EVENT__CATEGORY_PURGED';
                         break;
                     case C__RECORD_STATUS__ARCHIVED:
                         $l_targetStatus = C__RECORD_STATUS__DELETED;
+                        $logbookConstEvent = 'C__LOGBOOK_EVENT__CATEGORY_DELETED';
                         break;
                     case C__RECORD_STATUS__NORMAL:
                         $l_targetStatus = C__RECORD_STATUS__ARCHIVED;
+                        $logbookConstEvent = 'C__LOGBOOK_EVENT__CATEGORY_ARCHIVED';
                         break;
                 }
             } elseif ($p_direction == C__CMDB__RANK__DIRECTION_RECYCLE) {
+                $logbookConstEvent = 'C__LOGBOOK_EVENT__CATEGORY_RECYCLED';
                 switch ($l_current_status) {
                     case C__RECORD_STATUS__ARCHIVED:
                         $l_targetStatus = C__RECORD_STATUS__NORMAL;
@@ -1552,7 +1579,10 @@ class isys_cmdb_dao_category_g_custom_fields extends isys_cmdb_dao_category_glob
                     $p_direction
                 );
 
-            return ($this->update($l_sql_update) && $this->apply_update());
+            if ($this->update($l_sql_update) && $this->apply_update()) {
+                $this->logbook_rank($l_object_id, $logbookConstEvent, $l_sql_update, $categoryTitle);
+                return true;
+            }
         }
 
         /* $p_object is empty or category entry ID not found */
@@ -1856,5 +1886,15 @@ class isys_cmdb_dao_category_g_custom_fields extends isys_cmdb_dao_category_glob
         }
 
         return false;
+    }
+
+    /**
+     * Get constant of custom category
+     *
+     * @return string
+     */
+    public function get_catg_custom_const()
+    {
+        return $this->m_category_config['isysgui_catg_custom__const'];
     }
 }

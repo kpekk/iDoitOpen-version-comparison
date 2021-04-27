@@ -5,8 +5,9 @@
  *
  * @package     i-doit
  * @subpackage  Reports
- * @author      Van Quyen Hoang <qhoang@synetics.de>
+ * @author      Van Quyen Hoang <qhoang@i-doit.com>
  * @copyright   Copyright 2011 - synetics GmbH
+ * @license     http://www.gnu.org/licenses/agpl-3.0.html GNU AGPLv3
  */
 class isys_report_view_it_service_cmdb_status extends isys_report_view
 {
@@ -25,54 +26,45 @@ class isys_report_view_it_service_cmdb_status extends isys_report_view
     private $m_obj_arr = [];
 
     /**
-     * Ajax request.
-     */
-    public function ajax_request()
-    {
-        if (isys_glob_get_param('request') == 'show_relations') {
-            echo $this->prepare_table($this->get_its_relations($_POST[C__CMDB__GET__OBJECT]));
-            die;
-        }
-    }
-
-    /**
-     * Method for returning the views description.
-     *
-     * @static
-     * @return  string
-     */
-    public static function description()
-    {
-        return "LC__REPORT__VIEW__CMDB_STATUS_CHECK_ON_ITS__DESCRIPTION";
-    }
-
-    /**
-     * @return  boolean
-     */
-    public function init()
-    {
-        return true;
-    }
-
-    /**
-     * Method for returning the views name.
-     *
-     * @static
-     * @return  string
+     * @return string
      */
     public static function name()
     {
-        return "LC__REPORT__VIEW__CMDB_STATUS_CHECK_ON_ITS__TITLE";
+        return 'LC__REPORT__VIEW__CMDB_STATUS_CHECK_ON_ITS__TITLE';
     }
 
     /**
-     * SHOW LIST
+     * @return string
+     */
+    public static function description()
+    {
+        return 'LC__REPORT__VIEW__CMDB_STATUS_CHECK_ON_ITS__DESCRIPTION';
+    }
+
+    /**
+     * @return string
+     */
+    public function template()
+    {
+        return isys_module_report::getPath() . 'templates/view_it_service_cmdb_status.tpl';
+    }
+
+    /**
+     * @return string
+     */
+    public static function viewtype()
+    {
+        return 'LC__CMDB__CATG__IT_SERVICE';
+    }
+
+    /**
+     * @throws isys_exception_database
      */
     public function start()
     {
-        global $g_comp_database, $g_dirs;
+        global $g_dirs;
 
-        $l_dao = new isys_cmdb_dao_category_g_relation($g_comp_database);
+        $l_dao = new isys_cmdb_dao_category_g_relation($this->database);
 
         $l_its_arr = [];
         $l_sql = 'SELECT * FROM isys_obj
@@ -104,56 +96,31 @@ class isys_report_view_it_service_cmdb_status extends isys_report_view
             }
         }
 
-        isys_application::instance()->template->assign("image_dir", $g_dirs["images"] . "dtree/")
+        $this->template->assign("image_dir", $g_dirs["images"] . "dtree/")
             ->assign("viewContent", $this->prepare_root($l_its_arr))
             ->smarty_tom_add_rule("tom.content.bottom.buttons.*.p_bInvisible=1");
     }
 
     /**
-     * Method for returning the views template name.
      *
-     * @static
-     * @return  string
      */
-    public function template()
+    public function ajax_request()
     {
-        return "view_it_service_cmdb_status.tpl";
+        if (isys_glob_get_param('request') === 'show_relations') {
+            echo $this->prepare_table($this->get_its_relations($_POST[C__CMDB__GET__OBJECT]));
+            die;
+        }
     }
 
     /**
-     * Method for returning the views type.
-     *
-     * @static
-     * @return  integer
-     */
-    public static function type()
-    {
-        return self::c_php_view;
-    }
-
-    /**
-     * Method for returning the views viewtype.
-     *
-     * @static
-     * @return  string
-     */
-    public static function viewtype()
-    {
-        return "LC__CMDB__CATG__IT_SERVICE";
-    }
-
-    /**
-     * Gets all relations of the it service object
-     *
-     * @param int $p_its_obj_id
+     * @param $p_its_obj_id
      *
      * @return array
+     * @throws isys_exception_database
      */
     private function get_its_relations($p_its_obj_id)
     {
-        global $g_comp_database;
-
-        $l_dao = new isys_cmdb_dao($g_comp_database);
+        $l_dao = new isys_cmdb_dao($this->database);
 
         $l_its_arr = [];
         $l_sql = 'SELECT * FROM isys_obj
@@ -186,18 +153,15 @@ class isys_report_view_it_service_cmdb_status extends isys_report_view
     }
 
     /**
-     * Recursive function to iterate through relations
-     *
-     * @param int $p_obj_id
-     * @param int $p_it_service
+     * @param      $p_obj_id
+     * @param null $p_it_service
      *
      * @return array
+     * @throws isys_exception_database
      */
     private function recurse_relation($p_obj_id, $p_it_service = null)
     {
-        global $g_comp_database;
-
-        $l_dao = new isys_cmdb_dao_category_g_relation($g_comp_database);
+        $l_dao = new isys_cmdb_dao_category_g_relation($this->database);
 
         if ($p_it_service === null) {
             $p_it_service = $p_obj_id;
@@ -216,8 +180,10 @@ class isys_report_view_it_service_cmdb_status extends isys_report_view
             while ($l_row = $l_res->get_row()) {
                 if (is_null($this->m_obj_arr) || !in_array($l_row["isys_catg_relation_list__isys_obj__id__master"], $this->m_obj_arr)) {
                     $this->m_obj_arr[] = $p_obj_id;
-                    if (!is_value_in_constants($l_row["isys_obj__isys_cmdb_status__id"],
-                        ['C__CMDB_STATUS__IN_OPERATION', 'C__CMDB_STATUS__IDOIT_STATUS', 'C__CMDB_STATUS__IDOIT_STATUS_TEMPLATE'])) {
+                    if (!is_value_in_constants(
+                        $l_row["isys_obj__isys_cmdb_status__id"],
+                        ['C__CMDB_STATUS__IN_OPERATION', 'C__CMDB_STATUS__IDOIT_STATUS', 'C__CMDB_STATUS__IDOIT_STATUS_TEMPLATE']
+                    )) {
                         if (is_null($this->m_inconsistence[$p_it_service]) ||
                             !in_array($l_row["isys_catg_relation_list__isys_obj__id__master"], $this->m_inconsistence[$p_it_service])) {
                             $this->m_inconsistence[$p_it_service][$l_row["isys_catg_relation_list__isys_obj__id__master"]] = $l_row["isys_obj__isys_cmdb_status__id"];
@@ -235,17 +201,16 @@ class isys_report_view_it_service_cmdb_status extends isys_report_view
     }
 
     /**
-     * Prepares it service list as table
-     *
-     * @param array $p_its_arr
+     * @param $p_its_arr
      *
      * @return string
+     * @throws Exception
      */
     private function prepare_root($p_its_arr)
     {
-        global $g_comp_database, $g_dirs;
+        global $g_dirs;
 
-        $l_dao = new isys_cmdb_dao($g_comp_database);
+        $l_dao = new isys_cmdb_dao($this->database);
         $l_quicky = new isys_ajax_handler_quick_info();
 
         $l_quicky->set_style("line-height:20px;padding-left:5px;padding-right:5px;");
@@ -253,7 +218,7 @@ class isys_report_view_it_service_cmdb_status extends isys_report_view
         if (count($p_its_arr)) {
             $l_return = "<table padding=\"0px\" cellspacing=\"0px\" style=\"position:relative;spacing:0px;\" width=\"100%\" class=\"report_listing\">";
 
-            foreach ($p_its_arr AS $l_obj_id => $l_value) {
+            foreach ($p_its_arr as $l_obj_id => $l_value) {
                 $l_return .= "<tr><td onclick=\"collapse_it_service('" . $l_obj_id . "');show_relations('" . $l_obj_id . "');\" class=\"report_listing\" id=\"it_service_" .
                     $l_obj_id . "\">";
                 $l_return .= "<img id=\"" . $l_obj_id . "_plusminus\" src=\"" . $g_dirs["images"] . "dtree/nolines_plus.gif\" class=\"vam\"> " .
@@ -266,33 +231,28 @@ class isys_report_view_it_service_cmdb_status extends isys_report_view
             $l_return .= "</table>";
         } else {
             $l_return = '<div class="p5 m5 info"><img src="' . $g_dirs['images'] . 'icons/silk/information.png" class="vam mr5" /><span class="vam">' .
-                isys_application::instance()->container->get('language')
-                    ->get('LC__REPORT__VIEW__NO_INCONSISTENCY') . '</span></div>';
+                $this->language->get('LC__REPORT__VIEW__NO_INCONSISTENCY') . '</span></div>';
         }
 
         return $l_return;
     }
 
     /**
-     * Prepares relation paths of the it service
-     *
-     * @param array $p_its_arr
+     * @param $p_its_arr
      *
      * @return string
+     * @throws Exception
      */
     private function prepare_table($p_its_arr)
     {
-        global $g_comp_database;
-
-        $l_dao = new isys_cmdb_dao_status($g_comp_database);
+        $l_dao = new isys_cmdb_dao_status($this->database);
         $l_quicky = new isys_ajax_handler_quick_info();
         $l_inco_objects = '';
 
         $l_table = '<table padding="0" cellspacing="0" style="position:relative;"><tr><td style="padding-left:5px;">';
 
         if (count($this->m_inconsistence) > 0) {
-            $l_table .= isys_application::instance()->container->get('language')
-                    ->get('LC__REPORT__VIEW__INCONSISTENCY_IN') . ': <p style="text-align:justify">';
+            $l_table .= $this->language->get('LC__REPORT__VIEW__INCONSISTENCY_IN') . ': <p style="text-align:justify">';
             $l_counter = 900;
 
             foreach ($this->m_inconsistence as $l_inco_val) {
@@ -302,8 +262,7 @@ class isys_report_view_it_service_cmdb_status extends isys_report_view
                     $l_inco_status = $l_dao->get_cmdb_status($l_inco_status)
                         ->get_row();
                     $l_inco_objects .= $l_quicky->get_quick_info($l_inco_obj_id, $l_dao->get_obj_name_by_id_as_string($l_inco_obj_id), C__LINK__OBJECT) . " [<b>" .
-                        isys_application::instance()->container->get('language')
-                            ->get($l_inco_status["isys_cmdb_status__title"]) . "</b>], ";
+                        $this->language->get($l_inco_status["isys_cmdb_status__title"]) . "</b>], ";
                     if (strlen($l_inco_objects) - $l_counter > 0) {
                         if ($l_counter_arr == $l_count_arr) {
                             $l_inco_objects = substr($l_inco_objects, 0, -2);
@@ -322,10 +281,9 @@ class isys_report_view_it_service_cmdb_status extends isys_report_view
 
         $l_quicky->set_style("line-height:20px;padding-left:5px;padding-right:5px;");
 
-        foreach ($p_its_arr AS $l_key => $l_value) {
+        foreach ($p_its_arr as $l_key => $l_value) {
             $l_object_title = $l_dao->get_obj_name_by_id_as_string($l_key);
-            $l_object_type_title = isys_application::instance()->container->get('language')
-                ->get($l_dao->get_objtype_name_by_id_as_string($l_dao->get_objTypeID($l_key)));
+            $l_object_type_title = $this->language->get($l_dao->get_objtype_name_by_id_as_string($l_dao->get_objTypeID($l_key)));
 
             $l_table .= "<table padding=\"0px\" cellspacing=\"0px\" style=\"position:relative;spacing:0px;\"><tr><td align=\"center\" title=\"" . $l_object_title . " (" .
                 $l_object_type_title . ")\" class=\"vam\" style=\"cursor:pointer;border:2px solid #" . $l_value["cmdb_color"] . ";background-color:#EFEFEF;\">";
@@ -346,28 +304,24 @@ class isys_report_view_it_service_cmdb_status extends isys_report_view
     }
 
     /**
-     * Recursive function to build the relation paths.
+     * @param $p_arr
+     * @param $p_root_obj
      *
-     * @param   array   $p_arr
-     * @param   integer $p_root_obj
-     *
-     * @return  string
+     * @return string
+     * @throws Exception
      */
     private function prepare_childs($p_arr, $p_root_obj)
     {
-        global $g_comp_database;
-
-        $l_dao = new isys_cmdb_dao($g_comp_database);
+        $l_dao = new isys_cmdb_dao($this->database);
         $l_quicky = new isys_ajax_handler_quick_info();
         $l_quicky->set_style("line-height:20px;padding-left:5px;padding-right:5px;");
 
         if (is_array($p_arr)) {
             $l_table = '';
 
-            foreach ($p_arr AS $l_root_obj => $l_value) {
+            foreach ($p_arr as $l_root_obj => $l_value) {
                 $l_object_title = $l_dao->get_obj_name_by_id_as_string($l_root_obj);
-                $l_object_type_title = isys_application::instance()->container->get('language')
-                    ->get($l_dao->get_objtype_name_by_id_as_string($l_dao->get_objTypeID($l_root_obj)));
+                $l_object_type_title = $this->language->get($l_dao->get_objtype_name_by_id_as_string($l_dao->get_objTypeID($l_root_obj)));
 
                 $l_table .= '<table padding="0" cellspacing="2" style="position:relative;"><tr>' . '<td valign="top" align="center" title="' . $l_object_title . ' (' .
                     $l_object_type_title . ')" class="child" style="border-color: #' . $l_value['cmdb_color'] . ';">' .

@@ -331,7 +331,6 @@ class isys_ajax_handler_report extends isys_ajax_handler
     {
         $l_return = $l_ui_params = [];
         $l_load_field = true;
-        $l_special_field = false;
         $l_condition = '';
 
         $l_dao = new isys_cmdb_dao_category_property($this->m_database_component);
@@ -347,8 +346,7 @@ class isys_ajax_handler_report extends isys_ajax_handler
                 $l_dao->convert_sql_text($l_prop_info[1]);
         }
 
-        $l_row = $l_dao->retrieve_properties($l_prop_id, null, null, C__PROPERTY__PROVIDES__REPORT, $l_condition)
-            ->get_row();
+        $l_row = $l_dao->retrieve_properties($l_prop_id, null, null, C__PROPERTY__PROVIDES__REPORT, $l_condition)->get_row();
 
         $l_return['special_field'] = null;
 
@@ -365,22 +363,30 @@ class isys_ajax_handler_report extends isys_ajax_handler
             'browser_sanpool'
         ];
 
+        $changeablePopupTypes = [
+            'browser_sanpool'
+        ];
+
+        $unchangeablePopupTypes = [
+            'browser_cable_connection_ng',
+            'browser_location',
+            'browser_object_ng'
+        ];
+
         $l_identifier = $l_row['class'] . '::' . $l_row['key'];
         $sourceTable = $l_props[C__PROPERTY__DATA][C__PROPERTY__DATA__SOURCE_TABLE] ?: $l_props[C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES][0];
 
-        if (isset($l_props[C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES]) &&
-            $l_props[C__PROPERTY__INFO][C__PROPERTY__INFO__TYPE] != C__PROPERTY__INFO__TYPE__OBJECT_BROWSER) {
-            if ((strpos($sourceTable, 'catg') !== false ||
-                    strpos($sourceTable, 'cats') !== false) &&
-                strpos($sourceTable, '_list') !== false) {
-                $l_special_field = true;
-            }
-        }
+        // @see  ID-4706, ID-6634 Specific check for "special field".
+        $specialField = isset($l_props[C__PROPERTY__DATA][C__PROPERTY__DATA__REFERENCES]) &&
+            $l_props[C__PROPERTY__INFO][C__PROPERTY__INFO__TYPE] !== C__PROPERTY__INFO__TYPE__OBJECT_BROWSER &&
+            (strpos($sourceTable, 'catg') !== false || strpos($sourceTable, 'cats') !== false) &&
+            strpos($sourceTable, '_list') !== false &&
+            $sourceTable !== 'isys_catg_custom_fields_list';
 
         $_POST['division'] = str_replace('__HIDDEN', '', $_POST['division']);
+
         // We check for special formats to
-        if ($l_props[C__PROPERTY__UI][C__PROPERTY__UI__TYPE] == C__PROPERTY__UI__TYPE__DATE ||
-            $l_props[C__PROPERTY__UI][C__PROPERTY__UI__TYPE] == C__PROPERTY__UI__TYPE__DATETIME) {
+        if ($l_props[C__PROPERTY__UI][C__PROPERTY__UI__TYPE] === C__PROPERTY__UI__TYPE__DATE || $l_props[C__PROPERTY__UI][C__PROPERTY__UI__TYPE] === C__PROPERTY__UI__TYPE__DATETIME) {
             $p_strValue = $_POST['value'];
 
             if (class_exists('idoit\Module\Report\SqlQuery\Placeholder\\' . trim(str_replace('-', '', ucwords($p_strValue, '-'))))) {
@@ -400,8 +406,7 @@ class isys_ajax_handler_report extends isys_ajax_handler
 
             $l_return['special_field'] = $l_cal->handle_smarty_include(isys_application::instance()->template, $l_cat_options);
             $l_load_field = false;
-        } elseif (($l_props[C__PROPERTY__UI][C__PROPERTY__UI__TYPE] == C__PROPERTY__UI__TYPE__POPUP &&
-                in_array($l_props[C__PROPERTY__UI][C__PROPERTY__UI__PARAMS]['p_strPopupType'], $l_popup_types)) && !$l_special_field) {
+        } elseif ($l_props[C__PROPERTY__UI][C__PROPERTY__UI__TYPE] === C__PROPERTY__UI__TYPE__POPUP && in_array($l_props[C__PROPERTY__UI][C__PROPERTY__UI__PARAMS]['p_strPopupType'], $l_popup_types, true) && !$specialField) {
             // Get the ui params.
             $l_ui_params = $l_props[C__PROPERTY__UI][C__PROPERTY__UI__PARAMS];
 
@@ -411,7 +416,8 @@ class isys_ajax_handler_report extends isys_ajax_handler
                 $l_multiselection = false;
             }
 
-            if (isset($l_ui_params['secondSelection']) || $l_ui_params['p_strPopupType'] == 'browser_sanpool') {
+            if ((isset($l_ui_params['secondSelection']) || in_array($l_ui_params['p_strPopupType'], $changeablePopupTypes)) &&
+                !in_array($l_ui_params['p_strPopupType'], $unchangeablePopupTypes, true)) {
                 $l_ui_params['p_strPopupType'] = 'browser_object_ng';
                 //unset($l_ui_params['secondSelection']);
                 $l_multiselection = false;
@@ -425,16 +431,18 @@ class isys_ajax_handler_report extends isys_ajax_handler
             $l_ui_params['edit'] = true;
             $l_ui_params['p_strClass'] = 'reportInput ' . $_POST['prop_class'] . ' input-mini';
             $l_ui_params[isys_popup_browser_object_ng::C__EDIT_MODE] = true;
-            if ($l_ui_params['p_strPopupType'] != 'browser_object_relation') {
+            if ($l_ui_params['p_strPopupType'] !== 'browser_object_relation') {
                 $l_ui_params[isys_popup_browser_object_ng::C__MULTISELECTION] = $l_multiselection;
             }
             $l_ui_params[isys_popup_browser_object_ng::C__DISABLE_DETACH] = false;
             $l_ui_params['p_dataIdentifier'] = $l_identifier;
             //$l_ui_params['p_dataIdentifier'] = '';
 
-            unset($l_ui_params[isys_popup_browser_object_ng::C__DATARETRIEVAL]);
-            unset($l_ui_params[isys_popup_browser_object_ng::C__FORM_SUBMIT]);
-            unset($l_ui_params[isys_popup_browser_object_ng::C__RETURN_ELEMENT]);
+            unset(
+                $l_ui_params[isys_popup_browser_object_ng::C__DATARETRIEVAL],
+                $l_ui_params[isys_popup_browser_object_ng::C__FORM_SUBMIT],
+                $l_ui_params[isys_popup_browser_object_ng::C__RETURN_ELEMENT]
+            );
 
             $l_popup_class = "isys_popup_" . $l_ui_params['p_strPopupType'];
             if (class_exists($l_popup_class)) {
@@ -445,7 +453,7 @@ class isys_ajax_handler_report extends isys_ajax_handler
             }
         }
 
-        if ($l_props[C__PROPERTY__INFO][C__PROPERTY__INFO__TYPE] == C__PROPERTY__INFO__TYPE__COMMENTARY) {
+        if ($l_props[C__PROPERTY__INFO][C__PROPERTY__INFO__TYPE] === C__PROPERTY__INFO__TYPE__COMMENTARY) {
             $l_return['equation'] = [
                 'LIKE %...%',
                 'NOT LIKE %...%',
@@ -453,7 +461,7 @@ class isys_ajax_handler_report extends isys_ajax_handler
                 'IS NOT NULL'
             ];
             $l_return['field'] = null;
-        } elseif ($l_props[C__PROPERTY__INFO][C__PROPERTY__INFO__TYPE] == C__PROPERTY__INFO__TYPE__DIALOG_LIST) {
+        } elseif ($l_props[C__PROPERTY__INFO][C__PROPERTY__INFO__TYPE] === C__PROPERTY__INFO__TYPE__DIALOG_LIST) {
             $l_return['equation'] = [
                 'LIKE %...%',
                 'NOT LIKE %...%'
@@ -462,7 +470,7 @@ class isys_ajax_handler_report extends isys_ajax_handler
         } elseif ((($sourceTable == null ||
                     substr($sourceTable, 0, 5) !== 'isys_') &&
                 empty($l_props[C__PROPERTY__UI][C__PROPERTY__UI__PARAMS]['p_arData']) &&
-                !in_array($l_props[C__PROPERTY__UI][C__PROPERTY__UI__PARAMS]['p_strPopupType'], $l_popup_types)) || $l_special_field ||
+                !in_array($l_props[C__PROPERTY__UI][C__PROPERTY__UI__PARAMS]['p_strPopupType'], $l_popup_types, true)) || $specialField ||
             in_array($l_props[C__PROPERTY__FORMAT][C__PROPERTY__FORMAT__CALLBACK][1], isys_cmdb_dao_category_property::$m_ignored_format_callbacks)) {
             $l_return['equation'] = [
                 '=',
@@ -507,7 +515,7 @@ class isys_ajax_handler_report extends isys_ajax_handler
                     // If we simply get an array.
                     $l_data = $l_props[C__PROPERTY__UI][C__PROPERTY__UI__PARAMS]['p_arData'];
                 } elseif (is_object($l_props[C__PROPERTY__UI][C__PROPERTY__UI__PARAMS]['p_arData']) &&
-                    get_class($l_props[C__PROPERTY__UI][C__PROPERTY__UI__PARAMS]['p_arData']) == 'isys_callback') {
+                    $l_props[C__PROPERTY__UI][C__PROPERTY__UI__PARAMS]['p_arData'] instanceof \isys_callback) {
                     // If we get an instance of "isys_callback"
                     $l_data = $l_props[C__PROPERTY__UI][C__PROPERTY__UI__PARAMS]['p_arData']->execute();
                     if (isys_format_json::is_json_array($l_data)) {
@@ -532,7 +540,7 @@ class isys_ajax_handler_report extends isys_ajax_handler
                     $l_return['field'] = [];
                 }
 
-                if ($sourceTable !== null && $sourceTable != 'isys_cats_net_ip_addresses_list' && $l_data === null) {
+                if ($sourceTable !== null && $sourceTable !== 'isys_cats_net_ip_addresses_list' && $l_data === null) {
                     // Prepare array, so we can check this in the GUI.
                     $l_sql = "SELECT " . $sourceTable . "__id AS 'id', " . $sourceTable . "__title AS 'title' FROM " . $sourceTable . ";";
                     $l_field_res = $l_dao->retrieve($l_sql);
@@ -562,9 +570,9 @@ class isys_ajax_handler_report extends isys_ajax_handler
                 }
             }
 
-            if ($l_props[C__PROPERTY__INFO][C__PROPERTY__INFO__TYPE] == C__PROPERTY__INFO__TYPE__OBJECT_BROWSER) {
+            if ($l_props[C__PROPERTY__INFO][C__PROPERTY__INFO__TYPE] === C__PROPERTY__INFO__TYPE__OBJECT_BROWSER) {
                 // Special equation for category location
-                if ($l_ui_params['p_strPopupType'] == 'browser_location') {
+                if ($l_ui_params['p_strPopupType'] === 'browser_location') {
                     $l_return['equation'][] = 'under_location';
                 }
 
@@ -573,11 +581,20 @@ class isys_ajax_handler_report extends isys_ajax_handler
                     $l_return['equation'][] = 'subcnd';
                     //$l_return['equation'][] = 'PLACEHOLDER';
                 }
+
+                if ($l_ui_params['secondSelection'] === true) {
+                    $l_return['equation'][] = 'IS NULL';
+                    $l_return['equation'][] = 'IS NOT NULL';
+                    unset(
+                        $l_return['equation'][array_search('subcnd', $l_return['equation'])],
+                        $l_return['equation'][array_search('PLACEHOLDER', $l_return['equation'])]
+                    );
+                }
             }
         }
 
         // Check if we got a convert method to apply.
-        if ($l_props[C__PROPERTY__FORMAT][C__PROPERTY__FORMAT__CALLBACK][1] == 'convert' || isset($l_props[C__PROPERTY__FORMAT][C__PROPERTY__FORMAT__UNIT])) {
+        if ($l_props[C__PROPERTY__FORMAT][C__PROPERTY__FORMAT__CALLBACK][1] === 'convert' || isset($l_props[C__PROPERTY__FORMAT][C__PROPERTY__FORMAT__UNIT])) {
             // We need to get the unit information.
             if ($l_row['catg'] != null) {
                 // We have to select from CATG.

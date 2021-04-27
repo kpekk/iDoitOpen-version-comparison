@@ -166,6 +166,7 @@ class isys_cmdb_ui_category_g_logb extends isys_cmdb_ui_category_global
         $l_strRowLink = "document.location.href='?moduleID=" . defined_or_default('C__MODULE__LOGBOOK') . "&id=[{isys_logbook__id}]';";
 
         $l_objList->config($l_arTableHeader, $l_strRowLink);
+        $l_objList->setTableClass('mainTable w100');
 
         $_POST['object_id'] = $_GET[C__CMDB__GET__OBJECT];
 

@@ -129,7 +129,7 @@ class isys_cmdb_dao_category_s_organization extends isys_cmdb_dao_category_speci
                 ],
                 C__PROPERTY__UI       => [
                     C__PROPERTY__UI__ID     => 'C__CONTACT__ORGANISATION_WEBSITE',
-                    C__PROPERTY__UI__TYPE   => 'f_link',
+                    C__PROPERTY__UI__TYPE   => C__PROPERTY__UI__TYPE__LINK,
                     C__PROPERTY__UI__PARAMS => [
                         'p_strTarget' => '_blank',
                     ],
@@ -150,16 +150,28 @@ class isys_cmdb_dao_category_s_organization extends isys_cmdb_dao_category_speci
                         'isys_connection',
                         'isys_connection__id'
                     ],
-                    C__PROPERTY__DATA__SELECT     => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory('SELECT CONCAT(isys_obj__title, \' {\', isys_obj__id, \'}\')
+                    C__PROPERTY__DATA__SELECT     => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory(
+                        'SELECT CONCAT(isys_obj__title, \' {\', isys_obj__id, \'}\')
                             FROM isys_cats_organization_list
                             INNER JOIN isys_connection ON isys_connection__id = isys_cats_organization_list__isys_connection__id
-                            INNER JOIN isys_obj ON isys_obj__id = isys_connection__isys_obj__id', 'isys_cats_organization_list', 'isys_cats_organization_list__id',
-                        'isys_cats_organization_list__isys_obj__id'),
+                            INNER JOIN isys_obj ON isys_obj__id = isys_connection__isys_obj__id',
+                        'isys_cats_organization_list',
+                        'isys_cats_organization_list__id',
+                        'isys_cats_organization_list__isys_obj__id'
+                    ),
                     C__PROPERTY__DATA__JOIN       => [
-                        idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory('isys_cats_organization_list', 'LEFT', 'isys_cats_organization_list__isys_obj__id',
-                            'isys_obj__id'),
-                        idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory('isys_connection', 'LEFT', 'isys_cats_organization_list__isys_connection__id',
-                            'isys_connection__id'),
+                        idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory(
+                            'isys_cats_organization_list',
+                            'LEFT',
+                            'isys_cats_organization_list__isys_obj__id',
+                            'isys_obj__id'
+                        ),
+                        idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory(
+                            'isys_connection',
+                            'LEFT',
+                            'isys_cats_organization_list__isys_connection__id',
+                            'isys_connection__id'
+                        ),
                         idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory('isys_obj', 'LEFT', 'isys_connection__isys_obj__id', 'isys_obj__id')
                     ]
                 ],
@@ -220,10 +232,16 @@ class isys_cmdb_dao_category_s_organization extends isys_cmdb_dao_category_speci
             }
             if ($p_status === isys_import_handler_cmdb::C__CREATE || $p_status === isys_import_handler_cmdb::C__UPDATE) {
                 // Save category data:
-                $l_indicator = $this->save($p_category_data['data_id'], C__RECORD_STATUS__NORMAL, $p_category_data['properties']['title'][C__DATA__VALUE],
-                    $p_category_data['properties']['telephone'][C__DATA__VALUE], $p_category_data['properties']['fax'][C__DATA__VALUE],
-                    $p_category_data['properties']['website'][C__DATA__VALUE], $p_category_data['properties']['headquarter'][C__DATA__VALUE],
-                    $p_category_data['properties']['description'][C__DATA__VALUE]);
+                $l_indicator = $this->save(
+                    $p_category_data['data_id'],
+                    C__RECORD_STATUS__NORMAL,
+                    $p_category_data['properties']['title'][C__DATA__VALUE],
+                    $p_category_data['properties']['telephone'][C__DATA__VALUE],
+                    $p_category_data['properties']['fax'][C__DATA__VALUE],
+                    $p_category_data['properties']['website'][C__DATA__VALUE],
+                    $p_category_data['properties']['headquarter'][C__DATA__VALUE],
+                    $p_category_data['properties']['description'][C__DATA__VALUE]
+                );
             }
         }
 
@@ -280,10 +298,20 @@ class isys_cmdb_dao_category_s_organization extends isys_cmdb_dao_category_speci
         }
 
         if ($l_list_id) {
-            $l_bRet = $this->save($l_list_id, C__RECORD_STATUS__NORMAL, $_POST["C__CONTACT__ORGANISATION_TITLE"], $_POST["C__CONTACT__ORGANISATION_STREET"],
-                $_POST["C__CONTACT__ORGANISATION_POSTAL_CODE"], $_POST["C__CONTACT__ORGANISATION_CITY"], $_POST["C__CONTACT__ORGANISATION_COUNTRY"],
-                $_POST["C__CONTACT__ORGANISATION_PHONE"], $_POST["C__CONTACT__ORGANISATION_FAX"], $_POST["C__CONTACT__ORGANISATION_WEBSITE"],
-                $_POST["C__CONTACT__ORGANISATION_ASSIGNMENT"], $_POST["C__CMDB__CAT__COMMENTARY_" . $this->get_category_type() . $this->get_category_id()]);
+            $l_bRet = $this->save(
+                $l_list_id,
+                C__RECORD_STATUS__NORMAL,
+                $_POST["C__CONTACT__ORGANISATION_TITLE"],
+                $_POST["C__CONTACT__ORGANISATION_STREET"],
+                $_POST["C__CONTACT__ORGANISATION_POSTAL_CODE"],
+                $_POST["C__CONTACT__ORGANISATION_CITY"],
+                $_POST["C__CONTACT__ORGANISATION_COUNTRY"],
+                $_POST["C__CONTACT__ORGANISATION_PHONE"],
+                $_POST["C__CONTACT__ORGANISATION_FAX"],
+                $_POST["C__CONTACT__ORGANISATION_WEBSITE"],
+                $_POST["C__CONTACT__ORGANISATION_ASSIGNMENT"],
+                $_POST["C__CMDB__CAT__COMMENTARY_" . $this->get_category_type() . $this->get_category_id()]
+            );
 
             $this->m_strLogbookSQL = $this->get_last_query();
 
@@ -373,7 +401,6 @@ class isys_cmdb_dao_category_s_organization extends isys_cmdb_dao_category_speci
      */
     public function create($p_objID, $p_newRecStatus, $p_title, $p_telephone, $p_fax, $p_website, $p_connection_id, $p_headquarter_id, $p_description)
     {
-
         $l_sql = "INSERT INTO isys_cats_organization_list (
 					isys_cats_organization_list__isys_obj__id,
 					isys_cats_organization_list__title,

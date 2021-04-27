@@ -1332,7 +1332,10 @@ class isys_cmdb_dao_category_s_contract extends isys_cmdb_dao_category_specific
         $p_data['costs'] = isys_helper::filter_number($p_data['costs']);
 
         // ID-3857: When importing via csv $_POST will not be set
-        if ($_GET['moduleID'] == defined_or_default('C__MODULE__IMPORT')) {
+        if (
+            $_GET['moduleID'] == defined_or_default('C__MODULE__IMPORT') ||
+            isys_application::instance()->container->moduleManager->get_active_module() == defined_or_default('C__MODULE__MULTIEDIT')
+        ) {
             if (isset($p_data['start_date']) && empty($p_data['start_date'])) {
                 $p_data['start_date'] = '';
             }

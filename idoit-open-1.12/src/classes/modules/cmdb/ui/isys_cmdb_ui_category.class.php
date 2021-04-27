@@ -1085,7 +1085,18 @@ abstract class isys_cmdb_ui_category
                 }
 
                 if (!$l_use_signal) {
-                    $l_res = $l_listdao->get_result($p_strCatDBName, $p_objID);
+                    /**
+                     * Prevent selection of all category entries without an objectId condition
+                     *
+                     * @see ID-6355
+                     */
+                    if (isset($p_objID)) {
+                        // Get result with objectId condition
+                        $l_res = $l_listdao->get_result($p_strCatDBName, $p_objID);
+                    } else {
+                        // Create a placebo result set for right handling
+                        $l_res = $l_listdao->retrieve('SELECT FALSE;');
+                    }
                 }
             } catch (isys_exception $e) {
                 isys_glob_display_error($e->getMessage());
@@ -1162,9 +1173,6 @@ abstract class isys_cmdb_ui_category
                     switch ($l_listdao->get_category_type()) {
                         case C__CMDB__CATEGORY__TYPE_SPECIFIC:
                             $categoryParam = C__CMDB__GET__CATS;
-                            break;
-                        case C__CMDB__CATEGORY__TYPE_DYNAMIC:
-                            $categoryParam = C__CMDB__GET__CATD;
                             break;
                         case C__CMDB__CATEGORY__TYPE_CUSTOM:
                             $categoryParam = C__CMDB__GET__CATG_CUSTOM;

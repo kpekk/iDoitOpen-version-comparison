@@ -87,11 +87,17 @@ class Signals
      */
     public function onAfterCategoryEntrySave(\isys_cmdb_dao_category $dao, $categoryID, $saveSuccess, $objectID, $posts, $changes)
     {
+        $constant = $dao->get_category_const();
+
+        if ($dao instanceof \isys_cmdb_dao_category_g_custom_fields) {
+            $constant = $dao->get_catg_custom_const();
+        }
+
         /**
          * @var $collector CategoryCollector
          */
         $collector = $this->manager->getCollector('idoit.cmdb.search.index.category_collector');
-        $collector->setCategoryConstants([$dao->get_category_const()]);
+        $collector->setCategoryConstants([$constant]);
         $collector->setObjectIds([$objectID]);
 
         $this->manager->setMode(Manager::MODE_OVERWRITE);
@@ -306,13 +312,7 @@ class Signals
      */
     public function connect()
     {
-        if (defined('WEB_CONTEXT') && constant('WEB_CONTEXT') === true) {
-            $this->loadContainerDependencies();
-        }
-
-        if (!defined('WEB_CONTEXT') || constant('WEB_CONTEXT') !== true) {
-            $this->createContainerDependencies();
-        }
+        $this->createContainerDependencies();
 
         $output = new BufferedOutput();
         $this->output = $output;

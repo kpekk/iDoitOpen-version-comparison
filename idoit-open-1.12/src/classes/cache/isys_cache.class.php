@@ -11,6 +11,11 @@
 abstract class isys_cache
 {
     /**
+     * @var string
+     */
+    private static $foundType;
+
+    /**
      * Cache options.
      *
      * @var  array
@@ -18,21 +23,26 @@ abstract class isys_cache
     protected $m_options = [];
 
     /**
-     * Get any available keyvalue cache with the following default priority:
-     *  1) memcache 2) apc 3) xcache 4) file system 5) no cache
+     * Get any available keyvalue cache with the following (default) priority:
+     *   memcached > memcache > apc > xcache > fs > "none"
      *
-     * Cache priority can be overridden by parameter $p_cache_priority in the following format:
-     *   array('xcache', 'memcache', 'apc')
-     * This will not use filesystem caching by changing the priority order to xcache > memcache > apc.
+     * Cache priority can be overwritten by passing an array:
+     *   ['xcache', 'memcache', 'apc']
      *
-     * @param   $p_cache_priority  array
+     * @param   $cachePriority  array
      *
+     * @todo    Check if we should deprecate "$cachePriority".
      * @return  isys_cache_keyvalue
      */
-    public static function keyvalue($p_cache_priority = null)
+    public static function keyvalue($cachePriority = null)
     {
+        // If we already found a caching type and no specific priority is set, we simply re-use it.
+        if ($cachePriority === null && self::$foundType !== null) {
+            return new self::$foundType;
+        }
+
         try {
-            $l_cache_register = $p_cache_priority ?: [
+            $cacheRegister = $cachePriority ?: [
                 'memcached',
                 'memcache',
                 'apc',
@@ -40,17 +50,24 @@ abstract class isys_cache
                 'fs',
             ];
 
-            foreach ($l_cache_register as $l_cache_type) {
-                $l_cacheclass = 'isys_cache_' . $l_cache_type;
+            foreach ($cacheRegister as $cachingType) {
+                $className = 'isys_cache_' . $cachingType;
 
                 // Return first available cache.
-                if (class_exists($l_cacheclass) && call_user_func([$l_cacheclass, 'available'])) {
-                    return new $l_cacheclass;
+                if (class_exists($className) && call_user_func([$className, 'available'])) {
+                    if ($cachePriority === null) {
+                        self::$foundType = $className;
+                    }
+
+                    return new $className;
                 }
             }
         } catch (isys_exception_cache $e) {
         }
 
+        if ($cachePriority === null) {
+            self::$foundType = 'isys_cache_keyvalue_dummy';
+        }
         return new isys_cache_keyvalue_dummy();
     }
 

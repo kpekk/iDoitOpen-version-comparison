@@ -32,6 +32,11 @@ class isys_report_export_fpdi extends TCPDF
     protected $m_defaultPageUnit = 'mm';
 
     /**
+     * @var bool
+     */
+    private $showHtml = false;
+
+    /**
      * @param string $p_orientation
      * @param string $p_unit
      * @param string $p_format
@@ -101,6 +106,10 @@ class isys_report_export_fpdi extends TCPDF
             $this->SetSubject($p_options['pdf.subject']);
         }
 
+        if (isset($p_options['pdf.showHtml'])) {
+            $this->showHtml = (bool)$p_options['pdf.showHtml'];
+        }
+
         $this->AddPage();
 
         return $this;
@@ -140,6 +149,8 @@ class isys_report_export_fpdi extends TCPDF
         $language = isys_application::instance()->container->get('language');
 
         $dom = new DOMDocument('1.0', 'utf-8');
+        $dom->loadHTML('<div></div>', LIBXML_HTML_NOIMPLIED | LIBXML_HTML_NODEFDTD);
+
         $domTable = $dom->createElement('table');
         $domTable->setAttribute('style', 'border:2px solid #888;');
         $domTable->setAttribute('cellspacing', '0');
@@ -174,22 +185,17 @@ class isys_report_export_fpdi extends TCPDF
                 $domTableData = $dom->createElement('td');
 
                 // Create sanitized content
-                $content = trim($language->get(strip_tags(preg_replace('/<script[^>]*>[^<]*<[^>]script>/  ', '', $value))));
+                $content = trim($language->get(preg_replace('/<script[^>]*>[^<]*<[^>]script>/  ', '', $value)));
 
-                /**
-                 * Try to convert new lines
-                 *
-                 * @see ID-5664
-                 */
+                // Check if we are about to append HTML.
                 try {
-                    // Create document fragment
-                    $contentDom = $dom->createDocumentFragment();
+                    // @see  ID-6477  Only do something if we DON'T get HTML, real HTML should be kept "as is".
+                    if (!$this->showHtml || $content === strip_tags($content)) {
+                        // @see  ID-5664  Try to convert new lines
+                        $content = nl2br(strip_tags($content));
+                    }
 
-                    // Convert new lines to br`s
-                    $contentDom->appendXML('<![CDATA[' . nl2br($content) . ']]>');
-
-                    // Insert it into table data
-                    $domTableData->appendChild($contentDom);
+                    $this->appendHTML($domTableData, $content);
                 } catch (Exception $e) {
                     // Fallback: Append string into table data
                     $domTableData->textContent = $content;
@@ -208,5 +214,24 @@ class isys_report_export_fpdi extends TCPDF
 
         // Write our DOM to the PDF.
         $this->writeHTML(trim($dom->saveHTML()));
+    }
+
+    /**
+     * @param DOMNode $parent
+     * @param string   $source
+     */
+    private function appendHTML(DOMNode $parent, $source)
+    {
+        $tmpDoc = new DOMDocument();
+        $tmpDoc->loadHTML('<meta http-equiv="Content-Type" content="text/html; charset=utf-8">' . $source);
+
+        $childNodes = $tmpDoc->getElementsByTagName('body')->item(0)->childNodes;
+
+        if ($childNodes !== null && count($childNodes)) {
+            foreach ($childNodes as $node) {
+                $node = $parent->ownerDocument->importNode($node, true);
+                $parent->appendChild($node);
+            }
+        }
     }
 }

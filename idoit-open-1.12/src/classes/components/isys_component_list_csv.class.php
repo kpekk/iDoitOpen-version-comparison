@@ -30,7 +30,7 @@ class isys_component_list_csv extends isys_component_list
         }, ARRAY_FILTER_USE_BOTH);
 
         $l_csv = \League\Csv\Writer::createFromFileObject(new SplTempFileObject)
-            ->setDelimiter(';')
+            ->setDelimiter(isys_tenantsettings::get('system.csv-export-delimiter', ';'))
             ->setOutputBOM(\League\Csv\Writer::BOM_UTF8)
             ->insertOne(array_map('_L', array_values($l_header)));
 
@@ -107,9 +107,10 @@ class isys_component_list_csv extends isys_component_list
                     $l_val = implode(PHP_EOL, $l_val);
                 } elseif (is_object($l_val) && is_a($l_val, 'isys_smarty_plugin_f')) {
                     /* @var  isys_smarty_plugin_f $l_val */
-                    $l_val = $l_val->set_parameter('p_bEditMode', false)
+                    $parameters = $l_val->set_parameter('p_bEditMode', false)
                         ->set_parameter('p_editMode', false)
-                        ->navigation_view(isys_application::instance()->template);
+                        ->get_parameter();
+                    $l_val = $l_val->navigation_view(isys_application::instance()->template, $parameters);
                 }
 
                 $l_csv_row[$l_key] = trim(strip_tags(isys_helper_textformat::remove_scripts(html_entity_decode($l_val, null, $GLOBALS['g_config']['html-encoding']))));

@@ -370,7 +370,7 @@ class isys_auth_system extends isys_auth implements isys_auth_interface
                 $l_exception = isys_application::instance()->container->get('language')
                     ->get('LC__AUTH__EXCEPTION__MISSING_ACTION_RIGHT', [
                         isys_application::instance()->container->get('language')
-                            ->get('LC__SYSTEM__CACHE')
+                            ->get('LC__SYSTEM__CACHE_DB')
                     ]);
                 break;
             case 'modulemanager':
@@ -762,7 +762,7 @@ class isys_auth_system extends isys_auth implements isys_auth_interface
 
             case 'systemtools':
                 $l_dialog_data = [
-                    'CACHE'          => 'LC__SYSTEM__CACHE',
+                    'CACHE'          => 'LC__SYSTEM__CACHE_DB',
                     'MODULEMANAGER'  => 'LC__CMDB__TREE__SYSTEM__TOOLS__MODULE_MANAGER',
                     'SYSTEMOVERVIEW' => 'LC__CMDB__TREE__SYSTEM__TOOLS__OVERVIEW',
                     'IDOITUPDATE'    => 'LC__WIDGET__QUICKLAUNCH_IDOIT_UPDATE'

@@ -275,65 +275,79 @@ class SyncCommand extends AbstractCommand
             $l_password = isys_helper_crypt::decrypt($l_row["isys_ldap__password"]);
             $l_mapping = unserialize($l_row["isys_ldap_directory__mapping"]);
             $l_recursive = (int)$l_row['isys_ldap__recursive'];
-            $l_tls = (bool)$l_row['isys_ldap__tls'];
+            $l_tls = $l_row['isys_ldap__tls'];
             $l_version = (int)$l_row['isys_ldap__version'] ?: 3;
             $l_disabled = 0;
             $l_synced_users = [];
+            $pageLimit = (int)$l_row['isys_ldap__page_limit'];
 
             // Set map which object ids should be ignored in status update
             $this->output->writeln("Syncing LDAP-Server " . $l_hostname . " (" . $l_row["isys_ldap_directory__title"] . ")");
 
             $l_coninfo = null;
             $l_ldap_lib = $l_ldap_module->get_library($l_hostname, $l_dn, $l_password, $l_port, $l_version, $l_tls);
+            $pagedResultEnabled = (bool)$l_row['isys_ldap__enable_paging'] && $l_ldap_lib->isPagedResultSupported();
 
             // First disable all found users
             if ($l_row["isys_ldap_directory__const"] == "C__LDAP__AD") {
-                // Disabled users in Active Directory.
-                // userAccountControl = Attributename
-                // 1.2.840.113556.1.4.803:=2 == LDAP_MATCHING_RULE_BIT_AND:=UF_ACCOUNTDISABLE
-                // For more info see https://support.microsoft.com/de-de/help/269181/how-to-query-active-directory-by-using-a-bitwise-filter
-                $l_search = $l_ldap_lib->search(
-                    $l_row["isys_ldap__user_search"],
-                    "(&(userAccountControl:1.2.840.113556.1.4.803:=2)(objectclass=user))",
-                    [],
-                    0,
-                    null,
-                    null,
-                    null,
-                    $l_recursive
-                );
+                $pagedResultCookie = '';
 
-                if ($l_search) {
-                    $l_attributes = $l_ldap_lib->get_entries($l_search);
-
-                    if (is_null($l_attributes["count"])) {
-                        $l_disabled = 0;
-                    } else {
-                        $l_disabled = $l_attributes["count"];
+                do {
+                    if ($pagedResultEnabled) {
+                        $l_ldap_lib->ldapControlPagedResult($pageLimit, true, $pagedResultCookie);
                     }
 
-                    for ($l_i = 0;$l_i <= $l_attributes["count"];$l_i++) {
-                        if (!isset($l_attributes[$l_i]["dn"])) {
-                            continue;
+                    // Disabled users in Active Directory.
+                    // userAccountControl = Attributename
+                    // 1.2.840.113556.1.4.803:=2 == LDAP_MATCHING_RULE_BIT_AND:=UF_ACCOUNTDISABLE
+                    // For more info see https://support.microsoft.com/de-de/help/269181/how-to-query-active-directory-by-using-a-bitwise-filter
+                    $l_search = $l_ldap_lib->search(
+                        $l_row["isys_ldap__user_search"],
+                        "(&(userAccountControl:1.2.840.113556.1.4.803:=2)(objectclass=user))",
+                        [],
+                        0,
+                        null,
+                        null,
+                        null,
+                        $l_recursive
+                    );
+
+                    if ($l_search) {
+                        $l_attributes = $l_ldap_lib->get_entries($l_search);
+
+                        if (is_null($l_attributes["count"])) {
+                            $l_disabled = 0;
+                        } else {
+                            $l_disabled = $l_attributes["count"];
                         }
 
-                        $l_username = $l_attributes[$l_i][strtolower($l_mapping[C__LDAP_MAPPING__USERNAME])][0];
+                        for ($l_i = 0;$l_i <= $l_attributes["count"];$l_i++) {
+                            if (!isset($l_attributes[$l_i]["dn"])) {
+                                continue;
+                            }
 
-                        if (!$l_username) {
-                            continue;
-                        }
+                            $l_username = $l_attributes[$l_i][strtolower($l_mapping[C__LDAP_MAPPING__USERNAME])][0];
 
-                        $userData = $l_person_dao->get_person_by_username($l_username)
-                            ->get_row();
+                            if (!$l_username) {
+                                continue;
+                            }
 
-                        // @See ID-4359 archive users only if the local object has no constant set
-                        if ($userData && empty($userData['isys_obj__const'])) {
-                            $this->ignoreUserStatus[$l_username] = true;
-                            $userObjectId = $userData['isys_obj__id'];
-                            $l_person_dao->set_object_status($userObjectId, C__RECORD_STATUS__ARCHIVED);
+                            $userData = $l_person_dao->get_person_by_username($l_username)
+                                ->get_row();
+
+                            // @See ID-4359 archive users only if the local object has no constant set
+                            if ($userData && empty($userData['isys_obj__const'])) {
+                                $this->ignoreUserStatus[$l_username] = true;
+                                $userObjectId = $userData['isys_obj__id'];
+                                $l_person_dao->set_object_status($userObjectId, C__RECORD_STATUS__ARCHIVED);
+                            }
                         }
                     }
-                }
+
+                    if ($pagedResultEnabled) {
+                        $l_ldap_lib->ldapControlPagedResultResponse($l_search, $pagedResultCookie);
+                    }
+                } while ($pagedResultCookie !== null && $pagedResultCookie != '');
             }
 
             // Synchronize all users which are found via DN String
@@ -347,43 +361,53 @@ class SyncCommand extends AbstractCommand
                           WHERE isys_cats_person_list__isys_ldap__id = '" . $l_row["isys_ldap__id"] . "'";
 
                 $l_person_dao->update($l_sql);
+                $pagedResultCookie = '';
 
-                $l_search = $l_ldap_lib->search($l_row["isys_ldap__user_search"], $l_filter, [], 0, null, null, null, $l_recursive);
+                do {
+                    if ($pagedResultEnabled) {
+                        $l_ldap_lib->ldapControlPagedResult($pageLimit, true, $pagedResultCookie);
+                    }
 
-                if ($l_search) {
-                    $l_attributes = $l_ldap_lib->get_entries($l_search);
+                    $l_search = $l_ldap_lib->search($l_row["isys_ldap__user_search"], $l_filter, [], 0, null, null, null, $l_recursive);
 
-                    for ($l_i = 0;$l_i <= $l_attributes["count"];$l_i++) {
-                        // Break if memory consumption is too high
-                        $l_memory->outOfMemoryBreak(8192);
+                    if ($l_search) {
+                        $l_attributes = $l_ldap_lib->get_entries($l_search);
 
-                        if (!isset($l_attributes[$l_i]["dn"])) {
-                            continue;
-                        }
+                        for ($l_i = 0;$l_i <= $l_attributes["count"];$l_i++) {
+                            // Break if memory consumption is too high
+                            $l_memory->outOfMemoryBreak(8192);
 
-                        $l_attributes[$l_i]["ldapi"] = &$l_ldap_lib;
-                        $l_attributes[$l_i]["ldap_data"] = &$l_row;
-
-                        try {
-                            if ($l_synced_users[] = $this->sync_user(
-                                $l_attributes[$l_i],
-                                $l_person_dao,
-                                $l_mapping,
-                                $l_row["isys_ldap__id"],
-                                $l_ldap_module,
-                                $l_row,
-                                $p_forceStatus
-                            )) {
-                                $this->output->writeln("User " . '<info>' . $l_attributes[$l_i]["dn"] . '</info>' . " synchronized.");
-                            } else {
-                                $this->output->writeln("Failed synchronizing: " . '<error>' . $l_attributes[$l_i]["dn"] . '</error>');
+                            if (!isset($l_attributes[$l_i]["dn"])) {
+                                continue;
                             }
-                        } catch (isys_exception_validation $e) {
-                            $this->output->writeln("Validation for " . '<error>' . $l_attributes[$l_i]["dn"] . '</error>' . ' failed: ' . $e->getMessage());
+
+                            $l_attributes[$l_i]["ldapi"] = &$l_ldap_lib;
+                            $l_attributes[$l_i]["ldap_data"] = &$l_row;
+
+                            try {
+                                if ($l_synced_users[] = $this->sync_user(
+                                    $l_attributes[$l_i],
+                                    $l_person_dao,
+                                    $l_mapping,
+                                    $l_row["isys_ldap__id"],
+                                    $l_ldap_module,
+                                    $l_row,
+                                    $p_forceStatus
+                                )) {
+                                    $this->output->writeln("User " . '<info>' . $l_attributes[$l_i]["dn"] . '</info>' . " synchronized.");
+                                } else {
+                                    $this->output->writeln("Failed synchronizing: " . '<error>' . $l_attributes[$l_i]["dn"] . '</error>');
+                                }
+                            } catch (isys_exception_validation $e) {
+                                $this->output->writeln("Validation for " . '<error>' . $l_attributes[$l_i]["dn"] . '</error>' . ' failed: ' . $e->getMessage());
+                            }
                         }
                     }
-                }
 
+                    if ($pagedResultEnabled) {
+                        $l_ldap_lib->ldapControlPagedResultResponse($l_search, $pagedResultCookie);
+                    }
+                } while ($pagedResultCookie !== null && $pagedResultCookie != '');
                 /**
                  * Archive or delete all deleted users where ldap_dn = '', this means this user was not synced and should therefore not exist anymore
                  */

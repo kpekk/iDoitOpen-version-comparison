@@ -48,9 +48,19 @@ class isys_auth_import extends isys_auth implements isys_auth_interface
     public function get_auth_methods()
     {
         return [
-            'import' => [
+            'import'              => [
                 'title' => 'LC__AUTH_GUI__IMPORT_CONDITION',
                 'type'  => 'import'
+            ],
+            'csv_import_profiles' => [
+                'title'  => 'LC__AUTH_GUI__IMPORT_CSV_PROFILE_CONDITION',
+                'type'   => 'boolean',
+                'rights' => [
+                    self::VIEW,
+                    self::EDIT,
+                    self::DELETE,
+                    self::CREATE,
+                ]
             ]
         ];
     }
@@ -76,6 +86,28 @@ class isys_auth_import extends isys_auth implements isys_auth_interface
     }
 
     /**
+     * @param $p_right
+     *
+     * @return bool
+     * @throws isys_exception_auth
+     */
+    public function csv_import_profiles($p_right)
+    {
+        if (!$this->is_auth_active()) {
+            return true;
+        }
+
+        $l_right_name = isys_auth::get_right_name($p_right);
+
+        return $this->generic_right(
+            $p_right,
+            'csv_import_profiles',
+            self::EMPTY_ID_PARAM,
+            new isys_exception_auth(isys_application::instance()->container->get('language')->get('LC__AUTH_GUI__IMPORT_CSV_PROFILE_CONDITION_EXCEPTION', $l_right_name))
+        );
+    }
+
+    /**
      * Determines the rights for the import module.
      *
      * @param   integer $p_right
@@ -90,6 +122,7 @@ class isys_auth_import extends isys_auth implements isys_auth_interface
         if (!$this->is_auth_active()) {
             return true;
         }
+
         if (!defined('C__MODULE__IMPORT')) {
             return false;
         }

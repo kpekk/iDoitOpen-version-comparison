@@ -5,6 +5,8 @@
  *
  * Smarty plugin for text input fields.
  *
+ * @todo        Remove in i-doit 1.13
+ * @deprecated  This smarty plugin is unused and will be removed in i-doit 1.13
  * @package     i-doit
  * @subpackage  Smarty_Plugins
  * @author      Dennis Blümer <dbluemer@i-doit.org>

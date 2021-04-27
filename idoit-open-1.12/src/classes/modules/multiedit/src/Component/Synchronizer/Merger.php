@@ -3,6 +3,7 @@
 namespace idoit\Module\Multiedit\Component\Synchronizer;
 
 use idoit\Component\Property\Property;
+use isys_cmdb_dao_category_g_custom_fields;
 
 /**
  * @package     Modules
@@ -122,21 +123,37 @@ class Merger
         $dataId = $entry->getEntryId();
         $objectId = $entry->getObjectId();
         $syncedData = $entry->getSyncData();
+        $result = null;
+        $dataSet = [];
 
         if (!$objectId) {
             return $this;
         }
 
-        if ($dataId) {
-            $result = $this->categoryDao->get_data($dataId);
-            $dataSet[$dataId] = $result->get_row();
-        }
+        $customCategory = ($this->categoryDao->get_category_type() === defined_or_default('C__CMDB__CATEGORY__TYPE_CUSTOM'));
 
-        if ($objectId && $result === null) {
-            $result = $this->categoryDao->get_data(null, $objectId);
-            $table = $this->categoryDao->get_table();
-            while ($row = $result->get_row()) {
-                $dataSet[$row[$table . '__id']] = $row;
+        if ($dataId !== 'new') {
+            $result = $this->categoryDao->get_data($dataId);
+
+            if (is_countable($result) && count($result) > 0) {
+                if ($customCategory) {
+                    while ($currentData = $result->get_row()) {
+                        $key = $currentData['isys_catg_custom_fields_list__field_type'] ===
+                        'commentary' ? 'description' : $currentData['isys_catg_custom_fields_list__field_type'] . '_' .
+                            $currentData['isys_catg_custom_fields_list__field_key'];
+                        $dataSet[$dataId][$key] = $currentData;
+                    }
+                } else {
+                    $dataSet[$dataId] = $result->get_row();
+                }
+            }
+
+            if ($objectId && empty($dataSet)) {
+                $result = $this->categoryDao->get_data(null, $objectId);
+                $table = $this->categoryDao->get_table();
+                while ($row = $result->get_row()) {
+                    $dataSet[$row[$table . '__id']] = $row;
+                }
             }
         }
 
@@ -154,7 +171,7 @@ class Merger
 
                 if (count($result) > 1) {
                     // Assignment category
-                    $data = $this->mergeProperty($property, $dataSet);
+                    $data = $this->mergeProperty($property, $propertyKey, $dataSet);
 
                     $syncedData[SynchronizerEntry::ENTRY__PROPERTIES][$propertyKey] = [C__DATA__VALUE => $data];
                 } else {
@@ -166,18 +183,29 @@ class Merger
     }
 
     /**
-     * @param Property          $property
-     * @param array             $dataSet
+     * @param Property $property
+     * @param string   $propertyKey
+     * @param array    $dataSet
      *
      * @return array
      */
-    private function mergeProperty($property, $dataSet)
+    private function mergeProperty($property, $propertyKey, $dataSet)
     {
         $data = [];
         $dbField = $property->getData()->getField();
 
+        $customCategory = ($this->categoryDao->get_category_type() === defined_or_default('C__CMDB__CATEGORY__TYPE_CUSTOM'));
+
         foreach ($dataSet as $entryId => $entryData) {
-            $data[] = $entryData[$dbField];
+            if ($customCategory) {
+                $data[] = isset($entryData[$propertyKey][$dbField]) ? $entryData[$propertyKey][$dbField]: null;
+            } else {
+                $data[] = isset($entryData[$dbField]) ? $entryData[$dbField] : null;
+            }
+        }
+
+        if (count($data) === 1) {
+            return $data[0];
         }
 
         return $data;
@@ -208,7 +236,7 @@ class Merger
         $dbField = $property->getData()
             ->getField();
 
-        if (is_array($callback) && !in_array($callback[1], self::$ignoredCallbackMethods) && !in_array($uiType, $this->ignoredUiTypes)) {
+        if (is_array($callback) && !in_array($callback[1], self::$ignoredCallbackMethods)) {
             $helperClass = $callback[0];
             if (isset($this->helperClasses[$helperClass])) {
                 $this->helperClasses[$helperClass]->set_row($dataSet[$syncData['data_id']]);
@@ -241,7 +269,7 @@ class Merger
             if (is_object($exportValue)) {
                 $exportValue = [C__DATA__VALUE => $exportValue->get_data()];
             } else {
-                $exportValue = [C__DATA__VALUE => $exportValue];
+                $exportValue = (!isset($exportValue[C__DATA__VALUE]) ? [C__DATA__VALUE => $exportValue]: $exportValue);
             }
 
             if (method_exists($this->helperClasses[$helperClass], 'set_category_data_ids')) {

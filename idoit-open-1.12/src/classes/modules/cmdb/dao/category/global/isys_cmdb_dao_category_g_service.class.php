@@ -21,13 +21,6 @@ class isys_cmdb_dao_category_g_service extends isys_cmdb_dao_category_global
     protected $m_category = 'service';
 
     /**
-     * Is category multi-valued or single-valued?
-     *
-     * @var  boolean
-     */
-    protected $m_multivalued = false;
-
-    /**
      * Callback method for the service alias field.
      *
      * @param   isys_request $p_request
@@ -202,13 +195,17 @@ class isys_cmdb_dao_category_g_service extends isys_cmdb_dao_category_global
         $p_description = null,
         $p_service_number = null
     ) {
-        $l_update = 'UPDATE isys_catg_service_list SET ' . 'isys_catg_service_list__service_number = ' . $this->convert_sql_text($p_service_number) . ', ' .
-            'isys_catg_service_list__active = ' . $this->convert_sql_int($p_active) . ', ' . 'isys_catg_service_list__isys_service_type__id = ' .
-            $this->convert_sql_id($p_service_type) . ', ' . 'isys_catg_service_list__isys_service_category__id = ' . $this->convert_sql_id($p_service_category) . ', ' .
-            'isys_catg_service_list__isys_business_unit__id = ' . $this->convert_sql_id($p_business_unit) . ', ' . 'isys_catg_service_list__service_description_intern = ' .
-            $this->convert_sql_text($p_srv_descr_intern) . ', ' . 'isys_catg_service_list__service_description_extern = ' . $this->convert_sql_text($p_srv_descr_extern) .
-            ', ' . 'isys_catg_service_list__status = ' . $this->convert_sql_int($p_status) . ', ' . 'isys_catg_service_list__description = ' .
-            $this->convert_sql_text($p_description) . ' WHERE isys_catg_service_list__id = ' . $this->convert_sql_id($p_id);
+        $l_update = 'UPDATE isys_catg_service_list SET
+            isys_catg_service_list__service_number = ' . $this->convert_sql_text($p_service_number) . ',
+            isys_catg_service_list__active = ' . $this->convert_sql_int($p_active) . ',
+            isys_catg_service_list__isys_service_type__id = ' . $this->convert_sql_id($p_service_type) . ',
+            isys_catg_service_list__isys_service_category__id = ' . $this->convert_sql_id($p_service_category) . ',
+            isys_catg_service_list__isys_business_unit__id = ' . $this->convert_sql_id($p_business_unit) . ',
+            isys_catg_service_list__service_description_intern = ' . $this->convert_sql_text($p_srv_descr_intern) . ',
+            isys_catg_service_list__service_description_extern = ' . $this->convert_sql_text($p_srv_descr_extern) . ',
+            isys_catg_service_list__status = ' . $this->convert_sql_int($p_status) . ', 
+            isys_catg_service_list__description = ' . $this->convert_sql_text($p_description) . ' 
+            WHERE isys_catg_service_list__id = ' . $this->convert_sql_id($p_id);
 
         $l_assigned_aliase_res = $this->get_assigned_service_aliase(null, $p_id);
 
@@ -218,9 +215,9 @@ class isys_cmdb_dao_category_g_service extends isys_cmdb_dao_category_global
 
         $this->update($l_update);
 
-        $this->clear_assigned_service_aliase(null, $p_id);
+        if (is_array($p_service_aliase) && count($p_service_aliase)) {
+            $this->clear_assigned_service_aliase(null, $p_id);
 
-        if (is_array($p_service_aliase)) {
             if (!empty($p_service_aliase[0])) {
                 $l_values = '';
                 foreach ($p_service_aliase as $l_alias_id) {

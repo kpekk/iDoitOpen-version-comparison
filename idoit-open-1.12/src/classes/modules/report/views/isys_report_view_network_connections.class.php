@@ -5,7 +5,6 @@
  *
  * @package     i-doit
  * @subpackage  Reports
- * @author      Dennis Stücken <dstuecken@i-doit.de>
  * @copyright   synetics GmbH
  * @license     http://www.gnu.org/licenses/agpl-3.0.html GNU AGPLv3
  */
@@ -13,15 +12,66 @@ class isys_report_view_network_connections extends isys_report_view
 {
 
     /**
-     * Method for ajax-requests.
+     * @return string
+     */
+    public static function name()
+    {
+        return 'LC__CATG__NET_CONNECTIONS';
+    }
+
+    /**
+     * @return string
+     */
+    public static function description()
+    {
+        return 'LC__REPORT__VIEW__DESCRIPTION__NETWORK_CONNECTIONS';
+    }
+
+    /**
+     * @return string
+     */
+    public function template()
+    {
+        return isys_module_report::getPath() . 'templates/view_network_connections.tpl';
+    }
+
+    /**
+     * @return string
+     */
+    public static function viewtype()
+    {
+        return 'LC__CMDB__OBJTYPE__CATG';
+    }
+
+    /**
      *
-     * @author  Dennis Stücken <dstuecken@i-doit.de>
+     */
+    public function start()
+    {
+        $l_dao_connections = new isys_cmdb_dao_category_g_net_listener($this->database);
+        $l_rules['dialog_protocol']['p_arData'] = $l_dao_connections->get_dialog_as_array('isys_net_protocol');
+        $l_rules['dialog_protocol_5']['p_arData'] = $l_dao_connections->get_dialog_as_array('isys_net_protocol_layer_5');
+
+        $l_dao_net = new isys_cmdb_dao_category_s_net($this->database);
+        $l_arNetworks = [];
+        $l_networks = $l_dao_net->get_data();
+        while ($l_row = $l_networks->get_row()) {
+            $l_arNetworks[$l_row['isys_obj__id']] = $l_row['isys_obj__title'] . ' (' . $l_row['isys_cats_net_list__address'] . ')';
+        }
+        $l_rules['dialog_net']['p_arData'] = $l_arNetworks;
+
+        $this->template
+            ->activate_editmode()
+            ->assign('ajax_url', isys_glob_add_to_query('ajax', 1))
+            ->smarty_tom_add_rules("tom.content.bottom.content", $l_rules);
+    }
+
+    /**
+     *
      */
     public function ajax_request()
     {
-        global $g_comp_database;
-
-        $l_dao_connections = new isys_cmdb_dao_category_g_net_listener($g_comp_database);
+        $l_dao_connections = new isys_cmdb_dao_category_g_net_listener($this->database);
 
         $l_condition = '';
         if (isset($_POST['dialog_protocol']) && $_POST['dialog_protocol'] > 0) {
@@ -43,29 +93,19 @@ class isys_report_view_network_connections extends isys_report_view
         $l_connections = $l_dao_connections->get_connections($l_condition);
 
         $l_headers = [
-            isys_application::instance()->container->get('language')
-                ->get('LC__CMDB__OBJTYPE__LAYER3_NET'),
-            isys_application::instance()->container->get('language')
-                ->get('LC__CMDB__CATG__NET_CONNECTOR__SOURCE_DEVICE'),
-            isys_application::instance()->container->get('language')
-                ->get('LC__CMDB__CATG__NET_CONNECTOR__IP_ADDRESS'),
-            isys_application::instance()->container->get('language')
-                ->get('LC__CATD__PROTOCOL') . '/Port',
-            isys_application::instance()->container->get('language')
-                ->get('LC__CMDB__CATG__NET_LISTENER__BIND_DEVICE'),
-            isys_application::instance()->container->get('language')
-                ->get('LC__CMDB__CATG__NET_LISTENER__DESTINATION_IP_ADDRESS'),
-            isys_application::instance()->container->get('language')
-                ->get('LC__CMDB__CATG__APPLICATION_OBJ_APPLICATION'),
-            isys_application::instance()->container->get('language')
-                ->get('LC__CATG__NET_CONNECTIONS__GATEWAY') . '-Source',
-            isys_application::instance()->container->get('language')
-                ->get('LC__CATG__NET_CONNECTIONS__GATEWAY') . '-Destination',
+            $this->language->get('LC__CMDB__OBJTYPE__LAYER3_NET'),
+            $this->language->get('LC__CMDB__CATG__NET_CONNECTOR__SOURCE_DEVICE'),
+            $this->language->get('LC__CMDB__CATG__NET_CONNECTOR__IP_ADDRESS'),
+            $this->language->get('LC__CATD__PROTOCOL') . '/Port',
+            $this->language->get('LC__CMDB__CATG__NET_LISTENER__BIND_DEVICE'),
+            $this->language->get('LC__CMDB__CATG__NET_LISTENER__DESTINATION_IP_ADDRESS'),
+            $this->language->get('LC__CMDB__CATG__APPLICATION_OBJ_APPLICATION'),
+            $this->language->get('LC__CATG__NET_CONNECTIONS__GATEWAY') . '-Source',
+            $this->language->get('LC__CATG__NET_CONNECTIONS__GATEWAY') . '-Destination',
         ];
 
         $l_return = [];
         while ($l_row = $l_connections->get_row()) {
-
             if (isset($l_row['protocol_layer_5']) && $l_row['protocol_layer_5']) {
                 $l_layer5 = ': ' . $l_row['protocol_layer_5'];
             } else {
@@ -81,9 +121,9 @@ class isys_report_view_network_connections extends isys_report_view
                     ' =>',
                 $l_headers[4] => $l_row['bind_object'],
                 $l_headers[5] => $l_row['bind_ip'],
-                $l_headers[6] => $l_row['bind_application'] ? $l_row['bind_application'] : '-',
-                $l_headers[7] => $l_row['source_gateway'] ? $l_row['source_gateway'] : '-',
-                $l_headers[8] => $l_row['bind_gateway'] ? $l_row['bind_gateway'] : '-',
+                $l_headers[6] => $l_row['bind_application'] ?: '-',
+                $l_headers[7] => $l_row['source_gateway'] ?: '-',
+                $l_headers[8] => $l_row['bind_gateway'] ?: '-',
             ];
         }
 
@@ -92,98 +132,4 @@ class isys_report_view_network_connections extends isys_report_view
 
         die;
     }
-
-    /**
-     * Method for retrieving the language constant of the report-description.
-     *
-     * @return  string
-     * @todo    Should we update the parent method to retrieve this automatically?
-     */
-    public static function description()
-    {
-        return 'LC__REPORT__VIEW__DESCRIPTION__NETWORK_CONNECTIONS';
-    }
-
-    /**
-     * Initialize method.
-     *
-     * @return  boolean
-     */
-    public function init()
-    {
-        return true;
-    }
-
-    /**
-     * Method for retrieving the language constant of the report-name.
-     *
-     * @return  string
-     * @author  Dennis Stücken <dstuecken@i-doit.de>
-     * @todo    Should we update the parent method to retrieve this automatically?
-     */
-    public static function name()
-    {
-        return 'LC__CATG__NET_CONNECTIONS';
-    }
-
-    /**
-     * Start-method - Implement the logic for displaying your data here.
-     *
-     * @global  isys_component_database $g_comp_database
-     * @author  Dennis Stücken <dstuecken@i-doit.de>
-     */
-    public function start()
-    {
-        $l_dao_connections = new isys_cmdb_dao_category_g_net_listener(isys_application::instance()->database);
-        $l_rules['dialog_protocol']['p_arData'] = $l_dao_connections->get_dialog_as_array('isys_net_protocol');
-        $l_rules['dialog_protocol_5']['p_arData'] = $l_dao_connections->get_dialog_as_array('isys_net_protocol_layer_5');
-
-        $l_dao_net = new isys_cmdb_dao_category_s_net(isys_application::instance()->database);
-        $l_arNetworks = [];
-        $l_networks = $l_dao_net->get_data();
-        while ($l_row = $l_networks->get_row()) {
-            $l_arNetworks[$l_row['isys_obj__id']] = $l_row['isys_obj__title'] . ' (' . $l_row['isys_cats_net_list__address'] . ')';
-        }
-        $l_rules['dialog_net']['p_arData'] = $l_arNetworks;
-
-        isys_application::instance()->template->activate_editmode()
-            ->assign('ajax_url', isys_glob_add_to_query('ajax', 1))
-            ->smarty_tom_add_rules("tom.content.bottom.content", $l_rules);
-    }
-
-    /**
-     * Method for retrieving the template-name of this report.
-     *
-     * @return  string
-     * @author  Dennis Stücken <dstuecken@i-doit.de>
-     * @todo    Should we update the parent method to retrieve this automatically?
-     */
-    public function template()
-    {
-        return 'view_network_connections.tpl';
-    }
-
-    /**
-     * Method for declaring the type of this report.
-     *
-     * @return  integer
-     * @author  Dennis Stücken <dstuecken@i-doit.de>
-     */
-    public static function type()
-    {
-        return self::c_php_view;
-    }
-
-    /**
-     * Method for declaring the view-type.
-     *
-     * @return  string
-     * @author  Dennis Stücken <dstuecken@i-doit.de>
-     */
-    public static function viewtype()
-    {
-        return 'LC__CMDB__OBJTYPE__CATG';
-    }
 }
-
-?>

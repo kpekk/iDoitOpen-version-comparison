@@ -21,7 +21,7 @@ class isys_component_table_csv extends isys_component_list_csv
     public function createTempTable()
     {
         $l_csv = \League\Csv\Writer::createFromFileObject(new SplTempFileObject)
-            ->setDelimiter(';')
+            ->setDelimiter(isys_tenantsettings::get('system.csv-export-delimiter', ';'))
             ->setOutputBOM(\League\Csv\Writer::BOM_UTF8)
             ->insertOne($this->m_arTableHeader);
 

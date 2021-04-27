@@ -705,6 +705,8 @@ class isys_cmdb_dao_category_g_connector extends isys_cmdb_dao_category_global
             $p_cableID
         );
 
+        $connectorIds = [];
+
         // Ignore connections of connectors to itself
         if (!empty($p_connected_connector_id) && ($p_connected_connector_id != $p_list_id)) {
             // Add cable if no cable has been selected
@@ -735,14 +737,7 @@ class isys_cmdb_dao_category_g_connector extends isys_cmdb_dao_category_global
                 WHERE isys_catg_connector_list__id = ' . $this->convert_sql_id($p_connected_connector_id) . ';';
 
             $this->update($l_fiber_update_sql);
-
-            $this->remove_all_wavelengths($p_connected_connector_id);
-
-            if (is_array($p_wave_lengths) && count($p_wave_lengths)) {
-                foreach ($p_wave_lengths as $l_wavelength) {
-                    $this->add_wavelength($p_connected_connector_id, $l_wavelength);
-                }
-            }
+            $connectorIds[] = $p_connected_connector_id;
         } elseif (!empty($p_cableID) && !empty($l_cable_con)) {
             /**
              * @see API-42 and ID-5885
@@ -827,11 +822,17 @@ class isys_cmdb_dao_category_g_connector extends isys_cmdb_dao_category_global
         }
 
         if ($this->update($l_strSql) && $this->apply_update()) {
-            $this->remove_all_wavelengths($p_list_id);
+            $connectorIds[] = $p_list_id;
 
-            if (is_array($p_wave_lengths) && count($p_wave_lengths)) {
-                foreach ($p_wave_lengths as $l_wavelength) {
-                    $this->add_wavelength($p_list_id, $l_wavelength);
+            foreach ($connectorIds as $id) {
+                $this->remove_all_wavelengths($id);
+
+                if (is_array($p_wave_lengths) && count($p_wave_lengths)) {
+                    foreach ($p_wave_lengths as $l_wavelength) {
+                        $this->add_wavelength($id, $l_wavelength);
+                    }
+                } elseif (is_scalar($p_wave_lengths) && is_numeric($p_wave_lengths)) {
+                    $this->add_wavelength($id, $p_wave_lengths);
                 }
             }
 
@@ -955,15 +956,11 @@ class isys_cmdb_dao_category_g_connector extends isys_cmdb_dao_category_global
                 $this->save_parent($p_connector_sibling, $l_id);
             }
 
-            $this->remove_all_wavelengths($l_id);
-
-            if (is_array($p_wave_lengths) && count($p_wave_lengths)) {
-                foreach ($p_wave_lengths as $l_wavelength) {
-                    $this->add_wavelength($l_id, $l_wavelength);
-                }
-            }
+            $connectorIds[] = $l_id;
 
             if ($p_connected_connector_id != null) {
+                $connectorIds[] = $p_connected_connector_id;
+
                 $l_dao = new isys_cmdb_dao_cable_connection($this->m_db);
 
                 if (empty($p_cableID)) {
@@ -993,13 +990,17 @@ class isys_cmdb_dao_category_g_connector extends isys_cmdb_dao_category_global
 					WHERE isys_catg_connector_list__id = ' . $this->convert_sql_id($p_connected_connector_id) . ';';
 
                 $this->update($l_fiber_update_sql);
+            }
 
-                $this->remove_all_wavelengths($p_connected_connector_id);
+            foreach ($connectorIds as $id) {
+                $this->remove_all_wavelengths($id);
 
                 if (is_array($p_wave_lengths) && count($p_wave_lengths)) {
                     foreach ($p_wave_lengths as $l_wavelength) {
-                        $this->add_wavelength($p_connected_connector_id, $l_wavelength);
+                        $this->add_wavelength($id, $l_wavelength);
                     }
+                } elseif (is_scalar($p_wave_lengths) && is_numeric($p_wave_lengths)) {
+                    $this->add_wavelength($id, $p_wave_lengths);
                 }
             }
 
@@ -1474,7 +1475,7 @@ class isys_cmdb_dao_category_g_connector extends isys_cmdb_dao_category_global
                 C__PROPERTY__PROVIDES => [
                     C__PROPERTY__PROVIDES__SEARCH => false,
                     C__PROPERTY__PROVIDES__LIST   => false,
-                    C__PROPERTY__PROVIDES__REPORT => false
+                    C__PROPERTY__PROVIDES__REPORT => true
                 ]
             ]),
             'wiring_system'      => array_replace_recursive(isys_cmdb_dao_category_pattern::object_browser(), [
@@ -1744,7 +1745,34 @@ class isys_cmdb_dao_category_g_connector extends isys_cmdb_dao_category_global
                         idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['m.isys_catg_connector_list__isys_obj__id']),
                         '',
                         1
-                    )
+                    ),
+                    C__PROPERTY__DATA__JOIN => [
+                        idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory(
+                            'isys_catg_connector_list',
+                            'LEFT',
+                            'isys_catg_connector_list__isys_obj__id',
+                            'isys_obj__id',
+                            'm',
+                            '',
+                            'm'
+                        ),
+                        idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory(
+                            'isys_catg_connector_list',
+                            'LEFT',
+                            'isys_catg_connector_list__isys_cable_connection__id',
+                            'isys_catg_connector_list__isys_cable_connection__id',
+                            'm',
+                            'c',
+                            'c'
+                        ),
+                        idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory(
+                            'isys_obj',
+                            'LEFT',
+                            'isys_catg_connector_list__isys_obj__id',
+                            'isys_obj__id',
+                            'c'
+                        )
+                    ]
                 ],
                 C__PROPERTY__UI       => [
                     C__PROPERTY__UI__ID     => 'C__CATG__CONNECTOR__ASSIGNED_CONNECTOR',
@@ -1759,7 +1787,7 @@ class isys_cmdb_dao_category_g_connector extends isys_cmdb_dao_category_global
                     C__PROPERTY__PROVIDES__SEARCH  => false,
                     C__PROPERTY__PROVIDES__LIST    => true,
                     C__PROPERTY__PROVIDES__REPORT  => true,
-                    C__PROPERTY__PROVIDES__VIRTUAL => true
+                    C__PROPERTY__PROVIDES__VIRTUAL => false
                 ],
                 C__PROPERTY__FORMAT   => [
                     C__PROPERTY__FORMAT__CALLBACK => [
@@ -1864,7 +1892,7 @@ class isys_cmdb_dao_category_g_connector extends isys_cmdb_dao_category_global
                     C__PROPERTY__PROVIDES__SEARCH    => false,
                     C__PROPERTY__PROVIDES__REPORT    => true,
                     C__PROPERTY__PROVIDES__LIST      => false,
-                    C__PROPERTY__PROVIDES__MULTIEDIT => false
+                    C__PROPERTY__PROVIDES__MULTIEDIT => true
                 ],
                 C__PROPERTY__FORMAT   => [
                     C__PROPERTY__FORMAT__CALLBACK => [
@@ -2091,6 +2119,16 @@ class isys_cmdb_dao_category_g_connector extends isys_cmdb_dao_category_global
                 // Try to retrieve one from assigned connector
                 $cableId = isys_cmdb_dao_cable_connection::instance($this->m_db)
                     ->get_assigned_cable($p_category_data['properties']['assigned_connector'][C__DATA__VALUE]);
+            }
+
+            if (!empty($p_category_data['properties']['fiber_wave_lengths'][C__DATA__VALUE])) {
+                if (isys_format_json::is_json_array($p_category_data['properties']['fiber_wave_lengths'][C__DATA__VALUE])) {
+                    $p_category_data['properties']['fiber_wave_lengths'][C__DATA__VALUE] =
+                        isys_format_json::decode($p_category_data['properties']['fiber_wave_lengths'][C__DATA__VALUE]);
+                } elseif (strpos($p_category_data['properties']['fiber_wave_lengths'][C__DATA__VALUE], ',')) {
+                    $p_category_data['properties']['fiber_wave_lengths'][C__DATA__VALUE] =
+                        explode(',', $p_category_data['properties']['fiber_wave_lengths'][C__DATA__VALUE]);
+                }
             }
 
             switch ($p_status) {

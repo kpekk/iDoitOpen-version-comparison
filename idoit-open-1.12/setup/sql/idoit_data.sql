@@ -1,5 +1,5 @@
 --
--- i-doit data dump for version 1.12
+-- i-doit data dump for version 1.12.2
 --
 
 SET FOREIGN_KEY_CHECKS=0;
@@ -124,7 +124,7 @@ CREATE TABLE `isys_auth` (
   KEY `isys_auth__path` (`isys_auth__path`),
   CONSTRAINT `isys_auth_ibfk_1` FOREIGN KEY (`isys_auth__isys_obj__id`) REFERENCES `isys_obj` (`isys_obj__id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `isys_auth_ibfk_2` FOREIGN KEY (`isys_auth__isys_module__id`) REFERENCES `isys_module` (`isys_module__id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=426 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=450 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 INSERT INTO `isys_auth` VALUES (1,10,1,2,'OBJ_ID/*',2);
 INSERT INTO `isys_auth` VALUES (2,10,1,2,'OBJ_ID',2);
@@ -428,6 +428,8 @@ INSERT INTO `isys_auth` VALUES (422,14,9,8,'COMMAND/*',2);
 INSERT INTO `isys_auth` VALUES (423,14,8,2,'MULTILIST_CONFIG',2);
 INSERT INTO `isys_auth` VALUES (424,14,9,2,'OVERWRITE_USER_MULTILIST_CONFIG',2);
 INSERT INTO `isys_auth` VALUES (425,14,9,2,'DEFINE_STANDARD_MULTILIST_CONFIG',2);
+INSERT INTO `isys_auth` VALUES (437,14,7,2,'OBJECT_BROWSER_CONFIGURATION',2);
+INSERT INTO `isys_auth` VALUES (438,14,39,50,'CSV_IMPORT_PROFILES',2);
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `isys_backup_cycle` (
@@ -469,12 +471,12 @@ INSERT INTO `isys_backup_type` VALUES (4,'Archiv',NULL,'C__CMDB__BACKUP_TYPE__AR
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `isys_business_unit` (
   `isys_business_unit__id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `isys_business_unit__title` varchar(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
-  `isys_business_unit__description` text CHARACTER SET utf8 COLLATE utf8_unicode_ci,
-  `isys_business_unit__const` varchar(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
+  `isys_business_unit__title` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `isys_business_unit__description` text COLLATE utf8_unicode_ci,
+  `isys_business_unit__const` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `isys_business_unit__sort` int(10) unsigned DEFAULT NULL,
   `isys_business_unit__status` int(10) unsigned DEFAULT '2',
-  `isys_business_unit__property` varchar(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
+  `isys_business_unit__property` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`isys_business_unit__id`),
   KEY `isys_business_unit__title` (`isys_business_unit__title`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
@@ -2244,12 +2246,12 @@ CREATE TABLE `isys_catg_model_list` (
 CREATE TABLE `isys_catg_monitoring_list` (
   `isys_catg_monitoring_list__id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `isys_catg_monitoring_list__isys_obj__id` int(10) unsigned DEFAULT NULL,
-  `isys_catg_monitoring_list__host_name` varchar(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
+  `isys_catg_monitoring_list__host_name` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `isys_catg_monitoring_list__host_name_selection` tinyint(1) unsigned DEFAULT '0',
   `isys_catg_monitoring_list__active` tinyint(1) unsigned DEFAULT '1',
   `isys_catg_monitoring_list__isys_monitoring_hosts__id` int(10) unsigned DEFAULT NULL,
-  `isys_catg_monitoring_list__title` varchar(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
-  `isys_catg_monitoring_list__description` text CHARACTER SET utf8 COLLATE utf8_unicode_ci,
+  `isys_catg_monitoring_list__title` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `isys_catg_monitoring_list__description` text COLLATE utf8_unicode_ci,
   `isys_catg_monitoring_list__status` int(10) unsigned DEFAULT '2',
   PRIMARY KEY (`isys_catg_monitoring_list__id`),
   KEY `isys_catg_monitoring_list__isys_obj__id` (`isys_catg_monitoring_list__isys_obj__id`),
@@ -2297,7 +2299,7 @@ CREATE TABLE `isys_catg_net_listener_list` (
   `isys_catg_net_listener_list__gateway` int(10) unsigned DEFAULT NULL,
   `isys_catg_net_listener_list__port_from` int(10) unsigned DEFAULT NULL COMMENT 'Port from',
   `isys_catg_net_listener_list__port_to` int(10) unsigned DEFAULT NULL COMMENT 'Port to',
-  `isys_catg_net_listener_list__description` text CHARACTER SET utf8 COLLATE utf8_unicode_ci,
+  `isys_catg_net_listener_list__description` text COLLATE utf8_unicode_ci,
   `isys_catg_net_listener_list__status` int(10) unsigned DEFAULT '2',
   PRIMARY KEY (`isys_catg_net_listener_list__id`),
   KEY `isys_catg_net_listener_list__isys_obj__id` (`isys_catg_net_listener_list__isys_obj__id`),
@@ -4540,7 +4542,7 @@ CREATE TABLE `isys_cats_net_zone_list` (
   `isys_cats_net_zone_list__range_to` varchar(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
   `isys_cats_net_zone_list__range_to_long` int(15) unsigned DEFAULT NULL,
   `isys_cats_net_zone_list__status` int(10) unsigned NOT NULL,
-  `isys_cats_net_zone_list__description` text CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
+  `isys_cats_net_zone_list__description` text CHARACTER SET utf8 COLLATE utf8_unicode_ci,
   PRIMARY KEY (`isys_cats_net_zone_list__id`),
   KEY `isys_cats_net_zone_list__isys_obj__id` (`isys_cats_net_zone_list__isys_obj__id`),
   KEY `isys_cats_net_zone_list__isys_obj__id__zone` (`isys_cats_net_zone_list__isys_obj__id__zone`),
@@ -4633,7 +4635,6 @@ INSERT INTO `isys_cats_person_group_list` VALUES (2,'Editor','Editor','Editor','
 INSERT INTO `isys_cats_person_group_list` VALUES (3,'Author','Author','Author','','',1,2,13,0,12);
 INSERT INTO `isys_cats_person_group_list` VALUES (4,'Archivar','Archivar','Archivar','','',1,2,14,0,13);
 INSERT INTO `isys_cats_person_group_list` VALUES (5,'Admin','Admin','Admin','','',1,2,15,0,14);
-/*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `isys_cats_person_list` (
@@ -4696,7 +4697,6 @@ INSERT INTO `isys_cats_person_list` VALUES (4,4,NULL,'author','','',5,NULL,'','0
 INSERT INTO `isys_cats_person_list` VALUES (5,5,NULL,'archivar','','',5,NULL,'','4baf8329be21a4ad4f4401295cc130a9','','archivar','',NULL,NULL,'','','','','',NULL,NULL,NULL,NULL,NULL,NULL,2,0,8,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 INSERT INTO `isys_cats_person_list` VALUES (6,6,NULL,'admin','','',5,NULL,'','21232f297a57a5a743894a0e4a801fc3','','admin','',NULL,NULL,'','','','','',NULL,NULL,NULL,NULL,NULL,NULL,2,0,9,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
 INSERT INTO `isys_cats_person_list` VALUES (7,7,NULL,'systemapi','','',5,NULL,'','','System','Api','',NULL,NULL,'','','','','',NULL,NULL,NULL,NULL,NULL,NULL,2,0,22,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL);
-/*!40101 SET character_set_client = @saved_cs_client */;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `isys_cats_prt_emulation` (
@@ -5561,9 +5561,9 @@ CREATE TABLE `isys_db_init` (
   PRIMARY KEY (`isys_db_init__id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
-INSERT INTO `isys_db_init` VALUES (1,'title','i-doit 1.12');
-INSERT INTO `isys_db_init` VALUES (2,'revision','201811200');
-INSERT INTO `isys_db_init` VALUES (3,'version','1.12');
+INSERT INTO `isys_db_init` VALUES (1,'title','i-doit 1.12.2');
+INSERT INTO `isys_db_init` VALUES (2,'revision','201911202');
+INSERT INTO `isys_db_init` VALUES (3,'version','1.12.2');
 INSERT INTO `isys_db_init` VALUES (4,'type','pro');
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
@@ -6641,6 +6641,8 @@ CREATE TABLE `isys_ldap` (
   `isys_ldap__status` int(10) NOT NULL,
   `isys_ldap__filter_array` text COLLATE utf8_unicode_ci,
   `isys_ldap__use_admin_only` int(1) unsigned DEFAULT '0',
+  `isys_ldap__enable_paging` tinyint(1) unsigned DEFAULT '0',
+  `isys_ldap__page_limit` int(10) unsigned DEFAULT '500',
   PRIMARY KEY (`isys_ldap__id`),
   KEY `isys_ldap__isys_ldap_directory__id` (`isys_ldap__isys_ldap_directory__id`),
   CONSTRAINT `isys_ldap_ibfk_1` FOREIGN KEY (`isys_ldap__isys_ldap_directory__id`) REFERENCES `isys_ldap_directory` (`isys_ldap_directory__id`) ON DELETE SET NULL ON UPDATE NO ACTION
@@ -7050,7 +7052,7 @@ CREATE TABLE `isys_migration` (
   `isys_migration__version` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `isys_migration__done` int(10) NOT NULL,
   PRIMARY KEY (`isys_migration__id`)
-) ENGINE=InnoDB AUTO_INCREMENT=137 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=138 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 INSERT INTO `isys_migration` VALUES (1,'ac_isys_ac_refrigerating_capacity_unit','0.9.8-2',1);
 INSERT INTO `isys_migration` VALUES (2,'accounting_guarantee_period','0.9.8-2',1);
@@ -7184,6 +7186,7 @@ INSERT INTO `isys_migration` VALUES (133,'api_update_migration','1.12',1);
 INSERT INTO `isys_migration` VALUES (134,'check_mk_update_migration','1.12',1);
 INSERT INTO `isys_migration` VALUES (135,'nagios_update_migration','1.12',1);
 INSERT INTO `isys_migration` VALUES (136,'workflow_update_migration','1.12',1);
+INSERT INTO `isys_migration` VALUES (137,'legacy_license_migration','1.12.2',1);
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `isys_model_manufacturer` (
@@ -7256,7 +7259,7 @@ INSERT INTO `isys_module` VALUES (1016,'LC__MODULE__DASHBOARD','dashboard','C__M
 INSERT INTO `isys_module` VALUES (1018,'LC__MODULE__QRCODE','qrcode','C__MODULE__QRCODE',NOW(),'isys_module_qrcode',0,2,NULL,'images/icons/silk/brick.png');
 INSERT INTO `isys_module` VALUES (1019,'LC__MONITORING','monitoring','C__MODULE__MONITORING',NOW(),'isys_module_monitoring',0,2,NULL,'images/icons/silk/brick.png');
 INSERT INTO `isys_module` VALUES (1021,'LC__MODULE__ITSERVICE','itservice','C__MODULE__ITSERVICE',NOW(),'isys_module_itservice',0,2,NULL,'images/icons/silk/chart_pie.png');
-INSERT INTO `isys_module` VALUES (1022, 'LC__MODULE__MULTIEDIT', 'multiedit', 'C__MODULE__MULTIEDIT', NOW(), 'isys_module_multiedit', 1, 2, 2, 'images/icons/silk/table_edit.png');
+INSERT INTO `isys_module` VALUES (1022,'LC__MODULE__MULTIEDIT','multiedit','C__MODULE__MULTIEDIT',NOW(),'isys_module_multiedit',1,2,2,'images/icons/silk/table_edit.png');
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `isys_module_sorting` (
@@ -7331,11 +7334,11 @@ INSERT INTO `isys_monitor_unit` VALUES (2,'cm','Zentimeter / Cm','C__MONITOR_UNI
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `isys_monitoring_export_config` (
   `isys_monitoring_export_config__id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `isys_monitoring_export_config__title` varchar(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
-  `isys_monitoring_export_config__path` varchar(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
-  `isys_monitoring_export_config__address` varchar(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
-  `isys_monitoring_export_config__type` varchar(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci DEFAULT NULL,
-  `isys_monitoring_export_config__options` text CHARACTER SET utf8 COLLATE utf8_unicode_ci,
+  `isys_monitoring_export_config__title` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `isys_monitoring_export_config__path` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `isys_monitoring_export_config__address` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `isys_monitoring_export_config__type` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `isys_monitoring_export_config__options` text COLLATE utf8_unicode_ci,
   `isys_monitoring_export_config__status` int(10) unsigned NOT NULL DEFAULT '2',
   PRIMARY KEY (`isys_monitoring_export_config__id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
@@ -7910,7 +7913,7 @@ CREATE TABLE `isys_obj_type_2_isysgui_catg` (
   KEY `isys_obj_type_2_isysgui_catg_FKIndex2` (`isys_obj_type_2_isysgui_catg__isys_obj_type__id`),
   CONSTRAINT `isys_obj_type_2_isysgui_catg_ibfk_10` FOREIGN KEY (`isys_obj_type_2_isysgui_catg__isysgui_catg__id`) REFERENCES `isysgui_catg` (`isysgui_catg__id`) ON DELETE CASCADE ON UPDATE CASCADE,
   CONSTRAINT `isys_obj_type_2_isysgui_catg_ibfk_9` FOREIGN KEY (`isys_obj_type_2_isysgui_catg__isys_obj_type__id`) REFERENCES `isys_obj_type` (`isys_obj_type__id`) ON DELETE CASCADE ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=2463 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=3293 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 INSERT INTO `isys_obj_type_2_isysgui_catg` VALUES (619,1,31);
 INSERT INTO `isys_obj_type_2_isysgui_catg` VALUES (620,1,1);
@@ -10167,12 +10170,12 @@ CREATE TABLE `isys_search_idx` (
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `isys_service_alias` (
   `isys_service_alias__id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `isys_service_alias__title` varchar(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
-  `isys_service_alias__description` text CHARACTER SET utf8 COLLATE utf8_unicode_ci,
-  `isys_service_alias__const` varchar(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
+  `isys_service_alias__title` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `isys_service_alias__description` text COLLATE utf8_unicode_ci,
+  `isys_service_alias__const` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `isys_service_alias__sort` int(10) unsigned DEFAULT NULL,
   `isys_service_alias__status` int(10) unsigned DEFAULT '2',
-  `isys_service_alias__property` varchar(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
+  `isys_service_alias__property` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`isys_service_alias__id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -10180,12 +10183,12 @@ CREATE TABLE `isys_service_alias` (
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `isys_service_category` (
   `isys_service_category__id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `isys_service_category__title` varchar(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
-  `isys_service_category__description` text CHARACTER SET utf8 COLLATE utf8_unicode_ci,
-  `isys_service_category__const` varchar(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
+  `isys_service_category__title` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `isys_service_category__description` text COLLATE utf8_unicode_ci,
+  `isys_service_category__const` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `isys_service_category__sort` int(10) unsigned DEFAULT NULL,
   `isys_service_category__status` int(10) unsigned DEFAULT '2',
-  `isys_service_category__property` varchar(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
+  `isys_service_category__property` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`isys_service_category__id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -10221,12 +10224,12 @@ CREATE TABLE `isys_service_manufacturer` (
 /*!40101 SET character_set_client = utf8 */;
 CREATE TABLE `isys_service_type` (
   `isys_service_type__id` int(10) unsigned NOT NULL AUTO_INCREMENT,
-  `isys_service_type__title` varchar(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
-  `isys_service_type__description` text CHARACTER SET utf8 COLLATE utf8_unicode_ci,
-  `isys_service_type__const` varchar(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
+  `isys_service_type__title` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
+  `isys_service_type__description` text COLLATE utf8_unicode_ci,
+  `isys_service_type__const` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `isys_service_type__sort` int(10) unsigned DEFAULT NULL,
   `isys_service_type__status` int(10) unsigned DEFAULT '2',
-  `isys_service_type__property` varchar(255) CHARACTER SET utf8 COLLATE utf8_unicode_ci NOT NULL,
+  `isys_service_type__property` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   PRIMARY KEY (`isys_service_type__id`),
   KEY `isys_service_type__title` (`isys_service_type__title`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;

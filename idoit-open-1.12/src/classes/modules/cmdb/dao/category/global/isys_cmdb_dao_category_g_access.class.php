@@ -72,7 +72,7 @@ class isys_cmdb_dao_category_g_access extends isys_cmdb_dao_category_global
 
         // Replace %serial_no%
         $l_title = 'REPLACE(' . $l_title . ', \'%serial_no%\',
-            (CASE WHEN isys_catg_model_list__serial IS NULL OR isys_catg_model_list__serial = \'\' THEN \'\' ELSE isys_cats_net_ip_addresses_list__title END)
+            (CASE WHEN isys_catg_model_list__serial IS NULL OR isys_catg_model_list__serial = \'\' THEN \'\' ELSE isys_catg_model_list__serial END)
             )';
 
         // Replace %sysid%
@@ -89,7 +89,7 @@ class isys_cmdb_dao_category_g_access extends isys_cmdb_dao_category_global
         // Replace %hostname%
         $l_title = 'REPLACE(' . $l_title . ',
             \'%hostname%\',
-            (CASE WHEN isys_catg_ip_list__hostname IS NULL OR isys_catg_ip_list__hostname = \'\' THEN \'\' ELSE isys_cats_net_ip_addresses_list__title END)
+            (CASE WHEN isys_catg_ip_list__hostname IS NULL OR isys_catg_ip_list__hostname = \'\' THEN \'\' ELSE isys_catg_ip_list__hostname END)
         )';
 
         // Replace %date_acquirement%

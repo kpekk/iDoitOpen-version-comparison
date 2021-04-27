@@ -446,7 +446,13 @@ class isys_popup_browser_object_ng extends isys_component_popup
                     }
                 }
 
-                $this->m_params['p_strValue'] = implode(', ', $l_object_array);
+                // @see  ID-6310 Option for displaying objects comma separated or as HTML list.
+                if (isys_glob_is_edit_mode() || isys_tenantsettings::get('cmdb.limits.obj-browser.objects-rendering', 'comma') === 'comma') {
+                    $this->m_params['p_strValue'] = implode(', ', $l_object_array);
+                } else {
+                    $this->m_params['p_bInfoIconSpacer'] = 0;
+                    $this->m_params['p_strValue'] = '<ul class="pl20 m0 list-style-none"><li>' . implode('</li><li>', $l_object_array) . '</li></ul>';
+                }
 
                 // Prepare value for hidden field.
                 $l_hiddenValue = isys_format_json::encode($l_objects);

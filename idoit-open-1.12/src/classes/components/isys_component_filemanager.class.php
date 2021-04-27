@@ -21,6 +21,14 @@ define('C_FILES__MODE_VIEW', "image");
  */
 class isys_component_filemanager extends isys_component
 {
+    const ALLOWED_PATHS = [
+        'upload/',
+        'images/',
+        'rfc/application/uploads/',
+        'rfc/media/img/',
+        'src/classes/modules/document/resources/'
+    ];
+
     /**
      * @var  array
      */
@@ -221,6 +229,18 @@ class isys_component_filemanager extends isys_component
         }
     }
 
+    public static function getAllowedPaths()
+    {
+        return array_merge(
+            self::ALLOWED_PATHS,
+            array_map('constant', array_filter(['C__IMPORT__DIRECTORY', 'C__IMPORT__CSV_DIRECTORY'], 'defined')),
+            [
+                isys_settings::get('system.dir.file-upload', isys_application::instance()->app_path . '/upload/files/'),
+                isys_settings::get('system.dir.image-upload', isys_application::instance()->app_path . '/upload/images/'),
+            ]
+        );
+    }
+
     /**
      * ################################### *
      *  FILE HANDLING                      *
@@ -237,6 +257,8 @@ class isys_component_filemanager extends isys_component
      *
      * @author  Niclas Potthast <npotthast@i-doit.org>
      * @return boolean
+     *
+     * @throws Exception
      */
     public function send($p_filename, $p_daoFile = null, $p_mode = C_FILES__MODE_DOWNLOAD)
     {
@@ -265,6 +287,24 @@ class isys_component_filemanager extends isys_component
             $l_physical_file = $l_filename;
         }
 
+        $fileInfo = new SplFileInfo($l_physical_file);
+        $fileAllowed = false;
+        $allowedPaths = self::getAllowedPaths();
+
+        foreach ($allowedPaths as $allowedPath) {
+            if(
+                strpos($fileInfo->getPathname(), $allowedPath) === 0 ||
+                strpos($fileInfo->getRealPath(), realpath($allowedPath)) === 0
+            ) {
+                $fileAllowed = true;
+                break;
+            }
+        }
+
+        if ($fileAllowed === false) {
+            throw new \Exception('Accessing file within not accessable directory');
+        }
+
         // @todo DS: I know this is really cruel, but if someone clicks on the download button, we need this MIME-Type!
         $l_mimetype = "application/octet-stream";
 
@@ -272,6 +312,7 @@ class isys_component_filemanager extends isys_component
             return false;
         }
 
+        // @todo Arbitrary File Download Vulnerability
         if (!is_readable($l_physical_file)) {
             $this->_add_error("File: " . $l_physical_file . " exists but is not readable");
 

@@ -7,6 +7,7 @@ use idoit\Module\Multiedit\Model\CustomCategories;
 use idoit\Module\Multiedit\Model\GlobalCategories;
 use idoit\Module\Multiedit\Model\SpecificCategories;
 use idoit\Module\Multiedit\Component\Filter\CategoryFilter;
+use idoit\Module\Multiedit\Component\Multiedit\Exception\CategoryDataException;
 use idoit\View\Base;
 use idoit\View\Renderable;
 use isys_application;
@@ -16,6 +17,7 @@ use isys_module_multiedit;
 use isys_tenantsettings;
 use isys_auth_cmdb_object_types;
 use isys_auth;
+use isys_notify;
 
 /**
  *
@@ -53,7 +55,11 @@ class Main extends Base
 
         $authorizationMessage = '';
         $multivalueCategoies = [];
+        $globalCategoriesData = [];
+        $specificCategoriesData = [];
+        $customCategoriesData = [];
         $rules = [];
+        $categories = [];
         $objTypeGroupId = null;
 
         // Check if the user is allowed to view the protection requirements.
@@ -79,15 +85,42 @@ class Main extends Base
 
         $filter = new CategoryFilter();
 
-        if ($preselection) {
-            $selectedObjects = \isys_format_json::decode($preselection);
-            $filter->setObjects($selectedObjects);
-        }
-
         $allowedCategories = \isys_auth_cmdb_categories::instance()
             ->get_allowed_categories();
         if (is_array($allowedCategories)) {
             $filter->setCategories($allowedCategories);
+        }
+
+        if ($preselection) {
+            $selectedObjects = \isys_format_json::decode($preselection);
+            $filter->setObjects($selectedObjects);
+
+            /**
+             * We only need categories if there is a preselection
+             */
+            try {
+                $globalCategories = GlobalCategories::instance($database)
+                    ->setFilter($filter)
+                    ->setData();
+                $globalCategoriesData = $globalCategories->getData();
+                $specificCategories = SpecificCategories::instance($database)
+                    ->setFilter($filter)
+                    ->setData();
+                $specificCategoriesData = $specificCategories->getData();
+                $customCategories = CustomCategories::instance($database)
+                    ->setFilter($filter)
+                    ->setData();
+                $customCategoriesData = $customCategories->getData();
+
+                $multivalueCategoies = $globalCategories->getMultivalueCategories() + $specificCategories->getMultivalueCategories() +
+                    $customCategories->getMultivalueCategories();
+
+                $categories[$language->get('LC__CMDB__GLOBAL_CATEGORIES')] = $globalCategoriesData;
+                $categories[$language->get('LC__CMDB__SPECIFIC_CATEGORIES')] = $specificCategoriesData;
+                $categories[$language->get('LC__CMDB__CUSTOM_CATEGORIES')] = $customCategoriesData;
+            } catch (CategoryDataException $e) {
+                isys_notify::error($e->getMessage(), ['sticky' => true]);
+            }
         }
 
         /**
@@ -95,32 +128,12 @@ class Main extends Base
          */
         $cmdbDao = $container->get('cmdb_dao');
 
-        /**
-         * Categories
-         */
-        $globalCategories = GlobalCategories::instance($database)
-            ->setFilter($filter)
-            ->setData();
-        $specificCategories = SpecificCategories::instance($database)
-            ->setFilter($filter)
-            ->setData();
-        $customCategories = CustomCategories::instance($database)
-            ->setFilter($filter)
-            ->setData();
-
-        $multivalueCategoies = $globalCategories->getMultivalueCategories() + $specificCategories->getMultivalueCategories() +
-            $customCategories->getMultivalueCategories();
-
         $allowedObjectTypes = isys_auth_cmdb_object_types::instance()
             ->get_allowed_objecttypes();
 
         $objType = $_GET[C__CMDB__GET__OBJECTTYPE] ?: array_shift($allowedObjectTypes);
         $objTypeGroupId = $cmdbDao->get_objtype($objType)
             ->get_row_value('isys_obj_type__isys_obj_type_group__id');
-
-        $categories[$language->get('LC__CMDB__GLOBAL_CATEGORIES')] = $globalCategories->getData();
-        $categories[$language->get('LC__CMDB__SPECIFIC_CATEGORIES')] = $specificCategories->getData();
-        $categories[$language->get('LC__CMDB__CUSTOM_CATEGORIES')] = $customCategories->getData();
 
         // Assign rules.
         $rules = [

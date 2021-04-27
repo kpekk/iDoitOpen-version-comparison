@@ -410,10 +410,7 @@ class isys_cmdb_dao_category_g_logical_unit extends isys_cmdb_dao_category_globa
                     ]
                 ],
                 C__PROPERTY__UI       => [
-                    C__PROPERTY__UI__ID     => 'C__CMDB__CATG__LOGICAL_UNIT__PARENT',
-                    C__PROPERTY__UI__PARAMS => [
-                        isys_popup_browser_object_ng::C__CAT_FILTER => 'C__CATG__PERSON_ASSIGNED_WORKSTATION;C__CATG__ASSIGNED_LOGICAL_UNIT'
-                    ]
+                    C__PROPERTY__UI__ID     => 'C__CMDB__CATG__LOGICAL_UNIT__PARENT'
                 ],
                 C__PROPERTY__PROVIDES => [
                     C__PROPERTY__PROVIDES__SEARCH => false,

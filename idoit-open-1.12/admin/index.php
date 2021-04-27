@@ -8,6 +8,9 @@
  */
 
 // Set error reporting.
+use idoit\Module\License\LicenseService;
+use idoit\Module\License\LicenseServiceFactory;
+
 $l_errorReporting = E_ALL & ~E_NOTICE;
 
 if (defined('E_DEPRECATED')) {
@@ -93,9 +96,16 @@ if (!@include_once($g_absdir . "/src/autoload.inc.php")) {
     die("Could not load " . $g_absdir . "src/autoload.inc.php");
 }
 
+if (!@include_once($g_absdir . "/vendor/autoload.php")) {
+    die("Could not load " . $g_absdir . "/vendor/autoload.php");
+}
+
 if (!@include_once($g_absdir . "/src/functions.inc.php")) {
     die("Could not load " . $g_absdir . "src/functions.inc.php");
 }
+
+\idoit\Psr4AutoloaderClass::factory()
+    ->addNamespace('idoit\Module\License', __DIR__ . '/../src/classes/modules/licence/src/');
 
 // Include english language file
 @include_once($g_absdir . "/src/lang/en.inc.php");
@@ -123,6 +133,10 @@ try {
     // Connect system database.
     $g_comp_database_system = isys_component_database::get_database($g_db_system["type"], $g_db_system["host"], $g_db_system["port"], $g_db_system["user"],
         $g_db_system["pass"], $g_db_system["name"]);
+
+    global $licenseService, $g_license_token;
+
+    $licenseService = LicenseServiceFactory::createDefaultLicenseService($g_comp_database_system, $g_license_token);
 
     // Include Global constant cache.
     $g_dcs = isys_component_constant_manager::instance();

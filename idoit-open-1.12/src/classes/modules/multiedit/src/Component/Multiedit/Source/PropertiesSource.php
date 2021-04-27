@@ -62,9 +62,13 @@ class PropertiesSource extends Source
                 if ($this->allProperties ||
                     ($property[C__PROPERTY__PROVIDES][C__PROPERTY__PROVIDES__MULTIEDIT] && !$property[C__PROPERTY__PROVIDES][C__PROPERTY__PROVIDES__VIRTUAL] &&
                         $this->allProperties === false)) {
-                    $propertyObj = Property::createInstanceFromArray($property);
-                    $propertyArr[$categoryTitle][$propertyKey] = $propertyObj;
-                    $this->incrementCount();
+                    try {
+                        $propertyObj = Property::createInstanceFromArray($property);
+                        $propertyArr[$categoryTitle][$propertyKey] = $propertyObj;
+                        $this->incrementCount();
+                    } catch (\Exception $e) {
+                        // Skip property because for example the custom categories have types like hr, html, script which are not supported
+                    }
                 }
             }
         }

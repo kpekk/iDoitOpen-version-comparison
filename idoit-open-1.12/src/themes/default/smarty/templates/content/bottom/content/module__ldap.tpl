@@ -20,8 +20,16 @@
 			</tr>
 			<tr>
 				<td class="key">LDAP-Version</td>
-				<td class="value">[{isys type="f_dialog" name="C__MODULE__LDAP__VERSION"}]</td>
+				<td class="value">[{isys type="f_dialog" p_bDbFieldNN="1" name="C__MODULE__LDAP__VERSION"}]</td>
 			</tr>
+            <tr>
+                <td class="key">Enable LDAP Paging</td>
+                <td class="value">[{isys type="f_dialog" p_bDbFieldNN="1" name="C__MODULE__LDAP__ENABLE_PAGING"}]</td>
+            </tr>
+            <tr>
+                <td class="key">LDAP Page Limit</td>
+                <td class="value">[{isys type="f_text" name="C__MODULE__LDAP__PAGE_LIMIT"}]</td>
+            </tr>
 			<tr>
 				<td class="key">[{isys type="lang" ident="IP / Hostname"}]<span class="text-red">*</span></td>
 				<td class="value">[{isys type="f_text" name="C__MODULE__LDAP__HOST"}]</td>
@@ -147,6 +155,7 @@
 			$connection_test = $('ldap-connection-test'),
 			$connection_result = $('ajax_return');
 
+
 		if ($connection_test) {
 			$connection_test.on('click', function () {
 				$connection_test.disable()
@@ -179,6 +188,17 @@
 				}
 			});
 		}
+
+		if ($('C__MODULE__LDAP__ENABLE_PAGING')) {
+            $('C__MODULE__LDAP__ENABLE_PAGING').on('change', function (){
+                if (this.getValue() > 0) {
+                    $('C__MODULE__LDAP__PAGE_LIMIT').disabled = false;
+                } else{
+                    $('C__MODULE__LDAP__PAGE_LIMIT').disabled = true;
+                }
+            });
+            $('C__MODULE__LDAP__ENABLE_PAGING').simulate('change');
+        }
 
 		window.add_filter = function(p_title, p_value, p_type, p_link_type, p_operator) {
 			var counter = $F('counter'),

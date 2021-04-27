@@ -69,11 +69,11 @@ Options -Indexes +SymLinksIfOwnerMatch
 
 ## Deny access to some directories:
 <IfModule mod_alias.c>
-    RedirectMatch 403 ^/imports/.*$
-    RedirectMatch 403 ^/log/.*$
-    RedirectMatch 403 ^/temp/.*(?<!\.(css|xsl))$
-    RedirectMatch 403 ^/upload/files/.*$
-    RedirectMatch 403 ^/vendor/.*$
+    RedirectMatch 403 /imports/.*$
+    RedirectMatch 403 /log/.*$
+    RedirectMatch 403 /temp/.*(?<!\.(css|xsl))$
+    RedirectMatch 403 /upload/files/.*$
+    RedirectMatch 403 /vendor/.*$
 </IfModule>
 
 ## Cache static files:

@@ -217,7 +217,7 @@ class isys_cmdb_dao_category_g_identifier extends isys_cmdb_dao_category_global
                     C__PROPERTY__UI__ID => 'C__CMDB__CATG__IDENTIFIER__GROUP'
                 ]
             ]),
-            'last_scan'    => array_replace_recursive(isys_cmdb_dao_category_pattern::text(), [
+            'last_scan'    => array_replace_recursive(isys_cmdb_dao_category_pattern::datetime(), [
                 C__PROPERTY__INFO     => [
                     C__PROPERTY__INFO__TITLE       => 'LC__CMDB__CATG__IDENTIFIER__LAST_SCAN',
                     C__PROPERTY__INFO__DESCRIPTION => 'Last scan',
@@ -233,6 +233,7 @@ class isys_cmdb_dao_category_g_identifier extends isys_cmdb_dao_category_global
                     C__PROPERTY__UI__ID     => 'C__CMDB__CATG__IDENTIFIER__LAST_SCAN',
                     C__PROPERTY__UI__PARAMS => [
                         'p_bReadonly' => true,
+                        'p_strStyle'  => 'width:70%;',
                         'p_strClass'  => 'input-small'
                     ]
                 ],

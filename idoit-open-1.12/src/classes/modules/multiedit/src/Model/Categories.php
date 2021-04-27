@@ -163,6 +163,9 @@ abstract class Categories extends Base
             if (method_exists($daoClass, 'set_catg_custom_id')) {
                 $daoClass->set_catg_custom_id($categoryId);
             }
+            if (method_exists($daoClass, 'setCategoryInfo')) {
+                $daoClass->setCategoryInfo($categoryId);
+            }
             $daoInstances[$categoryId] = $daoClass;
         }
         return $daoInstances;

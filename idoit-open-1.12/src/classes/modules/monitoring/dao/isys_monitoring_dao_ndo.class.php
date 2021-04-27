@@ -110,11 +110,17 @@ class isys_monitoring_dao_ndo extends isys_module_dao
      */
     public function get_service_data($p_obj_id)
     {
-        $l_query = 'SELECT name2 AS name, check_command, current_state AS state
-			FROM ' . $this->m_db_prefix . 'servicestatus
-			NATURAL JOIN ' . $this->m_db_prefix . 'services
+        $l_query = 'SELECT 
+            name2 AS name, 
+            output as check_command, 
+            current_state AS state, 
+            config_type, 
+            (SELECT COUNT(display_name) FROM ' . $this->m_db_prefix . 'services AS ngs WHERE ngs.display_name = ng.display_name) AS chk
+          FROM ' . $this->m_db_prefix . 'servicestatus
+			NATURAL JOIN ' . $this->m_db_prefix . 'services AS ng
 			INNER JOIN ' . $this->m_db_prefix . 'objects ON service_object_id = object_id
-			WHERE name1 = ' . $this->convert_sql_text(isys_monitoring_helper::render_export_hostname($p_obj_id)) . ';';
+          WHERE name1 = ' . $this->convert_sql_text(isys_monitoring_helper::render_export_hostname($p_obj_id)) . ' 
+          HAVING chk = 1 or (config_type = (SELECT MAX(config_type) FROM ' . $this->m_db_prefix . 'services));';
 
         return $this->retrieve($l_query);
     }

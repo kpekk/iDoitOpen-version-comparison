@@ -75,9 +75,10 @@
                 l_start_view    = $('assigned_contract__startdate').getAttribute('data-view'),
                 l_end_hidden    = $F('assigned_contract__enddate'),
                 l_end_view      = $('assigned_contract__enddate').getAttribute('data-view'),
-                l_reaction_rate = $('reaction_rate').value;
+                l_reaction_rate = $('reaction_rate').value,
+                subContract     = $('subcontract');
 
-            if (l_start_view != "01.01.1970")
+            if (l_start_view != "01.01.1970" && subContract.checked)
             {
                 $('C__CATG__CONTRACT_ASSIGNMENT__CONTRACT_START__VIEW').setValue(l_start_view);
                 $('C__CATG__CONTRACT_ASSIGNMENT__CONTRACT_START__HIDDEN').setValue(l_start_hidden);
@@ -88,7 +89,7 @@
                 $('C__CATG__CONTRACT_ASSIGNMENT__CONTRACT_START__HIDDEN').setValue("");
             }
 
-            if (l_end_view != "01.01.1970")
+            if (l_end_view != "01.01.1970" && subContract.checked)
             {
                 $('C__CATG__CONTRACT_ASSIGNMENT__CONTRACT_END__VIEW').setValue(l_end_view);
                 $('C__CATG__CONTRACT_ASSIGNMENT__CONTRACT_END__HIDDEN').setValue(l_end_hidden);
@@ -99,7 +100,7 @@
                 $('C__CATG__CONTRACT_ASSIGNMENT__CONTRACT_END__HIDDEN').setValue("");
             }
 
-            if (l_reaction_rate > 0)
+            if (l_reaction_rate > 0 && subContract.checked)
             {
                 $('C__CATG__CONTRACT_ASSIGNMENT__REACTION_RATE').setValue(l_reaction_rate);
             }

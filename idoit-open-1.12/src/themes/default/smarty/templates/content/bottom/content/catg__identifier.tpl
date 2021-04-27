@@ -33,7 +33,7 @@ Smarty template for global category for custom identifiers
 	<tr>
 		<td class="key">[{isys type='f_label' name='C__CMDB__CATG__IDENTIFIER__LAST_SCAN' ident='LC__CMDB__CATG__IDENTIFIER__LAST_SCAN'}]</td>
 		<td class="value">
-			[{isys type='f_text' name='C__CMDB__CATG__IDENTIFIER__LAST_SCAN' p_bReadonly=1}]
+			[{isys type='f_popup' p_strPopupType="calendar" name='C__CMDB__CATG__IDENTIFIER__LAST_SCAN' p_bReadonly=1}]
 		</td>
 	</tr>
 	<tr>

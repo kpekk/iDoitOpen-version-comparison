@@ -35,12 +35,12 @@
                     </div>
                     <table>
                         <tr >
-                            <td><span class="whitebg p5 mr20 text-center" style="display:block">##INPUT##</span></td>
+                            <td><span class="bg-white p5 mr20 text-center" style="display:block">##INPUT##</span></td>
                             <td>[{isys type="lang" ident="LC__CATG__CONNECTOR__SUFFIX_SCHEMA_OWN__HELP_TEXT_INPUT"}]</td>
                         </tr>
                         <tr></tr>
                         <tr>
-                            <td><span class="whitebg p5 mr20 text-center" style="display:block">##COUNT##</span></td>
+                            <td><span class="bg-white p5 mr20 text-center" style="display:block">##COUNT##</span></td>
                             <td>[{isys type="lang" ident="LC__CATG__CONNECTOR__SUFFIX_SCHEMA_OWN__HELP_TEXT_COUNT"}]</td>
                         </tr>
                     </table>

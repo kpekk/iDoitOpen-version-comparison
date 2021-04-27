@@ -114,225 +114,106 @@ if (!defined('C__CMDB__SUBCAT__FILE_ACTUAL') && defined('C__CATS__FILE_ACTUAL'))
 }
 // --- end of ID-934
 
-if (!defined('ISYS_EMPTY')) {
-    /**
-     * @deprecated
-     */
-    define('ISYS_EMPTY', '');
-}
+$constsants = [
+    'C__CATEGORY_DATA__EXPORT_PARAM'                     => 'param', // Refactor to 'export_param'.
+    'C__CATEGORY_DATA__IMPORT_PARAM'                     => 'param', // Refactor to 'import_param'.
+    'ISYS_EMPTY'                                         => '',
+    'C__CMDB__LOCATION_SEPARATOR'                        => ' > ',
+    'C__CMDB__CONNECTOR_SEPARATOR'                       => ' > ',
+    'C__CMDB__GET__NETPORT'                              => 'NetportID',
+    'C__RACK_INSERTION__BACK'                            => 0,
+    'C__RACK_INSERTION__FRONT'                           => 1,
+    'C__RACK_INSERTION__BOTH'                            => 2,
+    'C__CATEGORY_DATA__TAG'                              => 'tag',
+    'C__CATEGORY_DATA__TITLE'                            => 'title',
+    'C__CATEGORY_DATA__FORMTAG'                          => 'formtag',
+    'C__CATEGORY_DATA__EXPORT'                           => 'export',
+    'C__CATEGORY_DATA__EXPORT_HELPER'                    => 'helper',
+    'C__CATEGORY_DATA__PARAM'                            => 'param',
+    'C__CATEGORY_DATA__IMPORT_HELPER'                    => 'helper',
+    'C__CATEGORY_DATA__VALIDATE'                         => 'validate',
+    'C__CATEGORY_DATA__TYPE'                             => 'type',
+    'C__CRYPT_KEY'                                       => '',
+    'C__WRITE_EXCEPTION_LOGS'                            => true,
+    'C__CATEGORY_DATA__FIELD'                            => 'field',
+    'C__CATEGORY_DATA__REF'                              => 'ref',
+    'C__CATEGORY_DATA__TABLE'                            => 'table',
+    'C__CATEGORY_DATA__FILTER'                           => 'filter',
+    'C__CATEGORY_DATA__IMPORT'                           => 'import',
+    'C__CATEGORY_DATA__OPTIONAL'                         => 'optional',
+    'C__CATEGORY_DATA__DEFAULT'                          => 'default',
+    'C__CATEGORY_DATA__VALUE'                            => 'value',
+    'C__CATEGORY_DATA__REPORT'                           => 'report',
+    'ISYS_NULL'                                          => null,
+    'CRLF'                                               => "\r\n",
+    'C__CATEGORY_DATA__ARG'                              => 'arg',
+    'C__TASK__OCCURRENCE__ONCE'                          => 1,
+    'C__TASK__OCCURRENCE__HOURLY'                        => 2,
+    'C__TASK__OCCURRENCE__DAILY'                         => 3,
+    'C__TASK__OCCURRENCE__WEEKLY'                        => 4,
+    'C__TASK__OCCURRENCE__EVERY_TWO_WEEKS'               => 5,
+    'C__TASK__OCCURRENCE__MONTHLY'                       => 6,
+    'C__TASK__OCCURRENCE__YEARLY'                        => 7,
+    'C__EMAIL_TEMPLATE__TASK__BEFORE_ENDDATE'            => 1,
+    'C__EMAIL_TEMPLATE__TASK__NOTIFICATION'              => 2,
+    'C__EMAIL_TEMPLATE__TASK__ACCEPT'                    => 3,
+    'C__EMAIL_TEMPLATE__TASK__STATUS_OPEN'               => 4,
+    'C__EMAIL_TEMPLATE__TASK__STATUS_DUE'                => 5,
+    'C__EMAIL_TEMPLATE__TASK__STATUS_CLOSED'             => 6,
+    'C__EMAIL_TEMPLATE__TASK__COMPLETION_ACCEPTED'       => 7,
+    'C__JCS__OS_UNIX'                                    => 1,
+    'C__JCS__OS_WINDOWS'                                 => 2,
+    'C__SESSION__REC_STATUS__LIST_VIEW'                  => 'cRecStatusListView',
+    'C__TASK__VIEW__LIST_ALL'                            => 3001,
+    'C__TASK__VIEW__LIST_WORKORDER'                      => 3002,
+    'C__TASK__VIEW__LIST_CHECKLIST'                      => 3003,
+    'C__TASK__VIEW__DETAIL_WORKORDER'                    => 3050,
+    'C__TASK__VIEW__DETAIL_CHECKLIST'                    => 3051,
+    'C__TASK__VIEW__TREE'                                => 3101,
+    'C__TASK__GET__ID'                                   => 'tID',
+    'C__TASK__GET__STATUS'                               => 'tS',
+    'C__TASK__GET__ACCEPT'                               => 'tA',
+    'C__TASK__GET__COMPLETED'                            => 'tC',
+    'C__CONTACT__GET__MENU_SELECTION'                    => 'contactMenuSelection',
+    'C__CONTACT_PERSON_ID'                               => 'cpID',
+    'C__CONTACT_ORGANISATION_ID'                         => 'coID',
+    'C__CONTACT_GROUP_ID'                                => 'cgID',
+    'C__CONTACT_BROWSER_FILTER__ORGANSATION'             => 1 << 0,
+    'C__CONTACT_BROWSER_FILTER__PERSON'                  => 1 << 1,
+    'C__CONTACT_BROWSER_FILTER__GROUP'                   => 1 << 2,
+    'C__CONTACT_TREE__ORGANSIATION_MAIN'                 => 1,
+    'C__CONTACT_TREE__ORGANSIATION_MASTER_DATA'          => 2,
+    'C__CONTACT_TREE__ORGANSIATION_PERSON'               => 3,
+    'C__CONTACT_TREE__PERSON_MAIN'                       => 4,
+    'C__CONTACT_TREE__PERSON_MASTER_DATA'                => 5,
+    'C__CONTACT_TREE__PERSON_GROUP'                      => 6,
+    'C__CONTACT_TREE__GROUP_MAIN'                        => 7,
+    'C__CONTACT_TREE__GROUP_MASTER_DATA'                 => 8,
+    'C__CONTACT_TREE__GROUP_PERSON'                      => 9,
+    'C__CONTACT_TREE__STARTPAGE'                         => 10,
+    'C__CONTACT_TREE__PERSON_WITHOUT_ORGANISATION'       => 11,
+    'C__CONTACT_TREE__PERSON_NAGIOS'                     => 12,
+    'C__CONTACT_TREE__LDAP'                              => 13,
+    'C__CONTACT_TREE__GROUP_NAGIOS'                      => 14,
+    'C__CONTACT__VIEW__TREE'                             => 2001,
+    'C__CONTACT__VIEW__LIST'                             => 2002,
+    'C__CONTACT__VIEW__LIST_PERSON'                      => 2003,
+    'C__CONTACT__VIEW__LIST_GROUP'                       => 2004,
+    'C__CONTACT__VIEW__LIST_ORGANISATION'                => 2005,
+    'C__CONTACT__VIEW__DETAIL_PERSON'                    => 2006,
+    'C__CONTACT__VIEW__DETAIL_GROUP'                     => 2007,
+    'C__CONTACT__VIEW__DETAIL_ORGANISATION'              => 2008,
+    'C__CONTACT__VIEW__DETAIL_STARTPAGE'                 => 2009,
+    'C__CONTACT__VIEW__LIST_PERSON_WITHOUT_ORGANISATION' => 2010,
+    'C__CONTACT__VIEW__NAGIOS_PERSON'                    => 2011,
+    'C__CONTACT__VIEW__LIST_LDAP'                        => 2012,
+    'C__CONTACT__VIEW__NAGIOS_GROUP'                     => 2013,
+    'C__CMDB__CATEGORY__TYPE_DYNAMIC'                    => 2,
+    'C__CMDB__CATEGORY__TYPE_PORT'                       => 3,
+];
 
-if (!defined('C__CMDB__LOCATION_SEPARATOR')) {
-    /**
-     * @deprecated
-     */
-    define('C__CMDB__LOCATION_SEPARATOR', ' > ');
-}
-
-if (!defined('C__CMDB__CONNECTOR_SEPARATOR')) {
-    /**
-     * @deprecated
-     */
-    define('C__CMDB__CONNECTOR_SEPARATOR', ' > ');
-}
-
-if (!defined('C__CMDB__GET__NETPORT')) {
-    /**
-     * @deprecated
-     */
-    define('C__CMDB__GET__NETPORT', 'NetportID');
-}
-
-if (!defined('C__RACK_INSERTION__BACK')) {
-    /**
-     * @deprecated Please use "C__INSERTION__REAR".
-     */
-    define('C__RACK_INSERTION__BACK', 0);
-}
-
-if (!defined('C__RACK_INSERTION__FRONT')) {
-    /**
-     * @deprecated Please use "C__INSERTION__FRONT".
-     */
-    define('C__RACK_INSERTION__FRONT', 1);
-}
-
-if (!defined('C__RACK_INSERTION__BOTH')) {
-    /**
-     * @deprecated Please use "C__INSERTION__BOTH".
-     */
-    define('C__RACK_INSERTION__BOTH', 2);
-}
-
-if (!defined('C__CATEGORY_DATA__TAG')) {
-    /**
-     * @deprecated
-     */
-    define('C__CATEGORY_DATA__TAG', 'tag');
-}
-
-if (!defined('C__CATEGORY_DATA__TITLE')) {
-    /**
-     * @deprecated
-     */
-    define('C__CATEGORY_DATA__TITLE', 'title');
-}
-
-if (!defined('C__CATEGORY_DATA__FORMTAG')) {
-    /**
-     * @deprecated
-     */
-    define('C__CATEGORY_DATA__FORMTAG', 'formtag');
-}
-
-if (!defined('C__CATEGORY_DATA__EXPORT')) {
-    /**
-     * @deprecated
-     */
-    define('C__CATEGORY_DATA__EXPORT', 'export');
-}
-
-if (!defined('C__CATEGORY_DATA__EXPORT_HELPER')) {
-    /**
-     * @deprecated
-     */
-    define('C__CATEGORY_DATA__EXPORT_HELPER', 'helper');
-}
-
-if (!defined('C__CATEGORY_DATA__PARAM')) {
-    /**
-     * @deprecated
-     */
-    define('C__CATEGORY_DATA__PARAM', 'param');
-}
-
-if (!defined('C__CATEGORY_DATA__EXPORT_PARAM')) {
-    /**
-     * Parameter(s) for the export helper class' constructor.
-     *
-     * @deprecated
-     * @todo  Refactor to 'export_param'.
-     */
-    define('C__CATEGORY_DATA__EXPORT_PARAM', 'param');
-}
-
-if (!defined('C__CATEGORY_DATA__IMPORT_HELPER')) {
-    /**
-     * @deprecated
-     */
-    define('C__CATEGORY_DATA__IMPORT_HELPER', 'helper');
-}
-
-if (!defined('C__CATEGORY_DATA__IMPORT_PARAM')) {
-    /**
-     * Parameter(s) for the export helper class' constructor.
-     *
-     * @deprecated
-     * @todo  Refactor to 'import_param'.
-     */
-    define('C__CATEGORY_DATA__IMPORT_PARAM', 'param');
-}
-
-if (!defined('C__CATEGORY_DATA__VALIDATE')) {
-    /**
-     * @deprecated
-     */
-    define('C__CATEGORY_DATA__VALIDATE', 'validate');
-}
-
-if (!defined('C__CATEGORY_DATA__TYPE')) {
-    /**
-     * @deprecated
-     */
-    define('C__CATEGORY_DATA__TYPE', 'type');
-}
-
-if (!defined('C__CRYPT_KEY')) {
-    /**
-     * @deprecated
-     */
-    define('C__CRYPT_KEY', '');
-}
-
-if (!defined('C__WRITE_EXCEPTION_LOGS')) {
-    /**
-     * @deprecated
-     */
-    define('C__WRITE_EXCEPTION_LOGS', true);
-}
-
-if (!defined('C__CATEGORY_DATA__FIELD')) {
-    /**
-     * @deprecated
-     */
-    define('C__CATEGORY_DATA__FIELD', 'field');
-}
-
-if (!defined('C__CATEGORY_DATA__REF')) {
-    /**
-     * @deprecated
-     */
-    define('C__CATEGORY_DATA__REF', 'ref');
-}
-
-if (!defined('C__CATEGORY_DATA__TABLE')) {
-    /**
-     * @deprecated
-     */
-    define('C__CATEGORY_DATA__TABLE', 'table');
-}
-
-if (!defined('C__CATEGORY_DATA__FILTER')) {
-    /**
-     * @deprecated
-     */
-    define('C__CATEGORY_DATA__FILTER', 'filter');
-}
-
-if (!defined('C__CATEGORY_DATA__IMPORT')) {
-    /**
-     * @deprecated
-     */
-    define('C__CATEGORY_DATA__IMPORT', 'import');
-}
-
-if (!defined('C__CATEGORY_DATA__OPTIONAL')) {
-    /**
-     * @deprecated
-     */
-    define('C__CATEGORY_DATA__OPTIONAL', 'optional');
-}
-
-if (!defined('C__CATEGORY_DATA__DEFAULT')) {
-    /**
-     * @deprecated
-     */
-    define('C__CATEGORY_DATA__DEFAULT', 'default');
-}
-
-if (!defined('C__CATEGORY_DATA__VALUE')) {
-    /**
-     * @deprecated
-     */
-    define('C__CATEGORY_DATA__VALUE', 'value');
-}
-
-if (!defined('C__CATEGORY_DATA__REPORT')) {
-    /**
-     * @deprecated
-     */
-    define('C__CATEGORY_DATA__REPORT', 'report');
-}
-
-if (!defined('ISYS_NULL')) {
-    /**
-     * @deprecated
-     */
-    define('ISYS_NULL', null);
-}
-
-if (!defined('CRLF')) {
-    /**
-     * @deprecated
-     */
-    define('CRLF', "\r\n");
+foreach ($constsants as $constantName => $constantValue) {
+    if (!defined($constantName)) {
+        define($constantName, $constantValue);
+    }
 }

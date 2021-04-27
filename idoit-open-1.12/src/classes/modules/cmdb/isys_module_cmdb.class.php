@@ -963,10 +963,10 @@ class isys_module_cmdb extends isys_module implements isys_module_interface, isy
             }
 
             $l_tbloc_gets = $l_gets;
-            $l_tbobj_gets[C__CMDB__GET__OBJECT] = $l_gets[C__CMDB__GET__OBJECT];
-            $l_tbobj_gets[C__CMDB__GET__OBJECTTYPE] = $l_gets[C__CMDB__GET__OBJECTTYPE];
-            $l_tbobj_gets[C__CMDB__GET__OBJECTGROUP] = $l_gets[C__CMDB__GET__OBJECTGROUP];
-            $l_tbobj_gets[C__CMDB__GET__TREETYPE] = $l_gets[C__CMDB__GET__TREETYPE];
+            $l_tbobj_gets[C__CMDB__GET__OBJECT] = (int)$l_gets[C__CMDB__GET__OBJECT];
+            $l_tbobj_gets[C__CMDB__GET__OBJECTTYPE] = (int)$l_gets[C__CMDB__GET__OBJECTTYPE];
+            $l_tbobj_gets[C__CMDB__GET__OBJECTGROUP] = (int)$l_gets[C__CMDB__GET__OBJECTGROUP];
+            $l_tbobj_gets[C__CMDB__GET__TREETYPE] = (int)$l_gets[C__CMDB__GET__TREETYPE];
 
             if ($l_gets[C__CMDB__GET__VIEWMODE] == C__CMDB__VIEW__CATEGORY_GLOBAL || is_numeric($l_gets[C__CMDB__GET__OBJECT])) {
                 $l_tbobj_gets[C__CMDB__GET__TREEMODE] = C__CMDB__VIEW__TREE_OBJECT;
@@ -1313,9 +1313,6 @@ class isys_module_cmdb extends isys_module implements isys_module_interface, isy
                     break;
                 case C__CMDB__CATEGORY__TYPE_CUSTOM:
                     $param = C__CMDB__GET__CATG_CUSTOM;
-                    break;
-                case C__CMDB__CATEGORY__TYPE_DYNAMIC:
-                    $param = C__CMDB__GET__CATD;
                     break;
                 default:
                     $param = C__CMDB__GET__CATG;
@@ -1747,11 +1744,6 @@ class isys_module_cmdb extends isys_module implements isys_module_interface, isy
                             }
 
                             $property = $categoryDaos[$categoryClass]->get_property_by_key($l_property->getKey());
-
-                            // @see ID-4707 This needs to be fixed in the future
-                            if ($categoryClass === 'isys_cmdb_dao_category_g_global' && $l_property->getKey() === 'cmdb_status') {
-                                continue;
-                            }
 
                             // ID-4396: If a property is available for object lists and filterable, it should be shown
                             if ($property[C__PROPERTY__PROVIDES][C__PROPERTY__PROVIDES__LIST]) {

@@ -5,6 +5,7 @@ namespace idoit\Module\Report\Export;
 use idoit\Module\Report\Protocol\Exportable;
 use idoit\Module\Report\Report;
 use idoit\Module\Report\Worker\CsvWorker;
+use isys_tenantsettings;
 use League\Csv\Writer;
 use Symfony\Component\Filesystem\Exception\FileNotFoundException;
 
@@ -83,13 +84,8 @@ class CsvExport extends Export implements Exportable
      */
     public function __construct(Report $report)
     {
-        /* Alternative writer instance:
-        $this->filePath  = isys_glob_get_temp_dir() . md5(\isys_application::instance()->session->get_user_id() . microtime()) . '.csv';
-        $this->csvWriter = Writer::createFromFileObject(
-            new \SplFileObject(\isys_application::instance()->app_path . $this->filePath, 'w+')
-        );
-        */
         $this->writer = Writer::createFromFileObject(new \SplTempFileObject(0))
+            ->setDelimiter(isys_tenantsettings::get('system.csv-export-delimiter', ';'))
             ->setOutputBOM(Writer::BOM_UTF8);
 
         $this->report = $report->setWorker(new CsvWorker($this->writer));

@@ -3,51 +3,46 @@
 /**
  * i-doit
  *
- * Factory for CMDB category DAOs
+ * Factory for CMDB category DAOs.
  *
+ * @deprecated  Please use the DAO instance method!
  * @package     i-doit
  * @subpackage  CMDB_Categories
- * @author      Benjamin Heisig <bheisig@synetics.de>
- * @version     Dennis Stücken <dstuecken@synetics.de>
  * @copyright   synetics GmbH
  * @license     http://www.gnu.org/licenses/agpl-3.0.html GNU AGPLv3
  */
 class isys_factory_cmdb_category_dao extends isys_factory_dao
 {
     /**
-     * Contains information about all categories received from database.
-     *
-     * @var  array  Associative, multidimensional array with category types as keys and categories as values.
+     * @var array
      */
-    protected static $m_categories = [];
+    protected static $categories = [];
 
     /**
-     * Gets an instance of a category DAO by the category identifier.
+     * @param  integer                 $categoryType
+     * @param  integer                 $categoryId
+     * @param  isys_component_database $database
      *
-     * @param   integer                 $p_type Category type identifier
-     * @param   integer                 $p_id   Category identifier
-     * @param   isys_component_database $p_db   Database component
-     *
-     * @return  isys_cmdb_dao_category
+     * @deprecated
+     * @return mixed
+     * @throws isys_exception_general
      */
-    public static function get_instance_by_id($p_type, $p_id, isys_component_database $p_db)
+    public static function get_instance_by_id($categoryType, $categoryId, isys_component_database $database)
     {
-        if (is_countable(self::$m_categories) && count(self::$m_categories) === 0) {
-            self::build_category_list($p_db);
+        if (is_countable(self::$categories) && count(self::$categories) === 0) {
+            self::build_category_list($database);
         }
 
-        return self::get_instance(self::$m_categories[$p_type][$p_id]['class_name'], $p_db);
+        return self::get_instance(self::$categories[$categoryType][$categoryId]['class_name'], $database);
     }
 
     /**
-     * Builds the category list.
+     * @param isys_component_database $database
      *
-     * @param isys_component_database $p_db
+     * @deprecated
      */
-    protected static function build_category_list(isys_component_database &$p_db)
+    protected static function build_category_list(isys_component_database &$database)
     {
-        $l_cmdb_dao = new isys_cmdb_dao($p_db);
-
-        self::$m_categories = $l_cmdb_dao->get_all_categories();
+        self::$categories = isys_cmdb_dao::instance($database)->get_all_categories();
     }
 }

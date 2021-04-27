@@ -7,7 +7,7 @@ use Symfony\Component\DependencyInjection\Extension\ExtensionInterface;
 /**
  * i-doit AddOns Interface for injection services into application DI container
  *
- * @package     idoit\Component
+ * @package     idoit\AddOn
  * @author      atsapko
  * @copyright   synetics GmbH
  * @license     http://www.gnu.org/licenses/agpl-3.0.html GNU AGPLv3

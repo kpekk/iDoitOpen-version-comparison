@@ -1,9 +1,6 @@
 <?php
 /**
- * i-doit
- *
- * Export to XML
- *
+ * @deprecated This should not be used!
  * @package    i-doit
  * @subpackage Export
  * @copyright  synetics GmbH
@@ -13,7 +10,7 @@
 /**
  * Define export content type
  */
-define("C__EXPORT__CONTENT_TYPE", "text/xml");
+define('C__EXPORT__CONTENT_TYPE', 'text/xml');
 
 /**
  * Class isys_export_type_xml
@@ -24,7 +21,7 @@ class isys_export_type_xml extends isys_export_type
     /**
      * @var string
      */
-    protected $m_extension = "xml";
+    protected $m_extension = 'xml';
 
     /**
      * @var array
@@ -88,10 +85,9 @@ class isys_export_type_xml extends isys_export_type
             $l_xml .= "<" . $p_tag;
 
             foreach ($p_data as $l_dkey => $l_dval) {
-
                 if (is_array($l_dval)) {
                     $l_dval = (isset($l_dval["const"])) ? $l_dval["const"] : $l_dval["title"];
-                } else if (is_object($l_dval) && method_exists($l_dval, "get_data")) {
+                } elseif (is_object($l_dval) && method_exists($l_dval, "get_data")) {
                     $l_data = $l_dval->get_data();
                     $l_dval = @$l_data[0]["id"];
 
@@ -164,11 +160,9 @@ class isys_export_type_xml extends isys_export_type
      */
     public function iterate_sub_dialog($p_tag, $p_data, $p_tabs = "\t\t\t\t\t\t\t\t")
     {
-
         if (is_array($p_data) && count($p_data) > 0) {
-            $l_xml = "";
+            $l_xml = '';
             $l_xml .= $p_tabs;
-            //$l_xml .= "\n".$p_tabs."<".$p_tag.">";
 
             foreach ($p_data as $l_key => $l_val) {
                 if (is_object($l_val) && method_exists($l_val, "get_data")) {
@@ -179,15 +173,15 @@ class isys_export_type_xml extends isys_export_type
                         $l_puffer = $l_data;
                         $l_xml .= "\n" . $p_tabs . "<" . $l_key . ">";
 
-                        foreach ($l_data AS $l_sub_data) {
+                        foreach ($l_data as $l_sub_data) {
                             $l_xml .= $this->iterate_sub_dialog($l_key, [$l_sub_data], $p_tabs . "\t");
                         }
                         $l_xml .= $p_tabs . "</" . $l_key . ">";
                     } else {
                         if (is_array($l_data[0]) && count($l_data[0]) > 0) {
                             $l_xml .= "\n" . $p_tabs . "<" . $l_key;
-                            foreach ($l_data[0] AS $l_dkey => $l_dval) {
-                                if ($l_dkey == "title") {
+                            foreach ($l_data[0] as $l_dkey => $l_dval) {
+                                if ($l_dkey === "title") {
                                     $l_dtitle = $l_dval;
                                 }
 
@@ -201,19 +195,18 @@ class isys_export_type_xml extends isys_export_type
                         }
                     }
                 } elseif (is_array($l_val) && !is_null($l_val) && !empty($l_val["title"])) {
-
                     if (is_numeric($l_key)) {
                         $l_xml .= "\n" . $p_tabs . "<sub_" . $p_tag;
                     } else {
                         $l_xml .= "\n" . $p_tabs . "<sub_" . $l_key;
                     }
 
-                    foreach ($l_val AS $l_dkey => $l_dval) {
-                        if ($l_dkey == "title") {
+                    foreach ($l_val as $l_dkey => $l_dval) {
+                        if ($l_dkey === "title") {
                             $l_dtitle = $l_dval;
                         }
 
-                        if ($l_dkey == C__CATEGORY_DATA__HELPER && !empty($l_val[C__CATEGORY_DATA__HELPER])) {
+                        if ($l_dkey === C__CATEGORY_DATA__HELPER && !empty($l_val[C__CATEGORY_DATA__HELPER])) {
                             if (class_exists($l_val[C__CATEGORY_DATA__HELPER])) {
                                 $l_dao_class = new $l_val[C__CATEGORY_DATA__HELPER]();
                                 if (method_exists($l_dao_class, $l_val[C__CATEGORY_DATA__METHOD])) {
@@ -223,7 +216,7 @@ class isys_export_type_xml extends isys_export_type
                             }
                         }
 
-                        if (!empty($l_dval) && $l_dkey != C__CATEGORY_DATA__METHOD && $l_dkey != C__CATEGORY_DATA__HELPER) {
+                        if (!empty($l_dval) && $l_dkey !== C__CATEGORY_DATA__METHOD && $l_dkey !== C__CATEGORY_DATA__HELPER) {
                             $l_xml .= " " . $l_dkey . "=\"" . htmlspecialchars($l_dval) . "\"";
                         }
                     }
@@ -236,20 +229,16 @@ class isys_export_type_xml extends isys_export_type
                     } else {
                         $l_xml .= "</sub_" . $l_key . ">";
                     }
-
-                } else {
-                    if (!is_null($l_val) && $l_val != "" && !is_numeric($l_key) && !empty($l_val["title"])) {
-                        $l_xml .= "\n" . $p_tabs . "<" . $l_key . ">" . htmlspecialchars($l_val) . "</" . $l_key . ">";
-                        //$l_xml .= " ".$l_key."=\"".htmlspecialchars($l_val)."\"";
-                    }
+                } elseif (!is_null($l_val) && $l_val != "" && !is_numeric($l_key) && !empty($l_val["title"])) {
+                    $l_xml .= "\n" . $p_tabs . "<" . $l_key . ">" . htmlspecialchars($l_val) . "</" . $l_key . ">";
                 }
             }
             $l_xml .= $p_tabs . "\n";
 
             return $l_xml;
-        } else {
-            return false;
         }
+
+        return false;
     }
 
     /**
@@ -276,7 +265,7 @@ class isys_export_type_xml extends isys_export_type
             $l_xml = "<?xml version=\"1.0\" encoding=\"" . $this->m_encoding . "\" standalone=\"yes\"?>\n";
         }
         $l_xml .= $this->m_stylesheet;
-        // @todo $l_xml .= $this->get_dtd();
+
         $l_xml .= "<isys_export>\n";
 
         $this->m_export = $p_array;
@@ -334,13 +323,11 @@ class isys_export_type_xml extends isys_export_type
                 if (isset($l_array[$l_cat]) && is_array($l_array[$l_cat])) {
                     $l_xml .= $this->process($l_array[$l_cat], $l_cat, $l_value["status"], $p_translate);
                 }
-
             }
 
             $l_xml .= "\t\t\t" . "</data>\n";
 
             $l_xml .= "\t\t</object>\n";
-
         }
 
         $l_xml .= "\t</objects>\n";
@@ -361,23 +348,11 @@ class isys_export_type_xml extends isys_export_type
      */
     public function cdata($p_value)
     {
-
         if (!preg_match("/^[\W]+$/", $p_value)) {
-            return "<![CDATA[" . $p_value . "]]>";
-        } else {
-            return htmlspecialchars($p_value);
+            return '<![CDATA[' . $p_value . ']]>';
         }
 
-    }
-
-    /**
-     * Returns XML code to implement a DTD file.
-     *
-     * @todo Implement the DTD first.
-     */
-    public function get_dtd()
-    {
-
+        return htmlspecialchars($p_value);
     }
 
     /**
@@ -391,26 +366,25 @@ class isys_export_type_xml extends isys_export_type
      */
     private function process($p_sub, $p_cattype = null, $p_object_status = null, $p_translate = false)
     {
-        $isBrowserFirefox = strpos(isys_application::instance()->container->request->headers->get('User-Agent'), 'Firefox') !== false;
+        $isBrowserFirefox = strpos(isys_application::instance()->container->get('request')->headers->get('User-Agent'), 'Firefox') !== false;
 
         /* Create XML .. */
         $l_xml = '';
 
         foreach ($p_sub as $l_catid => $l_catdata) {
-
             $l_cathead = $l_catdata['head'];
             unset($l_catdata['head']);
 
             // if array with no key then continue with next category
-            if (key($l_catdata) == '') {
+            if (key($l_catdata) === '') {
                 continue;
             }
 
             $l_xml .= "\t\t\t\t" . '<category';
 
             if (is_array($l_cathead) && count($l_cathead) > 0) {
-                foreach ($l_cathead AS $l_cathead_key => $l_cathead_value) {
-                    if ($l_cathead_key == 'title') {
+                foreach ($l_cathead as $l_cathead_key => $l_cathead_value) {
+                    if ($l_cathead_key === 'title') {
                         if ($p_translate === true) {
                             $l_cathead_value = isys_application::instance()->container->get('language')
                                 ->get($l_cathead_value);
@@ -478,18 +452,16 @@ class isys_export_type_xml extends isys_export_type
                             }
                             $l_xml .= '</' . $l_property[C__DATA__TAG] . ">\n";
                             break;
-                        case 'object':
 
+                        case 'object':
                             switch (get_class($l_property[C__DATA__VALUE])) {
                                 case 'isys_export_data':
-
                                     $l_data = $l_property[C__DATA__VALUE]->get_data();
                                     $l_parent = false;
 
                                     if (is_array($l_data) && count($l_data) > 0) {
                                         foreach ($l_data as $l_key => $l_item) {
                                             if (is_numeric($l_key)) {
-
                                                 if (!$l_parent) {
                                                     $l_xml .= "\t\t\t\t\t\t" . "<" . $l_property[C__DATA__TAG] . " title=\"" . htmlspecialchars($l_title) . "\">\n";
                                                 }
@@ -530,9 +502,11 @@ class isys_export_type_xml extends isys_export_type
                                     break;
                             }
                             break;
+
                         case 'array':
                             $l_xml .= $this->iterate_dialog($l_property[C__DATA__TAG], $l_property[C__DATA__VALUE], "\t\t\t\t\t\t", $l_title);
                             break;
+
                         case 'boolean':
                         default:
                             // Just add the tag with title
@@ -550,7 +524,6 @@ class isys_export_type_xml extends isys_export_type
             }
 
             $l_xml .= "\t\t\t\t" . "</category>\n\n";
-
         }
 
         return $l_xml;
@@ -566,16 +539,12 @@ class isys_export_type_xml extends isys_export_type
      */
     private function recurse($p_data, $p_tabs = "\t", $p_object_status = C__RECORD_STATUS__NORMAL)
     {
-
         $l_xml = "";
         $l_attributes = "";
 
         if (is_array($p_data)) {
-
             foreach ($p_data as $l_ptag => $l_pval) {
-
                 if (!is_array(($l_pval))) {
-
                     if (!is_null($l_pval) && $l_pval != "") {
                         if ($l_ptag == "value") {
                             $l_xml .= $this->cdata($l_pval);
@@ -587,9 +556,7 @@ class isys_export_type_xml extends isys_export_type
                             $l_xml .= "<" . $l_ptag . $l_attributes . ">" . $this->cdata($l_pval) . "</" . $l_ptag . ">\n";
                         }
                     }
-
                 } else {
-
                     if (isset($l_pval["attributes"])) {
                         foreach ($l_pval["attributes"] as $l_akey => $l_aval) {
                             if ($l_akey == "id" && $p_object_status == C__RECORD_STATUS__TEMPLATE) {
@@ -611,7 +578,6 @@ class isys_export_type_xml extends isys_export_type
 
                     $l_attributes = "";
                 }
-
             }
         }
 
@@ -627,18 +593,14 @@ class isys_export_type_xml extends isys_export_type
     {
         switch ($p_const) {
             case C__RECORD_STATUS__BIRTH:
-                return isys_application::instance()->container->get('language')
-                    ->get('LC__CMDB__RECORD_STATUS__BIRTH');
+                return isys_application::instance()->container->get('language')->get('LC__CMDB__RECORD_STATUS__BIRTH');
             default:
             case C__RECORD_STATUS__NORMAL:
-                return isys_application::instance()->container->get('language')
-                    ->get('LC__CMDB__RECORD_STATUS__NORMAL');
+                return isys_application::instance()->container->get('language')->get('LC__CMDB__RECORD_STATUS__NORMAL');
             case C__RECORD_STATUS__ARCHIVED:
-                return isys_application::instance()->container->get('language')
-                    ->get('LC__CMDB__RECORD_STATUS__ARCHIVED');
+                return isys_application::instance()->container->get('language')->get('LC__CMDB__RECORD_STATUS__ARCHIVED');
             case C__RECORD_STATUS__DELETED:
-                return isys_application::instance()->container->get('language')
-                    ->get('LC__RECORD_STATUS__Deleted');
+                return isys_application::instance()->container->get('language')->get('LC__RECORD_STATUS__Deleted');
         }
     }
 
@@ -649,7 +611,7 @@ class isys_export_type_xml extends isys_export_type
      */
     public function __construct($p_encoding = null)
     {
-        if (!is_null($p_encoding)) {
+        if ($p_encoding !== null) {
             $this->m_encoding = $p_encoding;
         }
     }

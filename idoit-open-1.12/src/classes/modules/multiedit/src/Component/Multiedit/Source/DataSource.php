@@ -3,6 +3,7 @@
 namespace idoit\Module\Multiedit\Component\Multiedit\Source;
 
 use idoit\Component\Property\Property;
+use idoit\Exception\Exception;
 use idoit\Module\Multiedit\Component\Filter\CategoryFilter;
 use idoit\Module\Multiedit\Component\Filter\DataSourceFilter;
 use idoit\Module\Multiedit\Component\Multiedit\Exception\EmptySourceDaoException;
@@ -112,15 +113,19 @@ class DataSource extends Source
         }
 
         $dao = current($this->getDao());
-        if ($dao instanceof isys_cmdb_dao_category_g_custom_fields) {
-            $dao->set_category_type(C__CMDB__CATEGORY__TYPE_CUSTOM);
-        }
-
         $database = isys_application::instance()->container->get('database');
 
         $sourceTable = $dao->get_table();
         $categoryType = $dao->get_category_type();
-        $categoryId = method_exists($dao, 'get_catg_custom_id') ? $dao->get_catg_custom_id() : $dao->get_category_id();
+        $categoryId = $dao->get_category_id();
+        $categoryConst = $dao->get_category_const();
+
+        if ($dao instanceof isys_cmdb_dao_category_g_custom_fields) {
+            $categoryType = defined_or_default('C__CMDB__CATEGORY__TYPE_CUSTOM');
+            $dao->set_category_type($categoryType);
+            $categoryId = $dao->get_catg_custom_id();
+            $categoryConst = $dao->get_catg_custom_const();
+        }
 
         $specificCategoryModel = new SpecificCategories($database);
         $globalCategoryModel = new GlobalCategories($database);
@@ -149,7 +154,16 @@ class DataSource extends Source
             }
 
             foreach ($this->objectIds as $objectId) {
-                if (($allowedObjects !== null) && !isset($allowedObjects[$objectId])) {
+                $isCategoryAllowed = true;
+
+                try {
+                    \isys_auth_cmdb_categories::instance()
+                        ->check_rights_obj_and_category(\isys_auth::EDIT, $objectId, $categoryConst);
+                } catch (\isys_exception_auth $e) {
+                    $isCategoryAllowed = false;
+                }
+
+                if ((($allowedObjects !== null) && !isset($allowedObjects[$objectId])) || !$isCategoryAllowed) {
                     $objectsNotAllowed[$objectId] = true;
                     continue;
                 }

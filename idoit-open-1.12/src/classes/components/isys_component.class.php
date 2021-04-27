@@ -12,7 +12,6 @@
  * @version     0.9
  * @copyright   synetics GmbH
  * @license     http://www.gnu.org/licenses/agpl-3.0.html GNU AGPLv3
- * @todo        - Component Iterator
  */
 abstract class isys_component
 {

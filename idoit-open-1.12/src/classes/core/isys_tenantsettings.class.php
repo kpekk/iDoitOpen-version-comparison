@@ -27,42 +27,6 @@ class isys_tenantsettings implements isys_settings_interface
      * @var array
      */
     public static $m_definition = [
-        /* These settings do exist, but shall not be displayed in "administration > system settings".
-        'Registry' => [
-            'cmdb.registry.show_full_lists' => [
-                'title' => ' ### show full list',
-                'type' => 'select',
-                'options' => [
-                    '0' => 'LC__UNIVERSAL__NO',
-                    '1' => 'LC__UNIVERSAL__YES'
-                ]
-            ],
-            'cmdb.registry.quicksave' => [
-                'title' => ' ### quicksave',
-                'type' => 'select',
-                'options' => [
-                    '0' => 'LC__UNIVERSAL__NO',
-                    '1' => 'LC__UNIVERSAL__YES'
-                ]
-            ],
-            'cmdb.registry.sysid_readonly' => [
-                'title' => ' ### SYS-ID readonly',
-                'type' => 'select',
-                'options' => [
-                    '0' => 'LC__UNIVERSAL__NO',
-                    '1' => 'LC__UNIVERSAL__YES'
-                ]
-            ],
-            'cmdb.registry.object_dragndrop' => [
-                'title' => ' ### Object drag\'n\'drop',
-                'type' => 'select',
-                'options' => [
-                    '0' => 'LC__UNIVERSAL__NO',
-                    '1' => 'LC__UNIVERSAL__YES'
-                ]
-            ],
-        ],
-        */
         'LC__SETTINGS__SYSTEM__URL_SETTINGS'     => [
             'system.base.uri' => [
                 'title'       => 'LC__SETTINGS__SYSTEM__URL_SETTINGS__IDOIT_URL',
@@ -79,6 +43,15 @@ class isys_tenantsettings implements isys_settings_interface
                 'placeholder' => 8,
                 'default'     => 8,
                 'description' => 'LC__SETTINGS__CMDB__OBJ_BROWSER__OBJECTS_IN_VIEWMODE_DESCRIPTION'
+            ],
+            'cmdb.limits.obj-browser.objects-rendering'       => [
+                'title'   => 'LC__SETTINGS__CMDB__OBJ_BROWSER__OBJECT_RENDERING_IN_VIEWMODE',
+                'type'    => 'select',
+                'options' => [
+                    'comma' => 'LC__SETTINGS__CMDB__OBJ_BROWSER__OBJECT_RENDERING_IN_VIEWMODE__COMMA',
+                    'list'  => 'LC__SETTINGS__CMDB__OBJ_BROWSER__OBJECT_RENDERING_IN_VIEWMODE__LIST'
+                ],
+                'default' => 'comma'
             ],
             'gui.lists.preload-pages'                         => [
                 'title'       => 'LC__SYSTEM__SETTINGS__TENANT__PRELOAD_PAGES_TITLE',
@@ -222,13 +195,13 @@ class isys_tenantsettings implements isys_settings_interface
             ]
         ],
         'LC__SYSTEM_SETTINGS__TENANT__GUI'       => [
-            'gui.empty_value'         => [
+            'gui.empty_value'                 => [
                 'title'       => 'LC__SYSTEM_SETTINGS__TENANT__GUI__EMPTY_VALUES',
                 'type'        => 'text',
                 'placeholder' => '-',
                 'default'     => '-'
             ],
-            'gui.separator.location'  => [
+            'gui.separator.location'          => [
                 'title'       => 'LC__SYSTEM_SETTINGS__TENANT__GUI__LOCATION_SEPARATOR',
                 'type'        => 'text',
                 'placeholder' => ' > ',
@@ -243,7 +216,7 @@ class isys_tenantsettings implements isys_settings_interface
                 ],
                 'default' => '0'
             ],
-            'gui.separator.connector' => [
+            'gui.separator.connector'         => [
                 'title'       => 'LC__SYSTEM_SETTINGS__TENANT__GUI__CONNECTOR_SEPARATOR',
                 'type'        => 'text',
                 'placeholder' => ' > ',
@@ -282,7 +255,7 @@ class isys_tenantsettings implements isys_settings_interface
             ],
         ],
         'LC__SYSTEM_SETTINGS__TENANT__SECURITY'  => [
-            'minlength.login.password' => [
+            'minlength.login.password'          => [
                 'title'       => 'LC__SYSTEM_SETTINGS__TENANT__SECURITY__PASSWORD_MINLENGTH',
                 'type'        => 'int',
                 'placeholder' => 4,
@@ -311,7 +284,7 @@ class isys_tenantsettings implements isys_settings_interface
             ],
         ],
         'Quickinfo (Link mouseover)'             => [
-            'cache.quickinfo.expiration' => [
+            'cache.quickinfo.expiration'       => [
                 'title'       => 'LC__SYSTEM_SETTINGS__TENANT__QUICKINFO_EXPIRATION',
                 'type'        => 'select',
                 'default'     => isys_convert::DAY,
@@ -322,7 +295,7 @@ class isys_tenantsettings implements isys_settings_interface
                 ],
                 'description' => 'LC__SYSTEM_SETTINGS__TENANT__QUICKINFO_EXPIRATION__DESCRIPTION'
             ],
-            'cmdb.quickinfo.rows-per-category'         => [
+            'cmdb.quickinfo.rows-per-category' => [
                 'title'       => 'LC__SYSTEM_SETTINGS__TENANT__QUICKINFO_ROWS_PER_CATEGORY',
                 'type'        => 'int',
                 'placeholder' => 15,
@@ -331,7 +304,18 @@ class isys_tenantsettings implements isys_settings_interface
             ]
         ],
         'CMDB'                                   => [
-            'cmdb.gui.objectlist.direct-edit-mode' => [
+            'system.csv-export-delimiter'             => [
+                'title'   => 'LC__SETTINGS__CMDB__EXPORT__CSV_DELIMITER',
+                'type'    => 'select',
+                'options' => [
+                    ','  => 'LC__UNIVERSAL__COMMA',
+                    ';'  => 'LC__UNIVERSAL__SEMICOLON',
+                    '#'  => 'LC__UNIVERSAL__HASH',
+                    "\t" => 'LC__UNIVERSAL__TAB'
+                ],
+                'default' => ';'
+            ],
+            'cmdb.gui.objectlist.direct-edit-mode'             => [
                 'title'   => 'LC__SETTINGS__CMDB__OBJECT_LISTS__DIRECT_EDIT_MODE',
                 'type'    => 'select',
                 'options' => [
@@ -510,7 +494,7 @@ class isys_tenantsettings implements isys_settings_interface
                 throw new Exception('Error: Cache directory in $g_mandator_info not set.');
             }
 
-            self::$m_cache_dir = $g_mandator_info["isys_mandator__dir_cache"] . DS;
+            self::$m_cache_dir = $g_mandator_info["isys_mandator__dir_cache"] . '/';
         }
 
         return isys_glob_get_temp_dir() . self::$m_cache_dir;

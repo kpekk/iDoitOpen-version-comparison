@@ -130,10 +130,9 @@ class isys_module_import extends isys_module implements isys_module_interface, i
     private $m_userrequest;
 
     /**
-     * Get related auth class for module
+     * Get related auth class for module.
      *
-     * @author Selcuk Kekec <skekec@i-doit.com>
-     * @return isys_auth
+     * @return isys_auth_import
      */
     public static function get_auth()
     {
@@ -254,7 +253,7 @@ class isys_module_import extends isys_module implements isys_module_interface, i
             default:
                 if ($l_dbID != null) {
                     $this->ocs_db($l_dbID);
-                } else if ($_POST["id"] != null) {
+                } elseif ($_POST["id"] != null) {
                     $this->ocs_db($_POST["id"][0]);
                 } else {
                     $this->ocs_list();
@@ -396,9 +395,12 @@ class isys_module_import extends isys_module implements isys_module_interface, i
             }
 
             $l_list->set_data($l_list_data);
-            $l_list->config($l_list_headers,
+            $l_list->config(
+                $l_list_headers,
                 '?' . C__GET__MODULE_ID . '=' . defined_or_default('C__MODULE__SYSTEM') . '&' . C__GET__MODULE_SUB_ID . '=' . defined_or_default('C__MODULE__IMPORT') . '&' . C__GET__TREE_NODE . '=' .
-                $_GET[C__GET__TREE_NODE] . "&what=ocsdb&dbID=[{isys_ocs_db__id}]", "[{isys_ocs_db__id}]");
+                $_GET[C__GET__TREE_NODE] . "&what=ocsdb&dbID=[{isys_ocs_db__id}]",
+                "[{isys_ocs_db__id}]"
+            );
 
             if ($l_list->createTempTable()) {
                 $l_template->assign("objectTableList", $l_list->getTempTableHtml());
@@ -429,7 +431,6 @@ class isys_module_import extends isys_module implements isys_module_interface, i
      */
     public function csv_import_handler()
     {
-
     }
 
     /**
@@ -528,7 +529,7 @@ class isys_module_import extends isys_module implements isys_module_interface, i
                 ->get($l_row['isys_obj_type__title']);
         }
 
-        foreach ($l_obj_type_groups AS $l_key => $l_obj_types) {
+        foreach ($l_obj_type_groups as $l_key => $l_obj_types) {
             asort($l_obj_type_groups[$l_key]);
         }
 
@@ -681,8 +682,14 @@ class isys_module_import extends isys_module implements isys_module_interface, i
 
                 $l_settings = $l_dao->getOCSDB($l_db);
 
-                $l_ocsdb = isys_component_database::get_database('mysqli', $l_settings['isys_ocs_db__host'], $l_settings['isys_ocs_db__port'],
-                    $l_settings['isys_ocs_db__user'], isys_helper_crypt::decrypt($l_settings['isys_ocs_db__pass']), $l_settings['isys_ocs_db__schema']);
+                $l_ocsdb = isys_component_database::get_database(
+                    'mysqli',
+                    $l_settings['isys_ocs_db__host'],
+                    $l_settings['isys_ocs_db__port'],
+                    $l_settings['isys_ocs_db__user'],
+                    isys_helper_crypt::decrypt($l_settings['isys_ocs_db__pass']),
+                    $l_settings['isys_ocs_db__schema']
+                );
 
                 $l_dao = new isys_component_dao_ocs($l_ocsdb);
 
@@ -881,15 +888,27 @@ class isys_module_import extends isys_module implements isys_module_interface, i
                     ->is_allowed_to(isys_auth::EXECUTE, 'IMPORT/' . C__MODULE__IMPORT . C__IMPORT__GET__CABLING));
             }
         } else {
-            $p_tree->add_node(C__MODULE__IMPORT . 7, $l_root, isys_application::instance()->container->get('language')
+            $p_tree->add_node(
+                C__MODULE__IMPORT . 7,
+                $l_root,
+                isys_application::instance()->container->get('language')
                 ->get('LC__MODULE__IMPORT__OCS_DBS'),
-                '?moduleID=' . $this->get_module_id() . '&what=ocsdb' . $l_submodule . '&' . C__GET__TREE_NODE . '=' . C__MODULE__IMPORT . '7', null,
-                $g_dirs['images'] . '/tree/ocs.png', $_GET['what'] == 'ocsdb');
+                '?moduleID=' . $this->get_module_id() . '&what=ocsdb' . $l_submodule . '&' . C__GET__TREE_NODE . '=' . C__MODULE__IMPORT . '7',
+                null,
+                $g_dirs['images'] . '/tree/ocs.png',
+                $_GET['what'] == 'ocsdb'
+            );
 
-            $p_tree->add_node(C__MODULE__IMPORT . 8, $l_root, isys_application::instance()->container->get('language')
+            $p_tree->add_node(
+                C__MODULE__IMPORT . 8,
+                $l_root,
+                isys_application::instance()->container->get('language')
                 ->get('LC__MODULE__IMPORT__OCS_CONFIG'),
-                '?moduleID=' . $this->get_module_id() . '&what=ocsconfig' . $l_submodule . '&' . C__GET__TREE_NODE . '=' . C__MODULE__IMPORT . '8', null,
-                $g_dirs['images'] . 'tree/ocs.png', ($_GET['what'] == 'ocsconfig') ? 1 : 0);
+                '?moduleID=' . $this->get_module_id() . '&what=ocsconfig' . $l_submodule . '&' . C__GET__TREE_NODE . '=' . C__MODULE__IMPORT . '8',
+                null,
+                $g_dirs['images'] . 'tree/ocs.png',
+                ($_GET['what'] == 'ocsconfig') ? 1 : 0
+            );
 
             if (defined('C__MODULE__JDISC') && class_exists("isys_module_jdisc")) {
                 $l_module_jdisc = new isys_module_jdisc();
@@ -897,16 +916,30 @@ class isys_module_import extends isys_module implements isys_module_interface, i
             }
 
             if (defined('C__MODULE__SHAREPOINT')) {
-                $p_tree->add_node(C__MODULE__IMPORT . 11, $l_root, isys_application::instance()->container->get('language')
+                $p_tree->add_node(
+                    C__MODULE__IMPORT . 11,
+                    $l_root,
+                    isys_application::instance()->container->get('language')
                     ->get('LC__MODULE__SHAREPOINT__CONFIGURATION'),
                     '?moduleID=' . $this->get_module_id() . '&what=sharepoint_configuration' . '&' . C__GET__MODULE_SUB_ID . '=' . C__MODULE__IMPORT . '&' .
-                    C__GET__TREE_NODE . '=' . C__MODULE__IMPORT . '11', null, $g_dirs['images'] . 'tree/sharepoint.png', $_GET['what'] == 'sharepoint_configuration');
+                    C__GET__TREE_NODE . '=' . C__MODULE__IMPORT . '11',
+                    null,
+                    $g_dirs['images'] . 'tree/sharepoint.png',
+                    $_GET['what'] == 'sharepoint_configuration'
+                );
             }
 
             if (defined('C__MODULE__LOGINVENTORY')) {
-                $p_tree->add_node(C__MODULE__IMPORT . 12, $l_root, 'LOGINventory-Konfiguration',
+                $p_tree->add_node(
+                    C__MODULE__IMPORT . 12,
+                    $l_root,
+                    'LOGINventory-Konfiguration',
                     '?moduleID=' . $this->get_module_id() . '&what=loginventory_configuration' . '&' . C__GET__MODULE_SUB_ID . '=' . C__MODULE__IMPORT . '&' .
-                    C__GET__TREE_NODE . '=' . C__MODULE__IMPORT . '12', null, $g_dirs['images'] . 'icons/loginventory.png', $_GET['what'] == 'loginventory_configuration');
+                    C__GET__TREE_NODE . '=' . C__MODULE__IMPORT . '12',
+                    null,
+                    $g_dirs['images'] . 'icons/loginventory.png',
+                    $_GET['what'] == 'loginventory_configuration'
+                );
             }
         }
     }
@@ -931,7 +964,7 @@ class isys_module_import extends isys_module implements isys_module_interface, i
 
         $l_params = array_pop(array_map(function ($p_arg) {
             $l_return = [];
-            foreach ($p_arg AS $l_content) {
+            foreach ($p_arg as $l_content) {
                 list($l_key, $l_value) = explode('=', $l_content);
                 $l_return[$l_key] = $l_value;
             }
@@ -1123,19 +1156,19 @@ class isys_module_import extends isys_module implements isys_module_interface, i
                     isys_auth_system::instance()
                         ->check(isys_auth::VIEW, 'OCS/OCSCONFIG');
                     $this->handle_ocsconfig();
-                } else if ($l_gets['what'] === 'ocsdb') {
+                } elseif ($l_gets['what'] === 'ocsdb') {
                     isys_auth_system::instance()
                         ->check(isys_auth::VIEW, 'OCS/OCSDB');
                     $this->handle_ocsdb();
-                } else if (defined('C__MODULE__JDISC') && class_exists("isys_module_jdisc")) {
+                } elseif (defined('C__MODULE__JDISC') && class_exists("isys_module_jdisc")) {
                     $l_jdisc = new isys_module_jdisc();
                     $l_jdisc->init($this->m_userrequest);
                     $l_jdisc->start();
-                } else if (defined('C__MODULE__SHAREPOINT') && $l_gets['what'] === 'sharepoint_configuration') {
+                } elseif (defined('C__MODULE__SHAREPOINT') && $l_gets['what'] === 'sharepoint_configuration') {
                     $l_jdisc = new isys_module_sharepoint();
                     $l_jdisc->init($this->m_userrequest);
                     $l_jdisc->start();
-                } else if (defined('C__MODULE__LOGINVENTORY') && ($l_gets['what'] === 'loginventory_databases' || $l_gets['what'] === 'loginventory_configuration')) {
+                } elseif (defined('C__MODULE__LOGINVENTORY') && ($l_gets['what'] === 'loginventory_databases' || $l_gets['what'] === 'loginventory_configuration')) {
                     $l_loginvent = new isys_module_loginventory();
                     $l_loginvent->init($this->m_userrequest);
                     $l_loginvent->start();
@@ -1157,12 +1190,9 @@ class isys_module_import extends isys_module implements isys_module_interface, i
         } catch (isys_exception_general $e) {
             //$this->build_system_menu();
             throw $e;
-
         } catch (isys_exception_auth $e) {
-
             isys_application::instance()->template->assign("exception", $e->write_log());
             $index_includes['contentbottomcontent'] = "exception-auth.tpl";
-
         }
     }
 
@@ -1173,14 +1203,12 @@ class isys_module_import extends isys_module implements isys_module_interface, i
      */
     public function ldap_import_page()
     {
-
         global $index_includes, $g_dirs, $g_comp_database;
 
         $l_rules = [];
         $l_objtypes = [];
 
         if (defined('C__MODULE__LDAP')) {
-
             $l_ldap = new isys_ldap_dao($g_comp_database);
 
             $l_res_ldap_serv = $l_ldap->get_data();
@@ -1296,7 +1324,6 @@ class isys_module_import extends isys_module implements isys_module_interface, i
         $l_show_default = true;
 
         if (isset($_FILES['import_file']) || isset($_POST['import_submitter'])) {
-
             $l_create_patch_panels = false;
 
             $l_rules['C__MODULE__IMPORT__CABLING__CABLING_TYPE']['p_strSelectedID'] = $_POST['C__MODULE__IMPORT__CABLING__CABLING_TYPE'];
@@ -1430,11 +1457,11 @@ class isys_module_import extends isys_module implements isys_module_interface, i
 
         if (isset($_FILES['import_file']) && is_array($_FILES['import_file']) && $_FILES['import_file']['error'] !== UPLOAD_ERR_NO_FILE) {
             $this->import_new();
-        } else if (isset($l_posts['file']) || isset($l_gets['file'])) {
+        } elseif (isset($l_posts['file']) || isset($l_gets['file'])) {
             $this->process_csv_import_assignment((isset($l_posts['file']) ? $l_posts['file'] : $l_gets['file']), $l_gets['profile']);
 
             return;
-        } else if (isset($l_posts['csv_filename']) && isset($l_posts['csv_separator'])) {
+        } elseif (isset($l_posts['csv_filename']) && isset($l_posts['csv_separator'])) {
             header('Content-Type: application/json; charset=utf-8');
 
             echo isys_format_json::encode($this->process_csv_file($l_posts['csv_filename'], $l_posts['csv_separator'], $l_posts['object_type']));
@@ -1470,6 +1497,8 @@ class isys_module_import extends isys_module implements isys_module_interface, i
         if (!defined('C__MODULE__IMPORT')) {
             return;
         }
+
+        $auth = self::get_auth();
         $l_tpl = isys_application::instance()->template;
 
         // A file has been selected. Display the matching options!
@@ -1506,12 +1535,16 @@ class isys_module_import extends isys_module implements isys_module_interface, i
         $l_identifiers = (new \idoit\Module\Cmdb\Model\Matcher\Ci\CiIdentifiers(null))->getIdentifiers();
         $l_matcher_identifier = [];
         if (is_countable($l_identifiers) && count($l_identifiers)) {
-            foreach ($l_identifiers AS $l_key => $l_identifier) {
+            foreach ($l_identifiers as $l_key => $l_identifier) {
                 $l_matcher_identifier[$l_identifier::getBit()] = $l_key;
             }
         }
 
         $l_tpl->activate_editmode()
+            ->assign('isAllowedToViewProfiles', $auth->is_allowed_to($auth::VIEW, 'csv_import_profiles'))
+            ->assign('isAllowedToEditProfiles', $auth->is_allowed_to($auth::EDIT, 'csv_import_profiles'))
+            ->assign('isAllowedToDeleteProfiles', $auth->is_allowed_to($auth::DELETE, 'csv_import_profiles'))
+            ->assign('isAllowedToCreateProfiles', $auth->is_allowed_to($auth::CREATE, 'csv_import_profiles'))
             ->assign('csv_filename', $p_file)
             ->assign('selected_profile', $p_profile)
             ->assign('log_icons', isys_format_json::encode(\idoit\Component\Logger::getLevelIcons()))
@@ -1571,8 +1604,11 @@ class isys_module_import extends isys_module implements isys_module_interface, i
                 'success' => true,
                 'data'    => [
                     'csv_first_line'  => isys_module_import_csv::get_csv(C__IMPORT__CSV_DIRECTORY . $p_csv_filename, $p_csv_separator, isys_module_import_csv::CL__GET__HEAD),
-                    'csv_second_line' => isys_module_import_csv::get_csv(C__IMPORT__CSV_DIRECTORY . $p_csv_filename, $p_csv_separator,
-                        isys_module_import_csv::CL__GET__CONTENT__FIRST_LINE),
+                    'csv_second_line' => isys_module_import_csv::get_csv(
+                        C__IMPORT__CSV_DIRECTORY . $p_csv_filename,
+                        $p_csv_separator,
+                        isys_module_import_csv::CL__GET__CONTENT__FIRST_LINE
+                    ),
                     'categories'      => isys_module_import_csv::get_importable_categories($_POST['multivalue'], $p_obj_type)
                 ],
                 'message' => null
@@ -1601,7 +1637,6 @@ class isys_module_import extends isys_module implements isys_module_interface, i
             $l_import_fh = opendir($l_dir_import);
             while ($l_file = readdir($l_import_fh)) {
                 if ($l_file != "." && $l_file != ".." && $l_file != ".DS_Store" && !in_array($l_file, $this->m_skip_files) && is_file($l_dir_import . "/" . $l_file)) {
-
                     $l_class = preg_replace("/^(.*?).class.php$/", "\\1", $l_file);
                     $l_file = preg_replace("/^isys_import_handler_(.*?).class.php$/", "\\1", $l_file);
 
@@ -1846,7 +1881,6 @@ class isys_module_import extends isys_module implements isys_module_interface, i
                                 $l_object_count = (int)$l_data->objects->attributes()->count;
 
                                 if (isset($l_data->head)) {
-
                                     if (isset($l_data->head->format)) {
                                         $l_type = (string)$l_data->head->format;
                                     } else {
@@ -1872,7 +1906,6 @@ class isys_module_import extends isys_module implements isys_module_interface, i
                                 $l_dupe = false;
                             }
                         } else {
-
                             $l_err = libxml_get_errors();
 
                             $l_status = false;

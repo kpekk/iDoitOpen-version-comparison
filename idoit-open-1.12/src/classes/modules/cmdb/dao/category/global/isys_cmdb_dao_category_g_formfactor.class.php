@@ -44,6 +44,37 @@ class isys_cmdb_dao_category_g_formfactor extends isys_cmdb_dao_category_global
      */
     public function create_data($p_data)
     {
+        /**
+         * Check whether call coming from object which is in birth stage
+         *
+         * @see ID-6396
+         */
+        if ($this->isCreationInOverview()) {
+            // Setup keys to check
+            $keysToCheck = [
+                'formfactor'   => '-1',
+                'rackunits'    => '1',
+                'unit'         => '3',
+                'width'        => '',
+                'height'       => '',
+                'depth'        => '',
+                'weight'       => '',
+                'weight_unit'  => '1',
+                'description'  => '',
+                'isys_obj__id' => $p_data['isys_obj__id'],
+                'status'       => $p_data['status']
+            ];
+
+            // Calculate difference between data and untouched data
+            $difference = array_diff($p_data, $keysToCheck);
+
+            // Check whether we get totally untouched data
+            if (is_countable($difference) && count($difference) === 0) {
+                // Skip category data creation
+                return true;
+            }
+        }
+
         // ID-3292 - Check if the current object contains the "rack" category and create an entry, if none exists.
         if (defined('C__CATS__ENCLOSURE') && $this->objtype_is_cats_assigned($this->get_objTypeID($p_data['isys_obj__id']), C__CATS__ENCLOSURE) && class_exists('isys_cmdb_dao_category_s_enclosure')) {
             $l_dao = isys_cmdb_dao_category_s_enclosure::instance($this->m_db);

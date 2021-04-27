@@ -510,6 +510,38 @@ class isys_cmdb_dao_category_s_person_assigned_groups extends isys_cmdb_dao_cate
     }
 
     /**
+     * @param  int    $objectId
+     * @param  int    $direction
+     * @param  string $table
+     * @param  null   $checkMethod
+     * @param  bool   $purge
+     *
+     * @return bool
+     * @throws isys_exception_dao
+     * @throws isys_exception_database
+     */
+    public function rank_record($objectId, $direction, $table, $checkMethod = null, $purge = false)
+    {
+        if ($direction == C__CMDB__RANK__DIRECTION_RECYCLE) {
+            return true;
+        }
+
+        if ($objectId && isys_auth_cmdb::instance()->has_rights_in_obj_and_category(isys_auth::SUPERVISOR, $_GET[C__CMDB__GET__OBJECT], $this->get_category_const())) {
+            $sql = 'DELETE FROM isys_person_2_group WHERE  isys_person_2_group__id = ' . $this->convert_sql_id($objectId) . ';';
+
+            $relationId = $this->get_data($objectId)->get_row_value('isys_person_2_group__isys_catg_relation_list__id');
+
+            if ($relationId > 0) {
+                isys_cmdb_dao_category_g_relation::instance($this->get_database_component())->delete_relation($relationId);
+            }
+
+            return ($this->update($sql) && $this->apply_update());
+        }
+
+        return true;
+    }
+
+    /**
      *
      * @param   array   $p_objects
      * @param   integer $p_direction

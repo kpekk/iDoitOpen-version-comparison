@@ -47,7 +47,7 @@ class Mysql implements SearchEngine
     public function insertDocument(Document $document)
     {
         $sql = sprintf('INSERT INTO isys_search_idx SET isys_search_idx__version=%d, isys_search_idx__type="%s", isys_search_idx__metadata=\'%s\', isys_search_idx__key="%s", isys_search_idx__value="%s", isys_search_idx__reference=%d;',
-            $document->getVersion(), $document->getType(), json_encode($document->getMetadata()), $this->database->escape_string($document->getMetadata()->__toString()), $this->database->escape_string($document->getValue()), $document->getReference());
+            $document->getVersion(), $document->getType(), json_encode($document->getMetadata(), JSON_UNESCAPED_UNICODE), $this->database->escape_string($document->getMetadata()->__toString()), $this->database->escape_string($document->getValue()), $document->getReference());
 
         try {
             $this->database->query($sql) && $this->database->commit();

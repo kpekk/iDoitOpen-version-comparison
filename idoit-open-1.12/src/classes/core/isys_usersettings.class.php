@@ -120,7 +120,7 @@ class isys_usersettings implements isys_settings_interface
                 throw new Exception('Error: Cache directory in $g_mandator_info not set.');
             }
 
-            self::$m_cache_dir = $g_mandator_info['isys_mandator__dir_cache'] . DS;
+            self::$m_cache_dir = $g_mandator_info['isys_mandator__dir_cache'] . '/';
         }
 
         return isys_glob_get_temp_dir() . self::$m_cache_dir;

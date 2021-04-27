@@ -413,3 +413,22 @@ if (!function_exists('isys_glob_format_datetime')) {
         return $p_strDatetime;
     }
 }
+
+if (!function_exists('isys_strlen')) {
+    /**
+     * Function which will return the string length. Will use mb_strlen if available.
+     *
+     * @param   string $p_string
+     *
+     * @return  integer
+     * @author  Leonard Fischer <lfischer@i-doit.com>
+     *
+     * @deprecated
+     */
+    function isys_strlen($p_string)
+    {
+        global $g_config;
+
+        return (function_exists('mb_strlen') ? mb_strlen($p_string, $g_config['html-encoding']) : strlen($p_string));
+    }
+}

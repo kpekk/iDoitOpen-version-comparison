@@ -1224,18 +1224,11 @@ class isys_cmdb_dao_category_g_stor extends isys_cmdb_dao_category_global
      */
     public function get_controller_by_object_id($p_obj_id, $p_cType = null)
     {
-        $l_bType = ($p_cType == defined_or_default('C__STOR_TYPE_FC_CONTROLLER'));
-
         $l_q = "SELECT isys_catg_controller_list__title, isys_catg_controller_list__id, isys_catg_controller_list__status, isys_controller_type__const
 			FROM isys_catg_controller_list
 			JOIN isys_obj ON isys_catg_controller_list__isys_obj__id = isys_obj__id
 			LEFT JOIN isys_controller_type ON isys_catg_controller_list__isys_controller_type__id = isys_controller_type__id
-			WHERE isys_obj__id = " . $this->convert_sql_id($p_obj_id) . " ";
-
-        if ($l_bType) {
-            $l_q .= "AND isys_controller_type__const = 'C__STOR_TYPE_FC_CONTROLLER'";
-        }
-
+			WHERE isys_obj__id = " . $this->convert_sql_id($p_obj_id) . ";";
         return $this->retrieve($l_q);
     }
 

@@ -69,17 +69,17 @@ class isys_component_dao_mandator extends isys_component_dao
             $p_active = 1;
         }
 
-        $l_sql = "INSERT INTO isys_mandator
-			SET isys_mandator__title = '" . $p_title . "',
-			isys_mandator__description = '" . $p_description . "',
-			isys_mandator__dir_cache = '" . $p_dir_cache . "',
-			isys_mandator__dir_tpl = '" . $p_dir_tpl . "',
-			isys_mandator__db_host = '" . $p_db_host . "',
-			isys_mandator__db_port = '" . $p_db_port . "',
-			isys_mandator__db_user = '" . $p_db_user . "',
-			isys_mandator__db_pass = '" . $p_db_pass . "',
-			isys_mandator__sort = '" . $p_sort . "',
-			isys_mandator__active = '" . $p_active . "';";
+        $l_sql = 'INSERT INTO isys_mandator
+			SET isys_mandator__title = ' . $this->convert_sql_text($p_title) . ',
+			isys_mandator__description = ' . $this->convert_sql_text($p_description) . ',
+			isys_mandator__dir_cache = ' . $this->convert_sql_text($p_dir_cache) . ',
+			isys_mandator__dir_tpl = ' . $this->convert_sql_text($p_dir_tpl) . ',
+			isys_mandator__db_host = ' . $this->convert_sql_text($p_db_host) . ',
+			isys_mandator__db_port = ' . $this->convert_sql_int($p_db_port) . ',
+			isys_mandator__db_user = ' . $this->convert_sql_text($p_db_user) . ',
+			isys_mandator__db_pass = ' . $this->convert_sql_text($p_db_pass) . ',
+			isys_mandator__sort = ' . $this->convert_sql_int($p_sort) . ',
+			isys_mandator__active = ' . $this->convert_sql_boolean($p_active) . ';';
 
         return $this->update($l_sql);
     }
@@ -143,18 +143,18 @@ class isys_component_dao_mandator extends isys_component_dao
             $p_active = 1;
         }
 
-        $l_sql = "UPDATE isys_mandator
-			SET isys_mandator__title = '" . $p_title . "',
-			isys_mandator__description = '" . $p_description . "',
-			isys_mandator__dir_cache = '" . $p_dir_cache . "',
-			isys_mandator__dir_tpl = '" . $p_dir_tpl . "',
-			isys_mandator__db_host = '" . $p_db_host . "',
-			isys_mandator__db_port = '" . $p_db_port . "',
-			isys_mandator__db_user = '" . $p_db_user . "',
-			isys_mandator__db_pass = '" . $p_db_pass . "',
-			isys_mandator__sort = '" . $p_sort . "',
-			isys_mandator__active = '" . $p_active . "'
-			WHERE (isys_mandator__id = '" . $p_id . "');";
+        $l_sql = 'UPDATE isys_mandator
+			SET isys_mandator__title = ' . $this->convert_sql_text($p_title) . ',
+			isys_mandator__description = ' . $this->convert_sql_text($p_description) . ',
+			isys_mandator__dir_cache = ' . $this->convert_sql_text($p_dir_cache) . ',
+			isys_mandator__dir_tpl = ' . $this->convert_sql_text($p_dir_tpl) . ',
+			isys_mandator__db_host = ' . $this->convert_sql_text($p_db_host) . ',
+			isys_mandator__db_port = ' . $this->convert_sql_int($p_db_port) . ',
+			isys_mandator__db_user = ' . $this->convert_sql_text($p_db_user) . ',
+			isys_mandator__db_pass = ' . $this->convert_sql_text($p_db_pass) . ',
+			isys_mandator__sort = ' . $this->convert_sql_int($p_sort) . ',
+			isys_mandator__active = ' . $this->convert_sql_boolean($p_active) . '
+			WHERE (isys_mandator__id = ' . $this->convert_sql_id($p_id) . ');';
 
         return $this->update($l_sql);
     }
@@ -166,7 +166,7 @@ class isys_component_dao_mandator extends isys_component_dao
      */
     public function get_mandator_id_by_db_name($p_name)
     {
-        $l_res = $this->retrieve("SELECT isys_mandator__id FROM isys_mandator WHERE (isys_mandator__db_name = '" . $p_name . "') LIMIT 1;");
+        $l_res = $this->retrieve('SELECT isys_mandator__id FROM isys_mandator WHERE (isys_mandator__db_name = ' . $this->convert_sql_text($p_name) . ') LIMIT 1;');
 
         if (is_countable($l_res) && count($l_res)) {
             return $l_res->get_row_value('isys_mandator__id');
@@ -186,10 +186,10 @@ class isys_component_dao_mandator extends isys_component_dao
     {
         global $g_comp_database_system;
 
-        $l_sql = "SELECT * FROM isys_mandator
-			WHERE isys_mandator__id = '" . $p_mandator_id . "'
+        $l_sql = 'SELECT * FROM isys_mandator
+			WHERE isys_mandator__id = ' . (int)$p_mandator_id . '
 			AND isys_mandator__active = 1
-			ORDER BY isys_mandator__sort ASC;";
+			ORDER BY isys_mandator__sort ASC;';
 
         return $g_comp_database_system->query($l_sql);
     }
@@ -202,20 +202,21 @@ class isys_component_dao_mandator extends isys_component_dao
      * @param   string  $p_condition
      *
      * @return  isys_component_dao_result
+     * @throws isys_exception_database
      */
     public function get_mandator($p_mandator_id = null, $p_exclude_inactive = 1, $p_condition = "")
     {
-        $l_sql = "SELECT * FROM isys_mandator LEFT JOIN isys_licence ON isys_licence__isys_mandator__id = isys_mandator__id WHERE TRUE";
+        $l_sql = 'SELECT * FROM isys_mandator LEFT JOIN isys_licence ON isys_licence__isys_mandator__id = isys_mandator__id WHERE TRUE';
 
         if (!empty($p_mandator_id)) {
-            $l_sql .= " AND isys_mandator__id = '" . $p_mandator_id . "'";
+            $l_sql .= ' AND isys_mandator__id = ' . $this->convert_sql_id($p_mandator_id);
         }
 
         if ($p_exclude_inactive == 1) {
-            $l_sql .= " AND isys_mandator__active = 1";
+            $l_sql .= ' AND isys_mandator__active = 1';
         }
 
-        return $this->retrieve($l_sql . $p_condition . " ORDER BY isys_mandator__sort ASC;");
+        return $this->retrieve($l_sql . $p_condition . ' ORDER BY isys_mandator__sort ASC;');
     }
 
     /**
@@ -226,7 +227,8 @@ class isys_component_dao_mandator extends isys_component_dao
      */
     public function set_active($p_id, $p_active)
     {
-        $l_sql = "UPDATE isys_mandator SET isys_mandator__active = '" . $p_active . "' WHERE isys_mandator__id = '" . $p_id . "';";
+        $l_sql = 'UPDATE isys_mandator SET isys_mandator__active = ' . $this->convert_sql_boolean($p_active) . ' WHERE isys_mandator__id = ' . $this->convert_sql_id($p_id) .
+            ';';
 
         return $this->update($l_sql) && $this->apply_update();
     }
@@ -265,10 +267,10 @@ class isys_component_dao_mandator extends isys_component_dao
     public function delete($p_id)
     {
         // Delete mandator
-        $l_sql = "DELETE FROM isys_mandator WHERE isys_mandator__id = '" . $p_id . "';";
+        $l_sql = 'DELETE FROM isys_mandator WHERE isys_mandator__id = ' . $this->convert_sql_id($p_id) . ';';
         $this->update($l_sql);
         // Delete mandator settings
-        $l_sql = "DELETE FROM isys_settings WHERE isys_settings__isys_mandator__id = '" . $p_id . "';";
+        $l_sql = 'DELETE FROM isys_settings WHERE isys_settings__isys_mandator__id = ' . $this->convert_sql_id($p_id) . ';';
         $this->update($l_sql);
 
         return $this->apply_update();

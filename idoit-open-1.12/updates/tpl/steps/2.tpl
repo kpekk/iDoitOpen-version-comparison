@@ -18,8 +18,7 @@
 		<p>Date: [{$g_update.release}] (rev [{$g_update.revision}])</p>
 		<input type="hidden" name="download" value="1" />
 		<input type="hidden" name="dl_file" value="[{$g_update.filename}]" />
-		<input type="button" class="button" name="btn_download"  value="Download" onClick="if (document.getElementsByName('download')[0].value =! '') this.form.submit();" />
-
+		<input type="button" class="button" name="btn_download"  value="Download" onClick="if (!$('isys_form').down('[name=\"download\"]').getValue().blank()) {$('isys_form').submit();}" />
 	[{else}]
 
 		[{if $g_downloaded}]
@@ -30,12 +29,12 @@
 				<p class="bold message [{$g_update_message_class}]">[{$g_update_message}]</p>
 			[{else}]
 				<br /><br />
-				<input type="hidden" name="check_update" value="false" />
-				<input type="button" class="button" name="btn_check"  value="Check for a new version" onClick="this.form.check_update.value='true'; this.form.submit();" />
+				<input type="hidden" id="check_update" name="check_update" value="false" />
+				<input type="button" class="button" name="btn_check"  value="Check for a new version" onClick="$('check_update').setValue('true'); $('isys_form').submit();" />
 				<br />
 				or enter the URL of an update package:
 				<input type="text" style="border:1px solid #888;width:180px;" placeholder="[{$site_url}]/downloads/*" name="download" value="" />
-				<input type="button" name="btn_download" class="button" value="Download and extract" onClick="this.form.submit();" />
+				<input type="button" name="btn_download" class="button" value="Download and extract" onClick="$('isys_form').submit();" />
 			[{/if}]
 		[{/if}]
 

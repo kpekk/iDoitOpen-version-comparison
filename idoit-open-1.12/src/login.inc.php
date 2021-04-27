@@ -37,7 +37,7 @@ try {
         $l_error = 'No password specified!<br />';
     } else {
         // Check if mandator ID is set.
-        if (isset($_POST['login_mandant_id'])) {
+        if (isset($_POST['login_mandant_id']) && is_numeric($_POST['login_mandant_id'])) {
             // Instantiate isys_application::instance()->database.
             if ($session->connect_mandator($_POST['login_mandant_id'])) {
                 // Insert Session Entry to database.
@@ -60,9 +60,9 @@ try {
                             ->init(isys_module_request::get_instance());
 
                         /* Check if licence check exists */
-                        if (class_exists('isys_ajax_handler_licence_check')) {
-                            $l_lic = new isys_ajax_handler_licence_check($_GET, $_POST);
-                            $l_lic->checkLicense();
+                        if (class_exists("isys_module_licence")) {
+                            $l_licence = new isys_module_licence();
+                            $l_licence->verify();
                         }
 
                         // Delete temp tables.

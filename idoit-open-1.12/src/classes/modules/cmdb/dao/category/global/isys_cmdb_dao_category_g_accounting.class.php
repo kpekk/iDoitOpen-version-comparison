@@ -449,7 +449,7 @@ class isys_cmdb_dao_category_g_accounting extends isys_cmdb_dao_category_global
 
                 // Set placeholders
                 if (!isset(self::$m_placeholder_counter_arr[$p_table][$p_data_string])) {
-                    self::$m_placeholder_counter_arr[$p_table][$p_data_string] = '';
+                    self::$m_placeholder_counter_arr[$p_table][$p_data_string] = [];
                     preg_match_all("/\%COUNTER([\#\,\:])\d*\%|\%COUNTER\%|\%COUNTER\:\d*\#\d*\%/", $l_replaced_string, $l_matches);
 
                     if ($l_matches !== false) {
@@ -468,13 +468,11 @@ class isys_cmdb_dao_category_g_accounting extends isys_cmdb_dao_category_global
                                     $l_length = substr($l_placeholder, $l_length_pos + 1, -1);
                                 }
 
-                                self::$m_placeholder_counter_arr[$p_table][$p_data_string][] = $l_length > 0 ? ($l_count_from > 0 ? [
-                                    '%COUNTER:' . $l_count_from . '#' . $l_length . '%',
-                                    $l_length
-                                ] : [
-                                    '%COUNTER#' . $l_length . '%',
-                                    $l_length
-                                ]) : ['%COUNTER%'];
+                                self::$m_placeholder_counter_arr[$p_table][$p_data_string][] = $l_length > 0 ?
+                                    ($l_count_from > 0 ?
+                                        ['%COUNTER:' . $l_count_from . '#' . $l_length . '%', $l_length] :
+                                        ['%COUNTER#' . $l_length . '%', $l_length]) :
+                                    ['%COUNTER%'];
                             }
                         }
                     }

@@ -73,9 +73,12 @@
         $save_button.on('click', function () {
             popup_close($('popup_commentary'));
             $('navMode').setValue('[{$navmode_save}]');
-            save_via_ajax('ajaxReturnNote');
+
+            // @see ID-6296 Trigger the callback AFTER the ajax request has finished.
             [{if $smarty.get.callbackAccept}]
-            idoit.callbackManager.triggerCallback('[{$smarty.get.callbackAccept}]');
+            save_via_ajax('ajaxReturnNote', function () {idoit.callbackManager.triggerCallback('[{$smarty.get.callbackAccept}]');});
+            [{else}]
+            save_via_ajax('ajaxReturnNote');
             [{/if}]
         });
 

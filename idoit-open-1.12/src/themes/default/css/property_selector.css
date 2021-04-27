@@ -1,34 +1,32 @@
 div.category-field, div.selected-field {
-    background: #eee;
+    background: #eeeeee;
     padding: 3px;
     margin-top: 5px;
     position: relative;
     font-weight: normal;
-	min-height: 15px;
+    min-height: 15px;
 }
 
 div.selected-field-focus {
-    -webkit-animation:propertySelected 3s infinite; /* Chrome, Safari, Opera */
-    animation:propertySelected 3s infinite;
+    -webkit-animation: propertySelected 3s infinite; /* Chrome, Safari, Opera */
+    animation: propertySelected 3s infinite;
 }
 
-@-webkit-keyframes propertySelected
-{
-    0%   {background:none repeat scroll 0 0 #EEEEEE;}
-    50%  {background:#B7FFB7;}
-    100% {background:none repeat scroll 0 0 #EEEEEE;}
+@-webkit-keyframes propertySelected {
+    0% {background: none repeat scroll 0 0 #eeeeee;}
+    50% {background: #b7ffb7;}
+    100% {background: none repeat scroll 0 0 #eeeeee;}
 }
 
 /* Standard syntax */
-@keyframes propertySelected
-{
-    0%   {background:none repeat scroll 0 0 #EEEEEE;}
-    50%  {background:#B7FFB7;}
-    100% {background:none repeat scroll 0 0 #EEEEEE;}
+@keyframes propertySelected {
+    0% {background: none repeat scroll 0 0 #eeeeee;}
+    50% {background: #b7ffb7;}
+    100% {background: none repeat scroll 0 0 #eeeeee;}
 }
 
 div.property-selector table {
-	border-spacing: 0;
+    border-spacing: 0;
 }
 
 span.reference {
@@ -70,7 +68,7 @@ span.property-remover {
     background: url('[{$dirs.images}]icons/silk/cross.png') no-repeat;
     width: 16px;
     height: 16px;
-    position:relative;
+    position: relative;
     cursor: pointer;
     padding: 0px 16px;
     margin-top: 5px;

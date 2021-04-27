@@ -177,9 +177,7 @@ class isys_library_ldap extends ldapi_acc
                 ];
 
                 foreach ($l_mapping as $l_const => $l_attr) {
-
                     if (is_countable($l_ar[strtolower($l_attr)]) && count($l_ar[strtolower($l_attr)]) > 0) {
-
                         if ($l_const == C__LDAP_MAPPING__GROUP) {
                             $l_value = $l_ar[strtolower($l_attr)];
                         } else {
@@ -211,6 +209,39 @@ class isys_library_ldap extends ldapi_acc
         }
 
         return $this;
+    }
+
+    /**
+     * Verifies if paged result is supported by the connected ldap server
+     *
+     * @return bool
+     */
+    public function isPagedResultSupported()
+    {
+        return ldap_control_paged_result($this->get_connection(), 0);
+    }
+
+    /**
+     * Set ldap control page result
+     *
+     * @param int       $pageSize
+     * @param bool      $isCritical
+     * @param string    $pagedResultCookie Pointer of the current search
+     */
+    public function ldapControlPagedResult($pageSize, $isCritical, &$pagedResultCookie)
+    {
+        ldap_control_paged_result($this->get_connection(), $pageSize, $isCritical, $pagedResultCookie);
+    }
+
+    /**
+     * Set ldap control page response
+     *
+     * @param $ldapSearchResource
+     * @param $pagedResultCookie
+     */
+    public function ldapControlPagedResultResponse($ldapSearchResource, &$pagedResultCookie)
+    {
+        ldap_control_paged_result_response($this->get_connection(), $ldapSearchResource, $pagedResultCookie);
     }
 
     /**

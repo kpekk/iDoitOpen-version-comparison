@@ -19,7 +19,7 @@ $template = isys_application::instance()->container->get('template');
 if (!$session->is_logged_in()) {
     if (isset($_POST['login_username'])) {
         include_once('login.inc.php');
-    } else if (isys_tenantsettings::get('session.sso.active', false) && isys_settings::get('session.sso.mandator-id', '1') > 0 &&
+    } elseif (isys_tenantsettings::get('session.sso.active', false) && isys_settings::get('session.sso.mandator-id', '1') > 0 &&
         ((isset($_SERVER['REDIRECT_REMOTE_USER']) && $_SERVER['REDIRECT_REMOTE_USER'] != '') || (isset($_SERVER['REMOTE_USER']) && $_SERVER['REMOTE_USER'] != ''))) {
         include_once('sso.inc.php');
     }
@@ -181,7 +181,7 @@ if (!$session->is_logged_in()) {
     $index_includes['navbar'] = 'content/navbar/main.tpl';
 
     // User is logged in.
-    include_once("i-doit.inc.php");
+    include_once __DIR__ . '/i-doit.inc.php';
 
     // Show navbar.
     isys_component_template_navbar::getInstance()
@@ -191,23 +191,9 @@ if (!$session->is_logged_in()) {
     global $g_mandator_name;
 
     $template
-        ->assign("g_mandant_name", $g_mandator_name)
-        ->assignByRef("infobox", isys_component_template_infobox::instance())
+        ->assign('g_mandant_name', $g_mandator_name)
+        ->assignByRef('infobox', isys_component_template_infobox::instance())
         ->assign('menu_width', isys_usersettings::get('gui.leftcontent.width', isys_component_dao_user::C__CMDB__TREE_MENU_WIDTH));
-}
-
-// Show loaded and initialized modules.
-if (isset($_GET['modules']) && defined('C__MODULE__SYSTEM') && isys_auth_system::instance()
-        ->is_allowed_to(isys_auth::SUPERVISOR, 'SYSTEM')) {
-    $g_modman->enum();
-    $l_modules = $g_modman->modules();
-    ksort($l_modules);
-
-    $template
-        ->assign('init_modules', $g_modman->get_initialized_modules())
-        ->assign('modules', $l_modules);
-
-    $index_includes = ["contentbottomcontent" => "content/modules.tpl"];
 }
 
 /**
@@ -215,7 +201,7 @@ if (isset($_GET['modules']) && defined('C__MODULE__SYSTEM') && isys_auth_system:
  * INITIALIZE SOME TEMPLATE VARIABLES
  * --------------------------------------------------------------------------------------------------------------------------
  */
-include_once('template.inc.php');
+include_once __DIR__ . '/template.inc.php';
 
 /**
  * --------------------------------------------------------------------------------------------------------------------------
@@ -223,36 +209,20 @@ include_once('template.inc.php');
  * --------------------------------------------------------------------------------------------------------------------------
  */
 if (!$g_output_done) {
-    /**
-     * @TODO  Consider following structure (instead of deep nesting):
-     *
-     * if (<bad thing>) {
-     *   throw exception
-     * }
-     *
-     * if (<bad thing>) {
-     *   throw exception
-     * }
-     *
-     * [...]
-     *
-     * <do logic at the end>
-     */
-
-    if (!empty($g_dirs["smarty"])) {
-        if (!empty($g_template["start_page"])) {
-            if (file_exists($g_dirs["smarty"] . "templates/" . $g_template["start_page"])) {
-                $template->display("file:" . $g_dirs["smarty"] . "templates/" . $g_template["start_page"]);
-
-                // Emit signal afterRender.
-                isys_component_signalcollection::get_instance()->emit('system.gui.afterRender');
-            } else {
-                isys_glob_display_error("Error: Template " . $g_dirs["smarty"] . "templates/" . $g_template["start_page"] . ' does not exist.');
-            }
-        } else {
-            isys_glob_display_error("Error while displaying template: g_template[start_page] is not set!");
-        }
-    } else {
-        isys_glob_display_error("Error while displaying template: g_dirs[smarty] is empty. This could be a settings or cache problem");
+    if (empty($g_dirs['smarty'])) {
+        isys_glob_display_error('Error while displaying template: g_dirs[smarty] is empty. This could be a settings or cache problem');
     }
+
+    if (empty($g_template['start_page'])) {
+        isys_glob_display_error('Error while displaying template: g_template[start_page] is not set!');
+    }
+
+    if (!file_exists($g_dirs['smarty'] . 'templates/' . $g_template['start_page'])) {
+        isys_glob_display_error('Error: Template ' . $g_dirs['smarty'] . 'templates/' . $g_template['start_page'] . ' does not exist.');
+    }
+
+    $template->display($g_dirs['smarty'] . 'templates/' . $g_template['start_page']);
+
+    // Emit signal afterRender.
+    isys_component_signalcollection::get_instance()->emit('system.gui.afterRender');
 }

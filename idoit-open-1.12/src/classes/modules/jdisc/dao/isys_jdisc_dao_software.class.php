@@ -654,8 +654,14 @@ class isys_jdisc_dao_software extends isys_jdisc_dao_data
                             // Create specific category only if the object has been really created
                             if (isys_cmdb_dao_jdisc::object_created_in_current_session($l_application[self::OBJ_ID])) {
                                 // Create specific category entry
-                                $l_application_dao->create($l_application[self::OBJ_ID], C__RECORD_STATUS__NORMAL, $l_row['osfamily'] . ' - ' . $l_row['patchlevel'], null, '',
-                                    $l_description);
+                                $l_application_dao->create(
+                                    $l_application[self::OBJ_ID],
+                                    C__RECORD_STATUS__NORMAL,
+                                    $l_row['osfamily'] . ' - ' . $l_row['patchlevel'],
+                                    null,
+                                    '',
+                                    $l_description
+                                );
                             }
                         }
                     }
@@ -772,8 +778,15 @@ class isys_jdisc_dao_software extends isys_jdisc_dao_data
                                             // Create specific category only if the object has been really created
                                             if (isys_cmdb_dao_jdisc::object_created_in_current_session($l_service[self::OBJ_ID])) {
                                                 // Create specific category entry
-                                                $l_db_instance_dao->create($l_service[self::OBJ_ID], '', '', '', '', [$l_database_schema['isys_obj__id']],
-                                                    C__RECORD_STATUS__NORMAL);
+                                                $l_db_instance_dao->create(
+                                                    $l_service[self::OBJ_ID],
+                                                    '',
+                                                    '',
+                                                    '',
+                                                    '',
+                                                    [$l_database_schema['isys_obj__id']],
+                                                    C__RECORD_STATUS__NORMAL
+                                                );
                                             }
                                             $l_service['database_schema'] = $l_database_schema;
                                         } else {
@@ -1470,8 +1483,8 @@ UNION
      */
     private function get_manufacturer($p_manufacturer, $p_manufacturer_table)
     {
-        $l_manufacturer = isys_factory_cmdb_dialog_dao::get_instance($this->m_db, $p_manufacturer_table)
-            ->get_data(null, $p_manufacturer);
+        $dialogInstance = isys_factory_cmdb_dialog_dao::get_instance($p_manufacturer_table, $this->m_db);
+        $l_manufacturer = $dialogInstance->get_data(null, $p_manufacturer);
         $l_manufacturer_id = $l_manufacturer[$p_manufacturer_table . '__id'];
 
         // The manufacturer does not exist - We create it.
@@ -1484,6 +1497,16 @@ UNION
             $l_dao->update($l_manufacturer_sql);
 
             $l_manufacturer_id = $l_dao->get_last_insert_id();
+
+            $data = [
+                $p_manufacturer_table . '__id' => $l_manufacturer_id,
+                $p_manufacturer_table . '__title' => $p_manufacturer,
+                $p_manufacturer_table . '__status' => defined_or_default('C__RECORD_STATUS__NORMAL'),
+                'title' => $p_manufacturer,
+                'title_lower' => strtolower($p_manufacturer)
+            ];
+
+            $dialogInstance->appendToCache($l_manufacturer_id, $data);
         }
 
         return $l_manufacturer_id;
@@ -1500,8 +1523,8 @@ UNION
      */
     private function get_net_protocol($p_title)
     {
-        $l_net_protocol = isys_factory_cmdb_dialog_dao::get_instance($this->m_db, 'isys_net_protocol')
-            ->get_data(null, $p_title);
+        $dialogInstance = isys_factory_cmdb_dialog_dao::get_instance($this->m_db, 'isys_net_protocol');
+        $l_net_protocol = $dialogInstance->get_data(null, $p_title);
         $l_net_protocol_id = $l_net_protocol['isys_net_protocol__id'];
 
         if ($l_net_protocol_id === null) {
@@ -1513,6 +1536,16 @@ UNION
             $l_dao->update($l_sql);
 
             $l_net_protocol_id = $l_dao->get_last_insert_id();
+
+            $data = [
+                'isys_net_protocol__id' => $l_net_protocol_id,
+                'isys_net_protocol__title' => $p_title,
+                'isys_net_protocol__status' => defined_or_default('C__RECORD_STATUS__NORMAL'),
+                'title' => $p_title,
+                'title_lower' => strtolower($p_title)
+            ];
+
+            $dialogInstance->appendToCache($l_net_protocol_id, $data);
         }
 
         return $l_net_protocol_id;
@@ -1796,8 +1829,10 @@ UNION
         $l_return = new SplFixedArray(2);
         $l_return[1] = false;
         if (!isset($p_licence_objects[$p_title])) {
-            $l_return[0] = defined('C__OBJTYPE__LICENCE') ? ($p_dao->get_obj_id_by_title($p_title, C__OBJTYPE__LICENCE) ?: $p_dao->get_obj_id_by_title($p_title . ' (JDisc)',
-                C__OBJTYPE__LICENCE)) : '';
+            $l_return[0] = defined('C__OBJTYPE__LICENCE') ? ($p_dao->get_obj_id_by_title($p_title, C__OBJTYPE__LICENCE) ?: $p_dao->get_obj_id_by_title(
+                $p_title . ' (JDisc)',
+                C__OBJTYPE__LICENCE
+            )) : '';
             if (!$l_return[0]) {
                 $l_return[0] = $p_dao->create_object($p_title . ' (JDisc)', defined_or_default('C__OBJTYPE__LICENCE'));
                 $this->m_log->debug('> Creating Licence object: ' . $p_title . ' (JDisc)');

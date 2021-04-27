@@ -310,48 +310,60 @@ class isys_cmdb_dao_nexgen extends isys_component_dao
     }
 
     /**
-     * objtype_get_by_objgroup_id
+     * Returns a result set including the object types for the specified object group and its object-count.
+     * The object-count can be additionally checked by permission.
      *
-     * Returns a result set including the object types for the specified
-     * object group and its object-count. The object-count can be additionally checked
-     * by permission.
-     *
-     * @author Dennis Stuecken
-     *
-     * @param integer $p_objgroup_id
-     * @param boolean $p_check_rights
+     * @param  int  $objectTypeGroupId
+     * @param  bool $checkRights
+     * @param  int  $status
+     * @param  bool $displayObjectCount
      *
      * @return isys_component_dao_result
+     * @throws isys_exception_database
      */
-    public function objtype_get_by_objgroup_id($p_objgroup_id, $p_check_rights = false, $p_status = C__RECORD_STATUS__NORMAL)
+    public function objtype_get_by_objgroup_id($objectTypeGroupId, $checkRights = false, $status = C__RECORD_STATUS__NORMAL, $displayObjectCount = true)
     {
-        if (is_array($this->m_cmdb_status)) {
-            if (defined('C__CMDB_STATUS__IDOIT_STATUS_TEMPLATE') && is_numeric(array_search(constant('C__CMDB_STATUS__IDOIT_STATUS_TEMPLATE'), $this->m_cmdb_status))) {
-                $p_status = C__RECORD_STATUS__TEMPLATE;
-            }
+        if (is_array($this->m_cmdb_status) && defined('C__CMDB_STATUS__IDOIT_STATUS_TEMPLATE') &&
+            is_numeric(array_search(constant('C__CMDB_STATUS__IDOIT_STATUS_TEMPLATE'), $this->m_cmdb_status, false))) {
+            $status = C__RECORD_STATUS__TEMPLATE;
         }
 
+        $status = $this->convert_sql_int($status);
+        $objectTypeGroupId = $this->convert_sql_id($objectTypeGroupId);
         $l_cmdb_status_filter = $this->prepare_status_filter();
-        if ($l_cmdb_status_filter != "") {
-            $l_cmdb_status_filter = " AND " . $l_cmdb_status_filter;
+
+        if ($l_cmdb_status_filter !== '') {
+            $l_cmdb_status_filter = ' AND ' . $l_cmdb_status_filter;
         }
 
-        $l_object_type_condition = $l_condition = '';
+        $objectTypeCondition = $condition = '';
 
-        if ($p_check_rights) {
+        if ($checkRights) {
             /**
-             * @todo This behaviour has to be changed!! It's inacceptable to do an IN operation for more than 100 values. This stupid code can result into thousands of values and can exceed the max_allowed_packet size..
              * @see  check ID-1545
+             * @todo This behaviour has to be changed!! It's inacceptable to do an IN operation for more than 100 values.
+             *       This stupid code can result into thousands of values and can exceed the max_allowed_packet size.
              */
-            $l_condition = isys_auth_cmdb_objects::instance()
-                ->get_allowed_objects_condition();
-            $l_object_type_condition = isys_auth_cmdb_objects::instance()
-                ->get_allowed_object_types_condition();
+            $condition = isys_auth_cmdb_objects::instance()->get_allowed_objects_condition();
+            $objectTypeCondition = isys_auth_cmdb_objects::instance()->get_allowed_object_types_condition();
         }
 
-        $l_q = "SELECT *, " . "(SELECT COUNT(isys_obj__id) FROM isys_obj WHERE isys_obj__isys_obj_type__id = isys_obj_type__id " . $l_condition . " AND isys_obj__status = '" .
-            $p_status . "' " . $l_cmdb_status_filter . ") as objcount " . "FROM isys_obj_type " . "WHERE (isys_obj_type__isys_obj_type_group__id = '" . $p_objgroup_id . "')" .
-            $l_object_type_condition . ' ' . "ORDER BY isys_obj_type__sort, isys_obj_type__title;";
+        $counterSql = "''";
+
+        if ($displayObjectCount) {
+            $counterSql = "(SELECT COUNT(isys_obj__id) 
+                FROM isys_obj 
+                WHERE isys_obj__isys_obj_type__id = isys_obj_type__id 
+                {$condition} 
+                AND isys_obj__status = {$status}
+                {$l_cmdb_status_filter})";
+        }
+
+        $l_q = "SELECT *, {$counterSql} as objcount 
+              FROM isys_obj_type 
+              WHERE isys_obj_type__isys_obj_type_group__id = {$objectTypeGroupId}
+              {$objectTypeCondition} 
+              ORDER BY isys_obj_type__sort, isys_obj_type__title;";
 
         return $this->retrieve($l_q);
     }

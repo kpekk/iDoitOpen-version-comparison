@@ -13,6 +13,7 @@ use idoit\Module\Multiedit\Component\Multiedit\Exception\UnknownFormatterTypeExc
 class FormatterManager
 {
     private static $formatter = [
+        C__PROPERTY__UI__TYPE__LINK        => TextFormatter::class,
         C__PROPERTY__UI__TYPE__TEXT        => TextFormatter::class,
         C__PROPERTY__UI__TYPE__TEXTAREA    => TextFormatter::class,
         C__PROPERTY__UI__TYPE__UPLOAD      => UploadFormatter::class,

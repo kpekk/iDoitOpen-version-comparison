@@ -15,49 +15,51 @@ class isys_cmdb_ui_category_s_organization_master extends isys_cmdb_ui_category_
     /**
      * Organisation process method.
      *
-     * @param   isys_cmdb_dao_category $p_cat
+     * @param   isys_cmdb_dao_category $dao
      *
      * @return  void
      */
-    public function process(isys_cmdb_dao_category $p_cat)
+    public function process(isys_cmdb_dao_category $dao)
     {
-        global $index_includes;
+        $categoryData = $dao->get_general_data();
 
-        $l_catdata = $p_cat->get_general_data();
+        $organizations = [];
+        $result = $dao->get_objects_by_cats_id(defined_or_default('C__CATS__ORGANIZATION'), C__RECORD_STATUS__NORMAL);
 
-        $l_org = [];
-        $l_res = $p_cat->get_objects_by_cats_id(defined_or_default('C__CATS__ORGANIZATION'), C__RECORD_STATUS__NORMAL);
-
-        while ($l_row = $l_res->get_row()) {
-            $l_org[$l_row["isys_obj__id"]] = $l_row["isys_obj__title"];
+        while ($row = $result->get_row()) {
+            $organizations[$row['isys_obj__id']] = $row['isys_obj__title'];
         }
 
-        // Make rules
-        $l_rules["C__CMDB__CAT__COMMENTARY_" . $p_cat->get_category_type() . defined_or_default('C__CATS__ORGANIZATION')]["p_strValue"] = $l_catdata["isys_cats_organization_list__description"];
-        $l_rules["C__CMDB__CAT__COMMENTARY_" . $p_cat->get_category_type() .
-        defined_or_default('C__CATS__ORGANIZATION_MASTER_DATA')]["p_strValue"] = $l_catdata["isys_cats_organization_list__description"];
+        // @todo  Maybe rewrite this to use `$this->fill_formfields(...)`?
 
-        $l_rules["C__CONTACT__ORGANISATION_TITLE"]["p_strValue"] = $l_catdata["isys_cats_organization_list__title"];
-        $l_rules["C__CONTACT__ORGANISATION_PHONE"]["p_strValue"] = $l_catdata["isys_cats_organization_list__telephone"];
-        $l_rules["C__CONTACT__ORGANISATION_FAX"]["p_strValue"] = $l_catdata["isys_cats_organization_list__fax"];
-        $l_rules["C__CONTACT__ORGANISATION_WEBSITE"]["p_strValue"] = $l_catdata["isys_cats_organization_list__website"];
-        $l_rules["C__CONTACT__ORGANISATION_ASSIGNMENT"]["p_arData"] = $l_org;
-        $l_rules["C__CONTACT__ORGANISATION_ASSIGNMENT"]["p_strSelectedID"] = $l_catdata["isys_connection__isys_obj__id"];
-        $l_rules["C__CONTACT__ORGANISATION_ASSIGNMENT"]["p_arDisabled"] = serialize([$l_catdata["isys_cats_organization_list__isys_obj__id"] => true]);
+        // Make rules.
+        $l_rules = [
+            'C__CMDB__CAT__COMMENTARY_' . $dao->get_category_type() . defined_or_default('C__CATS__ORGANIZATION')             => [
+                'p_strValue' => $categoryData['isys_cats_organization_list__description']
+            ],
+            'C__CMDB__CAT__COMMENTARY_' . $dao->get_category_type() . defined_or_default('C__CATS__ORGANIZATION_MASTER_DATA') => [
+                'p_strValue' => $categoryData['isys_cats_organization_list__description']
+            ],
+            'C__CONTACT__ORGANISATION_TITLE'                                                                                  => [
+                'p_strValue' => $categoryData['isys_cats_organization_list__title']
+            ],
+            'C__CONTACT__ORGANISATION_PHONE'                                                                                  => [
+                'p_strValue' => $categoryData['isys_cats_organization_list__telephone']
+            ],
+            'C__CONTACT__ORGANISATION_FAX'                                                                                    => [
+                'p_strValue' => $categoryData['isys_cats_organization_list__fax']
+            ],
+            'C__CONTACT__ORGANISATION_WEBSITE'                                                                                => [
+                'p_strValue' => $categoryData['isys_cats_organization_list__website']
+            ],
+            'C__CONTACT__ORGANISATION_ASSIGNMENT'                                                                             => [
+                'p_arData'        => $organizations,
+                'p_strSelectedID' => $categoryData['isys_connection__isys_obj__id'],
+                'p_arDisabled'    => serialize([$categoryData['isys_cats_organization_list__isys_obj__id'] => true])
+            ]
+        ];
 
         // Apply rules.
-        $this->m_template->smarty_tom_add_rules("tom.content.bottom.content", $l_rules);
-        $index_includes["contentbottomcontent"] = $this->get_template();
-    }
-
-    /**
-     * isys_cmdb_ui_category_s_organization_master constructor.
-     *
-     * @param isys_component_template $p_template
-     */
-    public function __construct(isys_component_template &$p_template)
-    {
-        parent::__construct($p_template);
-        $this->set_template("cats__organization_master.tpl");
+        $this->get_template_component()->smarty_tom_add_rules('tom.content.bottom.content', $l_rules);
     }
 }

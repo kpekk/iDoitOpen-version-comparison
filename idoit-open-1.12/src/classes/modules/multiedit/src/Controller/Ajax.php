@@ -289,7 +289,7 @@ class Ajax extends Main
                 ->formatData();
 
             $authCondition = \isys_auth_cmdb_objects::instance()
-                ->get_allowed_objects_condition(\isys_auth::EDIT);
+                ->get_allowed_objects_condition(\isys_auth::VIEW);
 
             $categoryDao = current($daoInstances);
             $categoryDao->set_category_id($categoryId);

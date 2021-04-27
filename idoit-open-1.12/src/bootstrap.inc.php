@@ -43,6 +43,8 @@ $g_config = [
     'html-encoding' => 'utf-8'
 ];
 
+mb_internal_encoding($g_config['html-encoding']);
+
 // Initialize global directory configuration
 if (!isset($g_dirs)) {
     $g_dirs = [];

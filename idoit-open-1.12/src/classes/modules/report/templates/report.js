@@ -67,7 +67,7 @@ Lists.ReportList = Class.create(Lists.Objects, {
             {
                 tr.insert(new Element('td', {
                     'className': this.table.id + '-column-' + s
-                }).update(this.replaceTablePlaceholders.replacePlaceholders(values[index])));
+                }).update(this.replaceTablePlaceholders.replacePlaceholdersInCell(values[index])));
             }
         }.bind(this));
         

@@ -46,6 +46,85 @@ class isys_ldap_dao extends isys_module_dao
     }
 
     /**
+     * Build Changes for update or insert
+     *
+     * @param      $p_directory_type
+     * @param      $p_host
+     * @param      $p_port
+     * @param      $p_user_dn
+     * @param      $p_pass
+     * @param      $p_user_search
+     * @param      $p_group_search
+     * @param      $p_filter
+     * @param      $p_active
+     * @param int  $p_timelimit
+     * @param int  $p_recursive
+     * @param int  $p_tls
+     * @param int  $p_version
+     * @param null $p_filter_arr
+     * @param bool $useAdminOnly
+     * @param bool $enableLdapPaging
+     * @param int  $pageLimit
+     *
+     * @return array
+     */
+    public function getChanges(
+        $p_directory_type,
+        $p_host,
+        $p_port,
+        $p_user_dn,
+        $p_pass,
+        $p_user_search,
+        $p_group_search,
+        $p_filter,
+        $p_active,
+        $p_timelimit = 30,
+        $p_recursive = 0,
+        $p_tls = 0,
+        $p_version = 3,
+        $p_filter_arr = null,
+        $useAdminOnly = false,
+        $enableLdapPaging = false,
+        $pageLimit = 500
+    ) {
+        $changes = [
+            'isys_ldap__isys_ldap_directory__id' => $this->convert_sql_id($p_directory_type),
+            'isys_ldap__hostname' => $this->convert_sql_text($p_host),
+            'isys_ldap__port' => $this->convert_sql_int($p_port),
+            'isys_ldap__dn' => $this->convert_sql_text($p_user_dn),
+            'isys_ldap__user_search' => $this->convert_sql_text($p_user_search),
+            'isys_ldap__group_search' => $this->convert_sql_text($p_group_search),
+            'isys_ldap__filter' => $this->convert_sql_text($p_filter),
+            'isys_ldap__active' => $this->convert_sql_boolean($p_active),
+            'isys_ldap__recursive' => $this->convert_sql_boolean($p_recursive),
+            'isys_ldap__timelimit' => $this->convert_sql_int($p_timelimit),
+            'isys_ldap__tls' => $this->convert_sql_int($p_tls),
+            'isys_ldap__version' => $this->convert_sql_int($p_version),
+            'isys_ldap__enable_paging' => $this->convert_sql_boolean($enableLdapPaging),
+        ];
+
+        if ($pageLimit !== null) {
+            $changes['isys_ldap__page_limit'] = $this->convert_sql_int($pageLimit);
+        }
+
+        if ($p_pass !== null) {
+            $changes['isys_ldap__password'] = $this->convert_sql_text(isys_helper_crypt::encrypt($p_pass));
+        }
+
+        if ($useAdminOnly !== null) {
+            $changes['isys_ldap__use_admin_only'] = $this->convert_sql_boolean($useAdminOnly);
+        }
+
+        if (is_array($p_filter_arr)) {
+            $changes['isys_ldap__filter_array'] = $this->convert_sql_text(serialize($p_filter_arr));
+        }
+
+        return array_map(function ($k, $v) {
+            return $k . ' = ' . $v;
+        }, array_keys($changes), $changes);
+    }
+
+    /**
      * Saves a registered ldap server.
      *
      * @param   integer $p_directory_type
@@ -63,7 +142,9 @@ class isys_ldap_dao extends isys_module_dao
      * @param   integer $p_version
      * @param   integer $p_id
      * @param   array   $p_filter_arr
-     * @param bool      $useAdminOnly
+     * @param   bool      $useAdminOnly
+     * @param   bool    $enableLdapPaging
+     * @param   integer $pageLimit
      *
      * @return  boolean
      * @throws isys_exception_dao
@@ -84,36 +165,33 @@ class isys_ldap_dao extends isys_module_dao
         $p_version = 3,
         $p_id,
         $p_filter_arr = null,
-        $useAdminOnly = false
+        $useAdminOnly = false,
+        $enableLdapPaging = false,
+        $pageLimit = 500
     ) {
         if ($this->validate($p_directory_type, $p_host, $p_port, $p_user_dn, $p_user_search)) {
-            $l_sql = "UPDATE isys_ldap SET
-				isys_ldap__isys_ldap_directory__id = " . $this->convert_sql_id($p_directory_type) . ",
-				isys_ldap__hostname = " . $this->convert_sql_text($p_host) . ",
-				isys_ldap__port = " . $this->convert_sql_int($p_port) . ",
-				isys_ldap__dn = " . $this->convert_sql_text($p_user_dn) . ",
-				isys_ldap__user_search = " . $this->convert_sql_text($p_user_search) . ",
-				isys_ldap__group_search = " . $this->convert_sql_text($p_group_search) . ",
-				isys_ldap__filter = " . $this->convert_sql_text($p_filter) . ",
-				isys_ldap__active = " . $this->convert_sql_boolean($p_active) . ",
-				isys_ldap__recursive = " . $this->convert_sql_boolean($p_recursive) . ",
-				isys_ldap__timelimit = " . $this->convert_sql_int($p_timelimit) . ",
-				isys_ldap__tls = " . $this->convert_sql_int($p_tls) . ",
-				isys_ldap__version = " . $this->convert_sql_int($p_version);
+            $changes = $this->getChanges(
+                $p_directory_type,
+                $p_host,
+                $p_port,
+                $p_user_dn,
+                $p_pass,
+                $p_user_search,
+                $p_group_search,
+                $p_filter,
+                $p_active,
+                $p_timelimit,
+                $p_recursive,
+                $p_tls,
+                $p_version,
+                $p_filter_arr,
+                $useAdminOnly,
+                $enableLdapPaging,
+                $pageLimit
+            );
 
-            if ($p_pass !== null) {
-                $l_sql .= ', isys_ldap__password = ' . $this->convert_sql_text(isys_helper_crypt::encrypt($p_pass));
-            }
-
-            if ($useAdminOnly !== null) {
-                $l_sql .= ', isys_ldap__use_admin_only = ' . $this->convert_sql_boolean($useAdminOnly);
-            }
-
-            if (is_array($p_filter_arr)) {
-                $l_sql .= ", isys_ldap__filter_array = " . $this->convert_sql_text(serialize($p_filter_arr));
-            }
-
-            $l_sql .= "WHERE isys_ldap__id = " . $this->convert_sql_id($p_id) . ";";
+            $l_sql = "UPDATE isys_ldap SET " . implode(', ', $changes);
+            $l_sql .= " WHERE isys_ldap__id = " . $this->convert_sql_id($p_id) . ";";
 
             if ($this->update($l_sql) && $this->apply_update()) {
                 return $this->get_last_insert_id();
@@ -143,6 +221,8 @@ class isys_ldap_dao extends isys_module_dao
      * @param integer $p_version
      * @param array   $p_filter_arr
      * @param bool    $useAdminOnly
+     * @param bool    $enableLdapPaging
+     * @param integer $pageLimit
      *
      * @return bool|int
      * @throws isys_exception_dao
@@ -162,35 +242,33 @@ class isys_ldap_dao extends isys_module_dao
         $p_tls = 0,
         $p_version = 3,
         $p_filter_arr = null,
-        $useAdminOnly = false
+        $useAdminOnly = false,
+        $enableLdapPaging = false,
+        $pageLimit = 500
     ) {
         if ($this->validate($p_directory_type, $p_host, $p_port, $p_user_dn, $p_pass, $p_user_search)) {
             if (!$this->exists($p_host, $p_port, $p_user_dn, $p_pass, $p_user_search, $p_filter)) {
-                $l_sql = "INSERT INTO isys_ldap SET
-                    isys_ldap__isys_ldap_directory__id = " . $this->convert_sql_id($p_directory_type) . ",
-                    isys_ldap__hostname = " . $this->convert_sql_text($p_host) . ",
-                    isys_ldap__port = " . $this->convert_sql_int($p_port) . ",
-                    isys_ldap__dn = " . $this->convert_sql_text($p_user_dn) . ",
-                    isys_ldap__user_search = " . $this->convert_sql_text($p_user_search) . ",
-                    isys_ldap__group_search = " . $this->convert_sql_text($p_group_search) . ",
-                    isys_ldap__filter = " . $this->convert_sql_text($p_filter) . ",
-                    isys_ldap__active = " . $this->convert_sql_boolean($p_active) . ",
-                    isys_ldap__timelimit = " . $this->convert_sql_int($p_timelimit) . ",
-                    isys_ldap__recursive = " . $this->convert_sql_boolean($p_recursive) . ",
-                    isys_ldap__tls = " . $this->convert_sql_int($p_tls) . ",
-                    isys_ldap__version = " . $this->convert_sql_int($p_version);
+                $changes = $this->getChanges(
+                    $p_directory_type,
+                    $p_host,
+                    $p_port,
+                    $p_user_dn,
+                    $p_pass,
+                    $p_user_search,
+                    $p_group_search,
+                    $p_filter,
+                    $p_active,
+                    $p_timelimit,
+                    $p_recursive,
+                    $p_tls,
+                    $p_version,
+                    $p_filter_arr,
+                    $useAdminOnly,
+                    $enableLdapPaging,
+                    $pageLimit
+                );
 
-                if ($p_pass !== null) {
-                    $l_sql .= ", isys_ldap__password = " . $this->convert_sql_text(isys_helper_crypt::encrypt($p_pass));
-                }
-
-                if ($useAdminOnly !== null) {
-                    $l_sql .= ', isys_ldap__use_admin_only = ' . $this->convert_sql_boolean($useAdminOnly);
-                }
-
-                if (is_array($p_filter_arr)) {
-                    $l_sql .= ", isys_ldap__filter_array = " . $this->convert_sql_text(serialize($p_filter_arr));
-                }
+                $l_sql = "INSERT INTO isys_ldap SET " . implode(', ', $changes);
 
                 if ($this->update($l_sql) && $this->apply_update()) {
                     return $this->get_last_insert_id();

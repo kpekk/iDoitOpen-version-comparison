@@ -68,6 +68,10 @@ class TextArea extends Formatter implements FormatterInterface
             $params['p_strClass'] .= ' multiedit-disabled ';
         }
 
+        if ($params['name']) {
+            $params['p_onChange'] = "window.multiEdit.changed(null, '{$params['name']}');";
+        }
+
         if ($valueFormatter->isChangeAllRowsActive() && $params['name'] !== null) {
             $params['p_onChange'] .= ";window.multiEdit.overwriteAll(this, '{$id}', 'text');";
             unset($params['p_bDisabled']);

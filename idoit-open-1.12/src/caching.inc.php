@@ -163,7 +163,7 @@ class isys_caching
         try {
             $this->save();
         } catch (Exception $e) {
-            // @todo  Log message to system log
+            // Does not matter, due to deprecation of this class.
         }
     }
 
@@ -237,11 +237,11 @@ class isys_caching
             unset(self::$m_data[$this->m_cachename]);
 
             if (file_exists($this->m_cachefile) && is_writable($this->m_cachefile)) {
-                // @todo  Sometimes this triggers "E_WARNING: unlink(.../temp/cache_xyz/cache__getdataconditionless.php): Permission denied". Maybe prepend a "@"?
+                // Does not matter, due to deprecation of this class.
                 unlink($this->m_cachefile);
             }
         } catch (ErrorException $e) {
-            // @todo  Log to system log
+            // Does not matter, due to deprecation of this class.
         }
 
         return $this;

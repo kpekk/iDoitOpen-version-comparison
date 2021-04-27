@@ -95,10 +95,12 @@ function mysql_import($p_db_name, $p_dumpfile, &$p_output, $p_dbLink = null)
  * @param  string   $p_database
  * @param  resource $p_dbLink
  *
+ * @param int       $p_license_objects
+ *
  * @return bool|mysqli_result
  * @throws Exception
  */
-function add_mandator($p_title, $p_description, $p_dir_cache, $p_dir_tpl, $p_db_host, $p_db_port, $p_db_name, $p_db_user, $p_db_pass, $p_sort = null, $p_database = null, $p_dbLink = null)
+function add_mandator($p_title, $p_description, $p_dir_cache, $p_dir_tpl, $p_db_host, $p_db_port, $p_db_name, $p_db_user, $p_db_pass, $p_sort = null, $p_database = null, $p_dbLink = null, $p_license_objects = 0)
 {
     global $g_dbLink, $g_config;
 
@@ -132,16 +134,17 @@ function add_mandator($p_title, $p_description, $p_dir_cache, $p_dir_tpl, $p_db_
     $p_title = (string) $p_title;
 
     $sql = 'INSERT INTO isys_mandator SET
-		isys_mandator__title = "' . $g_dbLink->escape_string($p_title) . '",
-		isys_mandator__description = "' . $g_dbLink->escape_string($p_title) . '",
-		isys_mandator__dir_cache = "' . $g_dbLink->escape_string('cache_' . filter_directory_name($p_title)) . '",
-		isys_mandator__dir_tpl = "' . $g_dbLink->escape_string($p_dir_tpl) . '",
-		isys_mandator__db_host = "' . $g_dbLink->escape_string($p_db_host) . '",
-		isys_mandator__db_port = "' . (int) $p_db_port . '",
-		isys_mandator__db_name = "' . $g_dbLink->escape_string($p_db_name) . '",
-		isys_mandator__db_user = "' . $g_dbLink->escape_string($p_db_user) . '",
-		isys_mandator__db_pass = "' . $g_dbLink->escape_string($p_db_pass) . '",
-		isys_mandator__sort = "' . (int) $p_sort . '";';
+		isys_mandator__title = \'' . $g_dbLink->escape_string($p_title) . '\',
+		isys_mandator__description = \'' . $g_dbLink->escape_string($p_title) . '\',
+		isys_mandator__dir_cache = \'' . $g_dbLink->escape_string('cache_' . filter_directory_name($p_title)) . '\',
+		isys_mandator__dir_tpl = \'' . $g_dbLink->escape_string($p_dir_tpl) . '\',
+		isys_mandator__db_host = \'' . $g_dbLink->escape_string($p_db_host) . '\',
+		isys_mandator__db_port = \'' . (int) $p_db_port . '\',
+		isys_mandator__db_name = \'' . $g_dbLink->escape_string($p_db_name) . '\',
+		isys_mandator__db_user = \'' . $g_dbLink->escape_string($p_db_user) . '\',
+		isys_mandator__db_pass = \'' . $g_dbLink->escape_string($p_db_pass) . '\',
+		isys_mandator__license_objects = \'' . $g_dbLink->escape_string($p_license_objects) . '\',
+		isys_mandator__sort = \'' . (int) $p_sort . '\';';
 
     return $g_dbLink->query($sql);
 }

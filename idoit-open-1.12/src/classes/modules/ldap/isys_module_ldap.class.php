@@ -1079,7 +1079,9 @@ class isys_module_ldap extends isys_module implements isys_module_interface
                                 $_POST["C__MODULE__LDAP__VERSION"],
                                 $l_id,
                                 $l_filter_arr,
-                                !!$_POST['C__MODULE__LDAP__USE_ADMIN_ONLY']
+                                !!$_POST['C__MODULE__LDAP__USE_ADMIN_ONLY'],
+                                $_POST['C__MODULE__LDAP__ENABLE_PAGING'],
+                                $_POST['C__MODULE__LDAP__PAGE_LIMIT']
                             );
                         } else {
                             $l_password = $_POST["C__MODULE__LDAP__PASS"];
@@ -1103,7 +1105,9 @@ class isys_module_ldap extends isys_module implements isys_module_interface
                                 $_POST["C__MODULE__LDAP__TLS"],
                                 $_POST["C__MODULE__LDAP__VERSION"],
                                 $l_filter_arr,
-                                !!$_POST['C__MODULE__LDAP__USE_ADMIN_ONLY']
+                                !!$_POST['C__MODULE__LDAP__USE_ADMIN_ONLY'],
+                                $_POST['C__MODULE__LDAP__ENABLE_PAGING'],
+                                $_POST['C__MODULE__LDAP__PAGE_LIMIT']
                             );
                         }
 
@@ -1152,6 +1156,8 @@ class isys_module_ldap extends isys_module implements isys_module_interface
                     $l_rules["C__MODULE__LDAP__FILTER"]["p_bReadonly"] = true;
                     $l_rules["C__MODULE__LDAP__VERSION"]["p_arData"] = $l_versions;
                     $l_rules["C__MODULE__LDAP__VERSION"]["p_strSelectedID"] = "3";
+                    $l_rules["C__MODULE__LDAP__ENABLE_PAGING"]["p_arData"] = get_smarty_arr_YES_NO();
+                    $l_rules["C__MODULE__LDAP__PAGE_LIMIT"]["p_strValue"] = 500;
 
                     /**
                      * Configuring ldap encoding field
@@ -1212,6 +1218,8 @@ class isys_module_ldap extends isys_module implements isys_module_interface
                         $l_rules["C__MODULE__LDAP__SEARCH"]["p_strValue"] = $l_data["isys_ldap__user_search"];
                         $l_rules["C__MODULE__LDAP__SEARCH_GROUP"]["p_strValue"] = $l_data["isys_ldap__group_search"];
                         $l_rules["C__MODULE__LDAP__FILTER"]["p_strValue"] = $l_filter;
+                        $l_rules["C__MODULE__LDAP__ENABLE_PAGING"]["p_strSelectedID"] = $l_data["isys_ldap__enable_paging"];
+                        $l_rules["C__MODULE__LDAP__PAGE_LIMIT"]["p_strValue"] = $l_data["isys_ldap__page_limit"];
 
                         if ($l_data['isys_ldap_directory__const'] == 'C__LDAP__OPENLDAP') {
                             $template->assign('simulate_openldap_search', true)
@@ -1416,7 +1424,7 @@ class isys_module_ldap extends isys_module implements isys_module_interface
             $l_dao_groups = isys_cmdb_dao_category_s_person_group_master::instance($g_comp_database);
 
             //$this->debug("Querying LDAP group: ". $p_group_name);
-            $l_idoit_group = $l_dao_groups->get_data(null, null, " AND (isys_cats_person_group_list__ldap_group = '" . $p_group_name . "')");
+            $l_idoit_group = $l_dao_groups->get_data(null, null, " AND (isys_cats_person_group_list__ldap_group = " . $l_dao_groups->convert_sql_text($p_group_name) . ")");
 
             if ($l_idoit_group->num_rows() > 0) {
                 $l_idoit_group_data = $l_idoit_group->__to_array();

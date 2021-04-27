@@ -540,19 +540,29 @@ class isys_cmdb_dao_location extends isys_cmdb_dao implements isys_mptt_callback
 
     /**
      * @return bool
-     * @throws Exception
      * @throws isys_exception_dao
      * @throws isys_exception_database
      */
     public function _location_fix()
     {
-        $l_data = $this->retrieve("SELECT isys_catg_location_list__id, COUNT(isys_catg_location_list__isys_obj__id) AS n FROM isys_catg_location_list GROUP BY isys_catg_location_list__isys_obj__id HAVING n > 1");
-        while ($l_row = $l_data->get_row()) {
-            $this->update("DELETE FROM isys_catg_location_list WHERE isys_catg_location_list__id = '" . $l_row["isys_catg_location_list__id"] . "';");
-        }
-        $this->apply_update();
+        // @see ID-6330 Fix possibly missing object type, object and category entry.
+        $this->fixRootLocationObjectType();
+        $this->fixRootLocationObject();
+        $this->fixRootLocationCategoryEntry();
 
-        $this->begin_update();
+        // Delete all duplicated category entries.
+        $sql = 'SELECT isys_catg_location_list__id AS id, COUNT(isys_catg_location_list__isys_obj__id) AS n 
+            FROM isys_catg_location_list 
+            GROUP BY isys_catg_location_list__isys_obj__id 
+            HAVING n > 1';
+
+        $result = $this->retrieve($sql);
+
+        while ($row = $result->get_row()) {
+            $this->update('DELETE FROM isys_catg_location_list WHERE isys_catg_location_list__id = ' . $this->convert_sql_id($row['id']) . ';');
+        }
+
+        $this->apply_update();
 
         $this->initialize_lft_rgt();
         $this->save();
@@ -821,6 +831,107 @@ class isys_cmdb_dao_location extends isys_cmdb_dao implements isys_mptt_callback
     }
 
     /**
+     * Method for creating the "location generic" object type, in case it does not exist.
+     *
+     * @return bool
+     * @throws isys_exception_dao
+     * @throws isys_exception_database
+     */
+    private function fixRootLocationObjectType()
+    {
+        $checkObjectTypeSql = 'SELECT isys_obj_type__id FROM isys_obj_type WHERE isys_obj_type__const = \'C__OBJTYPE__LOCATION_GENERIC\' LIMIT 1;';
+
+        if (!$this->retrieve($checkObjectTypeSql)->get_row_value('isys_obj_type__id')) {
+            $objectTypeGroupId = $this
+                ->retrieve('SELECT isys_obj_type_group__id FROM isys_obj_type_group WHERE isys_obj_type_group__const = \'C__OBJTYPE_GROUP__INFRASTRUCTURE\' LIMIT 1')
+                ->get_row_value('isys_obj_type_group__id');
+
+            $this->insert_new_objtype(
+                $objectTypeGroupId,
+                'LC__CMDB__OBJTYPE__LOCATION_GENERIC',
+                'C__OBJTYPE__LOCATION_GENERIC',
+                false,
+                true,
+                null,
+                'images/icons/silk/house.png',
+                null,
+                C__RECORD_STATUS__NORMAL,
+                null,
+                false
+            );
+
+            isys_notify::info('The "Generic location" object type has been created, you should clear your cache!', ['life' => 5]);
+
+            return true;
+        }
+
+        return true;
+    }
+
+    /**
+     * Method for creating the "root location", in case it does not exist.
+     *
+     * @return bool
+     * @throws isys_exception_database
+     */
+    private function fixRootLocationObject()
+    {
+        $checkObjectSql = 'SELECT isys_obj__id FROM isys_obj WHERE isys_obj__const = \'C__OBJ__ROOT_LOCATION\' LIMIT 1;';
+
+        if (!$this->retrieve($checkObjectSql)->get_row_value('isys_obj__id')) {
+            $objectTypeId = (int) $this
+                ->retrieve('SELECT isys_obj_type__id FROM isys_obj_type WHERE isys_obj_type__const = \'C__OBJTYPE__LOCATION_GENERIC\' LIMIT 1;')
+                ->get_row_value('isys_obj_type__id');
+
+            $objectId = $this->insert_new_obj($objectTypeId, null, 'Root location', null, C__RECORD_STATUS__NORMAL);
+
+            $createObjectSql = 'UPDATE isys_obj SET
+                isys_obj__const = \'C__OBJ__ROOT_LOCATION\',
+                isys_obj__created_by = \'system\',
+                isys_obj__updated = NOW(),
+                isys_obj__updated_by = \'system\',
+                isys_obj__undeletable = 1
+                WHERE isys_obj__id = ' . $this->convert_sql_id($objectId) . ';';
+
+            isys_notify::info('The "Root Location" has been created, you should clear your cache!', ['life' => 5]);
+
+            return $this->update($createObjectSql) && $this->apply_update();
+        }
+
+        return true;
+    }
+
+    /**
+     * Method for creating the root location category entry, in case it does not exist.
+     *
+     * @return bool
+     * @throws isys_exception_database
+     */
+    private function fixRootLocationCategoryEntry()
+    {
+        $checkCategorySql = 'SELECT isys_catg_location_list__id 
+            FROM isys_catg_location_list 
+            WHERE isys_catg_location_list__isys_obj__id = (SELECT isys_obj__id FROM isys_obj WHERE isys_obj__const = \'C__OBJ__ROOT_LOCATION\' LIMIT 1);';
+
+        if (!$this->retrieve($checkCategorySql)->get_row_value('isys_catg_location_list__id')) {
+            $createCategorySql = 'INSERT INTO isys_catg_location_list SET
+                isys_catg_location_list__isys_obj__id = (SELECT isys_obj__id FROM isys_obj WHERE isys_obj__const = \'C__OBJ__ROOT_LOCATION\' LIMIT 1),
+                isys_catg_location_list__title = \'[LocationRoot]\',
+                isys_catg_location_list__const = NULL,
+                isys_catg_location_list__parentid = NULL,
+                isys_catg_location_list__lft = 1,
+                isys_catg_location_list__rgt = 2,
+                isys_catg_location_list__pos = NULL,
+                isys_catg_location_list__insertion = 1,
+                isys_catg_location_list__status = ' . $this->convert_sql_int(C__RECORD_STATUS__NORMAL) . ';';
+
+            return $this->update($createCategorySql) && $this->apply_update();
+        }
+
+        return true;
+    }
+
+    /**
      * Constructor
      *
      * @param  isys_component_database $p_db
@@ -831,13 +942,13 @@ class isys_cmdb_dao_location extends isys_cmdb_dao implements isys_mptt_callback
 
         $this->m_mptt = new isys_component_dao_mptt(
             $p_db,
-            "isys_catg_location_list",
-            "isys_catg_location_list__id",
-            "isys_catg_location_list__isys_obj__id",
-            "isys_catg_location_list__parentid",
-            "isys_catg_location_list__const",
-            "isys_catg_location_list__lft",
-            "isys_catg_location_list__rgt"
+            'isys_catg_location_list',
+            'isys_catg_location_list__id',
+            'isys_catg_location_list__isys_obj__id',
+            'isys_catg_location_list__parentid',
+            'isys_catg_location_list__const',
+            'isys_catg_location_list__lft',
+            'isys_catg_location_list__rgt'
         );
     }
 }

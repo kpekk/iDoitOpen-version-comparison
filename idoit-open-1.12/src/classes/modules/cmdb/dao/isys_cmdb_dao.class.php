@@ -3485,42 +3485,43 @@ class isys_cmdb_dao extends isys_cmdb_dao_nexgen
     /**
      * Method for generating a SYS-ID.
      *
-     * @param   integer $p_obj_type_id
-     * @param   integer $p_object_id
+     * @param   integer $objectTypeId
+     * @param   integer $objectId
      *
      * @return  string
      * @author  Leonard Fischer <lfischer@i-doit.com>
      */
-    public function generate_sysid($p_obj_type_id, $p_object_id = null)
+    public function generate_sysid($objectTypeId, $objectId = null)
     {
-        $l_object_id = $p_object_id;
-
-        if ($p_object_id === null) {
-            $l_object_id = rand(0, 999);
+        if ($objectId === null) {
+            $objectId = rand(0, 999);
         }
 
-        $l_obj_type = $this->get_type_by_id($p_obj_type_id);
+        $objectTypeRow = $this->get_type_by_id($objectTypeId);
 
-        $l_sysid_prefix = (!empty($l_obj_type['isys_obj_type__sysid_prefix'])) ? $l_obj_type['isys_obj_type__sysid_prefix'] : C__CMDB__SYSID__PREFIX;
-        $l_sysid_suffix = ($l_sysid_prefix == C__CMDB__SYSID__PREFIX) ? (time() + $l_object_id) : $l_object_id;
+        $sysIdPrefix = $objectTypeRow['isys_obj_type__sysid_prefix'] ?: C__CMDB__SYSID__PREFIX;
+        $sysIdSuffix = (int)$objectId;
 
-        $l_sysid = $l_sysid_prefix . $l_sysid_suffix;
-
-        if (isys_strlen($l_sysid) < 13) {
-            $l_sysid_len = isys_strlen($l_sysid_prefix);
-
-            $l_sysid = $l_sysid_prefix . str_pad($l_sysid_suffix, (13 - $l_sysid_len), '0', STR_PAD_LEFT);
+        if ($sysIdPrefix === C__CMDB__SYSID__PREFIX) {
+            $sysIdSuffix += time();
         }
 
-        if ($l_sysid_prefix == C__CMDB__SYSID__PREFIX) {
-            $l_counter = 1;
-            while ($this->get_obj_id_by_sysid($l_sysid)) {
-                $l_sysid = $l_sysid_prefix . ($l_sysid_suffix + $l_counter);
-                $l_counter++;
+        $sysId = $sysIdPrefix . $sysIdSuffix;
+
+        if (mb_strlen($sysId) < 13) {
+            $sysId = $sysIdPrefix . str_pad($sysIdSuffix, (13 - mb_strlen($sysIdPrefix)), '0', STR_PAD_LEFT);
+        }
+
+        while ($this->get_obj_id_by_sysid($sysId)) {
+            $sysIdSuffix++;
+            $sysId = $sysIdPrefix . $sysIdSuffix;
+
+            if (mb_strlen($sysId) < 13) {
+                $sysId = $sysIdPrefix . str_pad($sysIdSuffix, (13 - mb_strlen($sysIdPrefix)), '0', STR_PAD_LEFT);
             }
         }
 
-        return $l_sysid;
+        return $sysId;
     }
 
     /**

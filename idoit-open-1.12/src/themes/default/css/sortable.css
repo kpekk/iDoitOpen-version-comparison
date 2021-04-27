@@ -1,42 +1,42 @@
 .sortable ul li {
-	background: #fff;
-	border: 1px solid #aaa;
-	margin: 0 0 5px;
-	cursor: default;
-	line-height: 1.6em;
-	vertical-align: middle;
-	font-style: normal;
+    background: #ffffff;
+    border: 1px solid #aaaaaa;
+    margin: 0 0 5px;
+    cursor: default;
+    line-height: 1.6em;
+    vertical-align: middle;
+    font-style: normal;
 }
 
 .sortable ul li:last-of-type {
-	margin: 0;
+    margin: 0;
 }
 
 .sortable tr {
-	border: 1px solid #ccc;
-	border-bottom-width: 2px;
-	padding: 5px;
-	margin: 5px 0;
-	cursor: default;
-	font-style: normal;
+    border: 1px solid #cccccc;
+    border-bottom-width: 2px;
+    padding: 5px;
+    margin: 5px 0;
+    cursor: default;
+    font-style: normal;
 }
 
 .sortable ul li .separator {
-	border-right: 1px solid #aaa;
-	margin-right: 5px;
-	padding: 2px 8px 2px;
-	font-weight: bold;
-	background: #ccc;
+    border-right: 1px solid #aaaaaa;
+    margin-right: 5px;
+    padding: 2px 8px 2px;
+    font-weight: bold;
+    background: #cccccc;
 }
 
 a.close {
-	display: block;
-	padding: 2px 4px 2px 4px;
-	background: #efefef;
-	border-left: 1px solid #999;
+    display: block;
+    padding: 2px 4px 2px 4px;
+    background: #efefef;
+    border-left: 1px solid #999999;
 }
 
 a.close:hover {
-	border-left-color: #555;
-	background: #fff;
+    border-left-color: #555555;
+    background: #ffffff;
 }

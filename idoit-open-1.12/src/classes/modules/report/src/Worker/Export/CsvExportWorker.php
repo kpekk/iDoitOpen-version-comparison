@@ -5,10 +5,14 @@ namespace idoit\Module\Report\Worker\Export;
 use idoit\Module\Report\Protocol\Exportable;
 use idoit\Module\Report\Protocol\Worker;
 use idoit\Module\Report\Worker\ReportWorker;
+use isys_tenantsettings;
 use League\Csv\Writer;
 
 /**
  * Report CSV Export
+ *
+ * @deprecated
+ * @todo        Is this used anywhere?
  *
  * @package     idoit\Module\Report\Export
  * @subpackage  Core
@@ -90,7 +94,8 @@ class CsvExportWorker extends ReportWorker implements Worker, Exportable
 
             // @see ID-3381  Outputting the UTF8 BOM seems to work just fine :)
             $this->csvWriter = Writer::createFromFileObject(new \SplTempFileObject())
-                ->setOutputBOM(Writer::BOM_UTF8);
+                ->setOutputBOM(Writer::BOM_UTF8)
+                ->setDelimiter(isys_tenantsettings::get('system.csv-export-delimiter', ';'));
         } else {
             $this->csvWriter = $csvWriter;
         }

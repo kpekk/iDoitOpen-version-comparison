@@ -363,6 +363,9 @@ function process_after_posttransfer()
                 }
                 $l_success = true;
                 break;
+            case "config.license.token":
+                $l_success = true;
+                break;
             default:
                 $l_success = true;
                 break;

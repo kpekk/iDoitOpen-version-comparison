@@ -88,13 +88,13 @@ class Main implements \isys_controller
                     $json->setData($results);
                     $json->setSearchString($searchString);
 
-                    $p_application->template->assign('autostartDeepSearch',
-                        isys_tenantsettings::get('search.global.autostart-deep-search', isys_module_search::AUTOMATIC_DEEP_SEARCH_NONACTIVE));
+                    $p_application->template->assign('autostartDeepSearch', isys_tenantsettings::get('search.global.autostart-deep-search', isys_module_search::AUTOMATIC_DEEP_SEARCH_NONACTIVE));
                     $p_application->template->assign('hasResults', count($results->getResult()) > 0);
 
                     /**
                      * Prevent multiple processing of search results
                      */
+                    $p_application->template->assign('initialResponse', json_encode([]));
                     if (isys_tenantsettings::get('search.global.autostart-deep-search', isys_module_search::AUTOMATIC_DEEP_SEARCH_NONACTIVE)) {
                         $p_application->template->assign('initialResponse', $json->getDataAsJson());
                     }

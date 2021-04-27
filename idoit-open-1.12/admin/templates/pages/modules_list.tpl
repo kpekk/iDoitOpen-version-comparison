@@ -24,7 +24,6 @@
 						<th>Author</th>
 						<th>Active</th>
 						<th></th>
-						<th>Licenced</th>
 					</tr>
 				</thead>
 				<tbody>
@@ -58,15 +57,6 @@
 							<button type="button" class="install-module btn" data-type="update" data-tenant="[{$mandator.id}]" data-version="[{$row.version}]" data-tenant-name="[{$mandator.title}]" data-identifier="[{$row.identifier}]">
 								<img src="../images/icons/silk/arrow_refresh.png" class="mr5"><span>Update / Re-Install</span>
 							</button>
-						[{/if}]
-					</td>
-					<td>
-						[{if $row.licenced == true}]
-							<span class="green"><img src="../images/icons/silk/bullet_green.png" class="vam" border="0" alt="+" /> Yes</span>
-						[{else if $row.licenced == false}]
-							<span class="red"><img src="../images/icons/silk/bullet_red.png" class="vam" border="0" alt="-" /> No</span>
-						[{else}]
-							<span class="grey">[{if $mandator.licenced}]Yes[{else}]No[{/if}]</span>
 						[{/if}]
 					</td>
 				</tr>

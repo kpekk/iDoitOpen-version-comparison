@@ -9,18 +9,17 @@
  */
 class isys_report_view_open_cable_connections extends isys_report_view
 {
-
     /**
      * @var array
      */
     private $m_cable_run_arr = [];
 
     /**
-     *
+     * @return string
      */
-    public function ajax_request()
+    public static function name()
     {
-
+        return 'LC__REPORT__VIEW__OPEN_CABLE_CONNECTIONS__TITLE';
     }
 
     /**
@@ -28,34 +27,34 @@ class isys_report_view_open_cable_connections extends isys_report_view
      */
     public static function description()
     {
-        return "LC__REPORT__VIEW__OPEN_CABLE_CONNECTIONS__DESCRIPTION";
-    }
-
-    /**
-     * @return bool
-     */
-    public function init()
-    {
-        return true;
+        return 'LC__REPORT__VIEW__OPEN_CABLE_CONNECTIONS__DESCRIPTION';
     }
 
     /**
      * @return string
      */
-    public static function name()
+    public function template()
     {
-        return "LC__REPORT__VIEW__OPEN_CABLE_CONNECTIONS__TITLE";
+        return isys_module_report::getPath() . 'templates/view_open_cable_connections.tpl';
     }
 
     /**
-     * SHOW LIST OF FREE CABLES
-     *
+     * @return string
+     */
+    public static function viewtype()
+    {
+        return 'LC__CMDB__CATG__CABLING_AND_PATCH';
+    }
+
+    /**
+     * @throws isys_exception_database
+     * @throws isys_exception_general
      */
     public function start()
     {
-        global $g_comp_database, $g_dirs;
+        global $g_dirs;
 
-        $l_dao = new isys_cmdb_dao($g_comp_database);
+        $l_dao = new isys_cmdb_dao($this->database);
         $l_quick_info = new isys_ajax_handler_quick_info();
         $l_cable_arr = [];
 
@@ -64,8 +63,13 @@ class isys_report_view_open_cable_connections extends isys_report_view
 				LEFT JOIN isys_catg_connector_list ON main.isys_obj__id = isys_catg_connector_list__isys_obj__id
 				WHERE isys_catg_connector_list__isys_cable_connection__id IS NOT NULL
 				AND isys_catg_connector_list__type = '2' 
-				AND isys_obj__isys_obj_type__id " .
-            $l_dao->prepare_in_condition(filter_defined_constants(['C__OBJTYPE__ESC', 'C__OBJTYPE__EPS', 'C__OBJTYPE__DISTRIBUTION_BOX', 'C__OBJTYPE__PDU', 'C__OBJTYPE__UPS']), true) . ";";
+				AND isys_obj__isys_obj_type__id " . $l_dao->prepare_in_condition(filter_defined_constants([
+                'C__OBJTYPE__ESC',
+                'C__OBJTYPE__EPS',
+                'C__OBJTYPE__DISTRIBUTION_BOX',
+                'C__OBJTYPE__PDU',
+                'C__OBJTYPE__UPS'
+            ]), true) . ";";
 
         $l_res = $l_dao->retrieve($l_sql);
 
@@ -75,12 +79,10 @@ class isys_report_view_open_cable_connections extends isys_report_view
             }
         }
         if (count($l_cable_arr) > 0) {
-            foreach ($l_cable_arr AS $l_obj_id => $l_val) {
+            foreach ($l_cable_arr as $l_obj_id => $l_val) {
+                $l_object_type = $this->language->get($l_dao->get_objtype_name_by_id_as_string($l_dao->get_objTypeID($l_obj_id)));
 
-                $l_object_type = isys_application::instance()->container->get('language')
-                    ->get($l_dao->get_objtype_name_by_id_as_string($l_dao->get_objTypeID($l_obj_id)));
-
-                foreach ($l_val AS $l_key => $l_val2) {
+                foreach ($l_val as $l_key => $l_val2) {
                     if (is_null($l_val2)) {
                         unset($l_cable_arr[$l_obj_id]);
                     }
@@ -94,11 +96,8 @@ class isys_report_view_open_cable_connections extends isys_report_view
                     //$l_check2 = $this->sibling_is_input_connection($l_val2[1]["CONNECTOR_ID"]);
 
                     if ($l_check && !is_null($l_val2[1]["CABLE_ID"])) {
-
                         while (!is_null($l_conn)) {
-
                             if ($l_conn["SIBLING"] == false) {
-
                                 unset($this->m_cable_run_arr[$l_obj_id]["connection"][$l_connector_id]);
                                 break;
                             }
@@ -110,14 +109,23 @@ class isys_report_view_open_cable_connections extends isys_report_view
                                     C__CMDB__GET__CATG     => defined_or_default('C__CATG__CONNECTOR'),
                                     C__CMDB__GET__CATLEVEL => $l_val2[1]["CONNECTOR_ID"]
                                 ]) . "</nobr> <nobr>(" . $l_object_type . ")</nobr>";
-                            $l_connector_type = ($l_val2[1]["CONNECTOR_TYPE"] == 2) ? isys_application::instance()->container->get('language')
-                                ->get("LC__CATG__CONNECTOR__OUTPUT") : isys_application::instance()->container->get('language')
-                                ->get("LC__CATG__CONNECTOR__INPUT");
+                            $l_connector_type = ($l_val2[1]["CONNECTOR_TYPE"] ==
+                                2) ? $this->language->get("LC__CATG__CONNECTOR__OUTPUT") : $this->language->get("LC__CATG__CONNECTOR__INPUT");
                             $l_connector_title = "<nobr>" . $l_val2[1]["CONNECTOR_TITLE"] . " (" . $l_connector_type . ")</nobr>";
                             $this->m_cable_run_arr[$l_obj_id]["connection"][$l_connector_id]["title"] = $l_connector_title;
                             $this->m_cable_run_arr[$l_obj_id]["connection"][$l_connector_id]["type"] = $l_val2[1]["CONNECTOR_TYPE"];
-                            $this->set_cable_run($l_obj_id, $l_val2[1]["OBJECT_TITLE"], $l_conn["OBJECT_ID"], $l_conn["CONNECTOR_ID"], $l_conn["CONNECTOR_TYPE"],
-                                $l_conn["OBJECT_TITLE"], $l_conn["CONNECTOR_TITLE"], $l_conn["LINK"], $l_connector_id, $l_conn["CABLE_ID"]);
+                            $this->set_cable_run(
+                                $l_obj_id,
+                                $l_val2[1]["OBJECT_TITLE"],
+                                $l_conn["OBJECT_ID"],
+                                $l_conn["CONNECTOR_ID"],
+                                $l_conn["CONNECTOR_TYPE"],
+                                $l_conn["OBJECT_TITLE"],
+                                $l_conn["CONNECTOR_TITLE"],
+                                $l_conn["LINK"],
+                                $l_connector_id,
+                                $l_conn["CABLE_ID"]
+                            );
 
                             if ($l_conn["CONNECTION"]) {
                                 $l_conn = $l_conn["CONNECTION"];
@@ -130,33 +138,10 @@ class isys_report_view_open_cable_connections extends isys_report_view
             }
         }
 
-        isys_application::instance()->template->smarty_tom_add_rule("tom.content.bottom.buttons.*.p_bInvisible=1")
+        $this->template
+            ->smarty_tom_add_rule("tom.content.bottom.buttons.*.p_bInvisible=1")
             ->assign("dir_images", $g_dirs["images"])
             ->assign("viewContent", $this->m_cable_run_arr);
-    }
-
-    /**
-     * @return string
-     */
-    public function template()
-    {
-        return "view_open_cable_connections.tpl";
-    }
-
-    /**
-     * @return int
-     */
-    public static function type()
-    {
-        return self::c_php_view;
-    }
-
-    /**
-     * @return string
-     */
-    public static function viewtype()
-    {
-        return "LC__CMDB__CATG__CABLING_AND_PATCH";
     }
 
     /**
@@ -168,9 +153,7 @@ class isys_report_view_open_cable_connections extends isys_report_view
      */
     private function has_no_parent_connection($p_connection_id)
     {
-        global $g_comp_database;
-
-        $l_dao = new isys_cmdb_dao($g_comp_database);
+        $l_dao = new isys_cmdb_dao($this->database);
 
         $l_sql = "SELECT sub.* 
             FROM isys_catg_connector_list AS main 
@@ -183,7 +166,6 @@ class isys_report_view_open_cable_connections extends isys_report_view
         $l_row = $l_res->get_row();
 
         if ($l_row["isys_catg_connector_list__isys_cable_connection__id"] == "" || $l_res->num_rows() == 0) {
-
             $l_sql = "SELECT subsub.* FROM isys_catg_connector_list AS main
                 LEFT JOIN isys_catg_connector_list AS sub ON main.isys_catg_connector_list__isys_catg_connector_list__id = sub.isys_catg_connector_list__id
                 LEFT JOIN isys_catg_connector_list AS subsub ON subsub.isys_catg_connector_list__isys_cable_connection__id = sub.isys_catg_connector_list__isys_cable_connection__id 
@@ -209,9 +191,7 @@ class isys_report_view_open_cable_connections extends isys_report_view
      */
     private function sibling_is_input_connection($p_connection_id)
     {
-        global $g_comp_database;
-
-        $l_dao = new isys_cmdb_dao_cable_connection($g_comp_database);
+        $l_dao = new isys_cmdb_dao_cable_connection($this->database);
         $l_cableID = $l_dao->get_cable_connection_id_by_connector_id($p_connection_id);
 
         $l_sql = "SELECT * FROM isys_catg_connector_list
@@ -231,9 +211,7 @@ class isys_report_view_open_cable_connections extends isys_report_view
      */
     private function get_cable_run($p_obj_id, $p_connector_id)
     {
-        global $g_comp_database;
-
-        $l_dao_conn = new isys_cmdb_dao_category_g_connector($g_comp_database);
+        $l_dao_conn = new isys_cmdb_dao_category_g_connector($this->database);
         $l_arr = $l_dao_conn->resolve_cable_run($p_connector_id, true);
 
         return $l_arr;
@@ -263,10 +241,8 @@ class isys_report_view_open_cable_connections extends isys_report_view
         $p_key,
         $p_cable_id
     ) {
-        global $g_comp_database;
-
         $l_quick_info = new isys_ajax_handler_quick_info();
-        $l_dao = new isys_cmdb_dao($g_comp_database);
+        $l_dao = new isys_cmdb_dao($this->database);
 
         if ($p_cable_id == null) {
             $l_cable_set = false;
@@ -278,13 +254,11 @@ class isys_report_view_open_cable_connections extends isys_report_view
             $l_quick_info->get_quick_info($p_conn_obj_id, $p_conn_obj_title, C__LINK__CATG, false, [
                 C__CMDB__GET__CATG     => defined_or_default('C__CATG__CONNECTOR'),
                 C__CMDB__GET__CATLEVEL => $p_conn_connector_id
-            ]) . "</nobr> <nobr>(" . isys_application::instance()->container->get('language')
-                ->get($l_dao->get_objtype_name_by_id_as_string($l_dao->get_objTypeID($p_conn_obj_id))) . ")</nobr>";
+            ]) . "</nobr> <nobr>(" . $this->language->get($l_dao->get_objtype_name_by_id_as_string($l_dao->get_objTypeID($p_conn_obj_id))) . ")</nobr>";
         $this->m_cable_run_arr[$p_obj_id]["connection"][$p_key]["connection"][$p_conn_obj_id]["connection"][$p_conn_type] = [
             "connector_id" => $p_conn_connector_id,
             "title"        => $p_connector_title,
             "cable_set"    => $l_cable_set
         ];
     }
-
 }

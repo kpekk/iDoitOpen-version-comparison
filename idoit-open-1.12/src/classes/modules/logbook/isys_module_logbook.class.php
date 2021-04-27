@@ -226,8 +226,6 @@ class isys_module_logbook extends isys_module implements isys_module_interface, 
      */
     public function prepare_changes($p_dao, $p_dataset_from = null, $p_category_values = null)
     {
-        global $g_convert;
-
         // Properties of category.
         $l_properties = $p_dao->get_properties();
 
@@ -563,7 +561,7 @@ class isys_module_logbook extends isys_module implements isys_module_interface, 
                  *
                  * @see ID-2460
                  */
-                $l_from = str_replace(',', '.', $g_convert->$l_method($l_from, $l_unit_field_from, C__CONVERT_DIRECTION__BACKWARD));
+                $l_from = str_replace(',', '.', isys_convert::$l_method($l_from, $l_unit_field_from, C__CONVERT_DIRECTION__BACKWARD));
                 $l_to = str_replace(',', '.', $l_category_values[$l_key]['value']);
             }
 

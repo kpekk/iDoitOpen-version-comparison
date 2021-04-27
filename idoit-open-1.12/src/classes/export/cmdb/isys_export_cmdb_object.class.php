@@ -52,6 +52,24 @@ class isys_export_cmdb_object extends isys_export_cmdb
     ];
 
     /**
+     * @var bool
+     */
+    private $overwriteCmdbStatusOnMassChange = true;
+
+    /**
+     * Set overwrite cmdb status
+     *
+     * @param $value
+     *
+     * @return $this
+     */
+    public function setOverwriteCmdbStatusOnMassChange($value)
+    {
+        $this->overwriteCmdbStatusOnMassChange = (bool)$value;
+        return $this;
+    }
+
+    /**
      * Initialize the skiped categories
      */
     private static function initSkippedCategories()
@@ -78,7 +96,7 @@ class isys_export_cmdb_object extends isys_export_cmdb
             'C__CATG__NAGIOS_HOST_TPL_FOLDER',
             'C__CATG__NAGIOS_SERVICE_FOLDER',
             'C__CATG__NAGIOS_SERVICE_TPL_FOLDER',
-
+            'C__CATG__LIVESTATUS',
         ]) as $categoryId) {
             self::$m_cat_skip[C__CMDB__CATEGORY__TYPE_GLOBAL][$categoryId] = true;
         }
@@ -551,7 +569,7 @@ class isys_export_cmdb_object extends isys_export_cmdb
                                     if (is_numeric($l_catentryID)) {
                                         if ($l_catid === defined_or_default('C__CATG__GLOBAL')) {
                                             foreach ($l_catentry as $l_key => $l_property) {
-                                                if ($l_property[C__DATA__TAG] == 'cmdb_status') {
+                                                if ($l_property[C__DATA__TAG] == 'cmdb_status' && $this->overwriteCmdbStatusOnMassChange === true) {
                                                     continue;
                                                 }
 
@@ -619,7 +637,8 @@ class isys_export_cmdb_object extends isys_export_cmdb
         // Duplication: create a system-wide unique identifier:
         if ($p_duplicate) {
             $l_sysid_prefix = (!empty($l_otrow['isys_obj_type__sysid_prefix'])) ? $l_otrow['isys_obj_type__sysid_prefix'] : C__CMDB__SYSID__PREFIX;
-            $l_sysid_suffix = (($l_sysid_prefix == C__CMDB__SYSID__PREFIX) ? time() : $l_cat->get_last_obj_id_from_type()) + self::$m_duplicate_counter++;
+            // @see  ID-6471  Increment, if we use a selfdefined index.
+            $l_sysid_suffix = (($l_sysid_prefix == C__CMDB__SYSID__PREFIX) ? time() : ($l_cat->get_last_obj_id_from_type() + 1)) + self::$m_duplicate_counter++;
             $l_otrow['isys_obj__sysid'] = $l_sysid_prefix . $l_sysid_suffix;
 
             if (strlen($l_otrow['isys_obj__sysid']) < 13) {

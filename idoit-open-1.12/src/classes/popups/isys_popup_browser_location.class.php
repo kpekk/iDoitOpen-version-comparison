@@ -258,7 +258,8 @@ class isys_popup_browser_location extends isys_component_popup
 
         // Parse location tree.
         foreach ($l_locationpath as $l_object_id) {
-            if ($l_object_id > defined_or_default('C__OBJ__ROOT_LOCATION') && $l_object_id != $p_obj_id) {
+            // @see ID-6330 Removed a check "$l_object_id > C__OBJ__ROOT_LOCATION" because this can happen, when the root location had to be re-created.
+            if ($l_object_id != $p_obj_id) {
                 if (is_null($l_cut)) {
                     $i++;
                 }
@@ -279,21 +280,17 @@ class isys_popup_browser_location extends isys_component_popup
             }
         }
 
-        if ($p_obj_id > defined_or_default('C__OBJ__ROOT_LOCATION')) {
-            if (!$this->m_format_exclude_self) {
-                if (!$this->m_format_as_text) {
-                    $l_out[] = $l_quick_info->get_quick_info($p_obj_id, $l_dao->get_obj_name_by_id_as_string($p_obj_id), C__LINK__OBJECT, $this->m_format_object_name_cut);
-                } else {
-                    $l_out[] = $l_dao->get_obj_name_by_id_as_string($p_obj_id);
-                }
-            }
-        } else {
-            if (!$this->m_format_exclude_self) {
+        // @see ID-6330 Removed a check "$l_object_id > C__OBJ__ROOT_LOCATION" because this can happen, when the root location had to be re-created.
+        if (!$this->m_format_exclude_self) {
+            if (!$this->m_format_as_text) {
+                $l_out[] = $l_quick_info->get_quick_info($p_obj_id, $l_dao->get_obj_name_by_id_as_string($p_obj_id), C__LINK__OBJECT, $this->m_format_object_name_cut);
+            } else {
                 $l_out[] = $l_dao->get_obj_name_by_id_as_string($p_obj_id);
             }
         }
 
         $l_tmp = $l_out;
+
         $l_out = implode($l_separator, $l_out);
 
         if ($this->m_format_str_cut && null !== $l_cut && count($l_tmp) >= $l_cut && strlen(strip_tags($l_out)) >= $this->m_format_str_cut) {
@@ -352,6 +349,19 @@ class isys_popup_browser_location extends isys_component_popup
                 ->set_format_object_name_cut(0)
                 ->set_format_str_cut(0)
                 ->format_selection($objectId);
+        }
+
+        // @see ID-6330 Notify the user, if the "rootObjectId" is not there.
+        if (!$parameters['rootObjectId']) {
+            $administrationUrl = isys_helper_link::create_url([
+                C__GET__MODULE_ID => C__MODULE__SYSTEM,
+                'what' => 'cache',
+            ], true);
+
+            isys_notify::warning(
+                'It seems as if your "Root location" is missing. Please go to <a href="' . $administrationUrl . '" target="_blank">the administration</a> and run the "Correction of locations".',
+                ['sticky' => true]
+            );
         }
 
         // Assign everything.

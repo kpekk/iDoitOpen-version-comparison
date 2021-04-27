@@ -42,7 +42,7 @@ define('MYSQL_VERSION_MAXIMUM', '5.7.99');
 define('MYSQL_VERSION_MINIMUM_RECOMMENDED', '5.7');
 
 // Sysid unique? true/false possible here.
-define("C__SYSID__UNIQUE", true);
+define('C__SYSID__UNIQUE', true);
 
 /*******************************************************************************
  * Editing constants below this marker may crash your i-doit
@@ -51,311 +51,216 @@ define("C__SYSID__UNIQUE", true);
 /*******************************************************************************
  * GENERALLY USED CONSTANTS
  *******************************************************************************/
-define("DS", DIRECTORY_SEPARATOR);
+define('DS', DIRECTORY_SEPARATOR);
 
-define("C__POST__POPUP_RECEIVER", "popupReceiver");
+define('C__POST__POPUP_RECEIVER', 'popupReceiver');
 
 // Constant for default objecttype image
-define("C__OBJTYPE_IMAGE__DEFAULT", "empty.png");
+define('C__OBJTYPE_IMAGE__DEFAULT', 'empty.png');
 
 /*******************************************************************************
  * IMPORT CONSTANTS
  *******************************************************************************/
-define("C__IMPORT__UI__MOUSE", 1001);
-define("C__IMPORT__UI__KEYBOARD", 1002);
-define("C__IMPORT__UI__PRINTER", 1003);
-define("C__IMPORT__UI__MONITOR", 1004);
+define('C__IMPORT__UI__MOUSE', 1001);
+define('C__IMPORT__UI__KEYBOARD', 1002);
+define('C__IMPORT__UI__PRINTER', 1003);
+define('C__IMPORT__UI__MONITOR', 1004);
 
 /*******************************************************************************
  * CMDB CONSTANTS
  *******************************************************************************/
 
 // Constants for category connector.
-define("C__CONNECTOR__INPUT", 1);
-define("C__CONNECTOR__OUTPUT", 2);
+define('C__CONNECTOR__INPUT', 1);
+define('C__CONNECTOR__OUTPUT', 2);
 
 // Cable directions.
-define("C__DIRECTION__LEFT", 0);
-define("C__DIRECTION__RIGHT", 1);
+define('C__DIRECTION__LEFT', 0);
+define('C__DIRECTION__RIGHT', 1);
 
 // Rack options.
-define("C__INSERTION__REAR", 0);
-define("C__INSERTION__FRONT", 1);
-define("C__INSERTION__BOTH", 2);
-define("C__RACK_INSERTION__HORIZONTAL", 3);
-define("C__RACK_INSERTION__VERTICAL", 4);
-define("C__RACK_DETACH_SEGMENT_ACTION__NONE", 1);
-define("C__RACK_DETACH_SEGMENT_ACTION__ARCHIVE", 2);
-define("C__RACK_DETACH_SEGMENT_ACTION__PURGE", 3);
+define('C__INSERTION__REAR', 0);
+define('C__INSERTION__FRONT', 1);
+define('C__INSERTION__BOTH', 2);
+define('C__RACK_INSERTION__HORIZONTAL', 3);
+define('C__RACK_INSERTION__VERTICAL', 4);
+define('C__RACK_DETACH_SEGMENT_ACTION__NONE', 1);
+define('C__RACK_DETACH_SEGMENT_ACTION__ARCHIVE', 2);
+define('C__RACK_DETACH_SEGMENT_ACTION__PURGE', 3);
 
 // Relation constants.
-define("C__RELATION__IMPLICIT", 1);
-define("C__RELATION__EXPLICIT", 2);
-
-define("C__RELATION_DIRECTION__DEPENDS_ON_ME", 1);
-define("C__RELATION_DIRECTION__I_DEPEND_ON", 2);
-define("C__RELATION_DIRECTION__EQUAL", 3);
-
-define("C__RELATION_OBJECT__MASTER", 0);
-define("C__RELATION_OBJECT__SLAVE", 1);
+define('C__RELATION__IMPLICIT', 1);
+define('C__RELATION__EXPLICIT', 2);
+define('C__RELATION_DIRECTION__DEPENDS_ON_ME', 1);
+define('C__RELATION_DIRECTION__I_DEPEND_ON', 2);
+define('C__RELATION_DIRECTION__EQUAL', 3);
+define('C__RELATION_OBJECT__MASTER', 0);
+define('C__RELATION_OBJECT__SLAVE', 1);
 
 // View constants for CMDB.
-define("C__CMDB__VIEW__LIST_OBJECT", 1001);
-define("C__CMDB__VIEW__LIST_OBJECT_OLD", 10010); // @todo remove in future
-define("C__CMDB__VIEW__LIST_CATEGORY", 1002);
-define("C__CMDB__VIEW__LIST_OBJECTTYPE", 1003);
-define("C__CMDB__VIEW__CONFIG_OBJECTTYPE", 1004);
-define("C__CMDB__VIEW__CONFIG_SYSTEMDATA", 1005);
-define("C__CMDB__VIEW__TREE_OBJECT", 1006);
-define("C__CMDB__VIEW__TREE_LOCATION", 1007);
-define("C__CMDB__VIEW__TREE_OBJECTTYPE", 1008);
-define("C__CMDB__VIEW__TREE_RELATION", 1009);
+define('C__CMDB__VIEW__LIST_OBJECT', 1001);
+define('C__CMDB__VIEW__LIST_OBJECT_OLD', 10010); // @todo remove in future
+define('C__CMDB__VIEW__LIST_CATEGORY', 1002);
+define('C__CMDB__VIEW__LIST_OBJECTTYPE', 1003);
+define('C__CMDB__VIEW__CONFIG_OBJECTTYPE', 1004);
+define('C__CMDB__VIEW__CONFIG_SYSTEMDATA', 1005);
+define('C__CMDB__VIEW__TREE_OBJECT', 1006);
+define('C__CMDB__VIEW__TREE_LOCATION', 1007);
+define('C__CMDB__VIEW__TREE_OBJECTTYPE', 1008);
+define('C__CMDB__VIEW__TREE_RELATION', 1009);
 
 // View constants for the left-side location navigation.
-define("C__CMDB__VIEW__TREE_LOCATION__LOCATION", 1);
-define("C__CMDB__VIEW__TREE_LOCATION__LOGICAL_UNITS", 2);
-define("C__CMDB__VIEW__TREE_LOCATION__COMBINED", 3);
+define('C__CMDB__VIEW__TREE_LOCATION__LOCATION', 1);
+define('C__CMDB__VIEW__TREE_LOCATION__LOGICAL_UNITS', 2);
+define('C__CMDB__VIEW__TREE_LOCATION__COMBINED', 3);
 
 // View constants for objecttype sorting.
-define("C__CMDB__VIEW__OBJECTTYPE_SORTING__AUTOMATIC", 1);
-define("C__CMDB__VIEW__OBJECTTYPE_SORTING__MANUAL", 2);
+define('C__CMDB__VIEW__OBJECTTYPE_SORTING__AUTOMATIC', 1);
+define('C__CMDB__VIEW__OBJECTTYPE_SORTING__MANUAL', 2);
 
 // All category views have the same ID. We do all the category work automatically now.
-define("C__CMDB__VIEW__CATEGORY_GLOBAL", 1100);
-define("C__CMDB__VIEW__CATEGORY_SPECIFIC", 1100);
-define("C__CMDB__VIEW__CATEGORY", 1100);
+define('C__CMDB__VIEW__CATEGORY_GLOBAL', 1100);
+define('C__CMDB__VIEW__CATEGORY_SPECIFIC', 1100);
+define('C__CMDB__VIEW__CATEGORY', 1100);
 
-define("C__CMDB__VIEW__MISC_WELCOME", 1014);
-define("C__CMDB__VIEW__MISC_BLANK", 1015);
+define('C__CMDB__VIEW__MISC_WELCOME', 1014);
+define('C__CMDB__VIEW__MISC_BLANK', 1015);
 
 // Error constants, can be replaced by LC.
-define("C__CMDB__ERROR__NAVIGATION", 0x8001);
-define("C__CMDB__ERROR__OBJECT_OVERVIEW", 0x8002);
-define("C__CMDB__ERROR__ACTION_PROCESSOR", 0x8003);
-define("C__CMDB__ERROR__CATEGORY_BUILDER", 0x8004);
-define("C__CMDB__ERROR__DISTRIBUTOR", 0x8005);
-define("C__CMDB__ERROR__CATEGORY_PROCESSOR", 0x8006);
-define("C__CMDB__ERROR__ACTION_CATEGORY_UPDATE", 0x9001);
+define('C__CMDB__ERROR__NAVIGATION', 0x8001);
+define('C__CMDB__ERROR__OBJECT_OVERVIEW', 0x8002);
+define('C__CMDB__ERROR__ACTION_PROCESSOR', 0x8003);
+define('C__CMDB__ERROR__CATEGORY_BUILDER', 0x8004);
+define('C__CMDB__ERROR__DISTRIBUTOR', 0x8005);
+define('C__CMDB__ERROR__CATEGORY_PROCESSOR', 0x8006);
+define('C__CMDB__ERROR__ACTION_CATEGORY_UPDATE', 0x9001);
 
 // Constants.
-define("C__CMDB__CATEGORY__TYPE_GLOBAL", 0);
-define("C__CMDB__CATEGORY__TYPE_SPECIFIC", 1);
-define("C__CMDB__CATEGORY__TYPE_DYNAMIC", 2);
-define("C__CMDB__CATEGORY__TYPE_PORT", 3);
-define("C__CMDB__CATEGORY__TYPE_CUSTOM", 4);
+define('C__CMDB__CATEGORY__TYPE_GLOBAL', 0);
+define('C__CMDB__CATEGORY__TYPE_SPECIFIC', 1);
+define('C__CMDB__CATEGORY__TYPE_CUSTOM', 4);
 
 // Object tree increments.
-define("C__CMDB__TREE_OBJECT__INC_GLOBAL", 10000);
-define("C__CMDB__TREE_OBJECT__INC_SPECIFIC", 20000);
-define("C__CMDB__TREE_OBJECT__INC_MODULE", 40000);
-define("C__CMDB__TREE_OBJECT__INC_GLOBAL_EXT", 100000);
-define("C__CMDB__TREE_OBJECT__INC_SPECIFIC_EXT", 200000);
-define("C__CMDB__TREE_OBJECT__INC_MODULE_EXT", 400000);
+define('C__CMDB__TREE_OBJECT__INC_GLOBAL', 10000);
+define('C__CMDB__TREE_OBJECT__INC_SPECIFIC', 20000);
+define('C__CMDB__TREE_OBJECT__INC_MODULE', 40000);
+define('C__CMDB__TREE_OBJECT__INC_GLOBAL_EXT', 100000);
+define('C__CMDB__TREE_OBJECT__INC_SPECIFIC_EXT', 200000);
+define('C__CMDB__TREE_OBJECT__INC_MODULE_EXT', 400000);
 
-define("C__CMDB__TREE_NODE__BACK", 500001);
-define("C__CMDB__TREE_NODE__PARENT", -1);
+define('C__CMDB__TREE_NODE__BACK', 500001);
+define('C__CMDB__TREE_NODE__PARENT', -1);
 
-define("C__LINK__CATS", 1081);
+define('C__LINK__CATS', 1081);
 
 // Other Tree constants.
-define("C__CMDB__TREE_ICON", "dtreeIcon");
+define('C__CMDB__TREE_ICON', 'dtreeIcon');
 
 // Parameter constants. Probably we need to exchange some.
-define("C__GET__AJAX_CALL", "call");
-define("C__GET__AJAX", "ajax");
-define("C__GET__SCOPE", "scoped");
-define("C__CMDB__GET__VIEWMODE", "viewMode");
-define("C__CMDB__GET__TREEMODE", "tvMode");
-define("C__CMDB__GET__TREETYPE", "tvType");
-define("C__CMDB__GET__OBJECTGROUP", "objGroupID");
-define("C__CMDB__GET__OBJECTTYPE", "objTypeID");
-define("C__CMDB__GET__OBJECT", "objID");
-define("C__CMDB__GET__CATTYPE", "catTypeID");
-define("C__CMDB__GET__CATG", "catgID");
-define("C__CMDB__GET__CATS", "catsID");
-define("C__CMDB__GET__CATG_CUSTOM", "customID");
-define("C__CMDB__GET__CATD", "catdID");
-define("C__CMDB__GET__POPUP", "popup");
-define("C__CMDB__GET__CAT_MENU_SELECTION", "catMenuSelection");
-define("C__CMDB__GET__EDITMODE", "editMode");
-define("C__CMDB__GET__CAT_LIST_VIEW", "catListView");
-define("C__CMDB__GET__CATD_CHECK", "catdCheck");
-define("C__CMDB__GET__SUBCAT", "subcatID");
-define("C__CMDB__GET__SUBCAT_ENTRY", "subcatEntryID");
-define("C__CMDB__GET__CONNECTION_TYPE", "connectionType");
-define("C__CMDB__GET__LDEVSERVER", "ldevserverID");
+define('C__GET__AJAX_CALL', 'call');
+define('C__GET__AJAX', 'ajax');
+define('C__GET__SCOPE', 'scoped');
+define('C__CMDB__GET__VIEWMODE', 'viewMode');
+define('C__CMDB__GET__TREEMODE', 'tvMode');
+define('C__CMDB__GET__TREETYPE', 'tvType');
+define('C__CMDB__GET__OBJECTGROUP', 'objGroupID');
+define('C__CMDB__GET__OBJECTTYPE', 'objTypeID');
+define('C__CMDB__GET__OBJECT', 'objID');
+define('C__CMDB__GET__CATTYPE', 'catTypeID');
+define('C__CMDB__GET__CATG', 'catgID');
+define('C__CMDB__GET__CATS', 'catsID');
+define('C__CMDB__GET__CATG_CUSTOM', 'customID');
+define('C__CMDB__GET__CATD', 'catdID');
+define('C__CMDB__GET__POPUP', 'popup');
+define('C__CMDB__GET__CAT_MENU_SELECTION', 'catMenuSelection');
+define('C__CMDB__GET__EDITMODE', 'editMode');
+define('C__CMDB__GET__CAT_LIST_VIEW', 'catListView');
+define('C__CMDB__GET__CATD_CHECK', 'catdCheck');
+define('C__CMDB__GET__SUBCAT', 'subcatID');
+define('C__CMDB__GET__SUBCAT_ENTRY', 'subcatEntryID');
+define('C__CMDB__GET__CONNECTION_TYPE', 'connectionType');
+define('C__CMDB__GET__LDEVSERVER', 'ldevserverID');
 
 // CMDB: Category levels while browsing IN a category.
-define("C__CMDB__GET__CATLEVEL_1", "cat1ID");
-define("C__CMDB__GET__CATLEVEL_2", "cat2ID");
-define("C__CMDB__GET__CATLEVEL_3", "cat3ID");
-define("C__CMDB__GET__CATLEVEL_4", "cat4ID");
-define("C__CMDB__GET__CATLEVEL_5", "cat5ID");
-define("C__CMDB__GET__CATLEVEL", "cateID");
-define("C__CMDB__GET__CATLEVEL_MAX", 5);
+define('C__CMDB__GET__CATLEVEL_1', 'cat1ID');
+define('C__CMDB__GET__CATLEVEL_2', 'cat2ID');
+define('C__CMDB__GET__CATLEVEL_3', 'cat3ID');
+define('C__CMDB__GET__CATLEVEL_4', 'cat4ID');
+define('C__CMDB__GET__CATLEVEL_5', 'cat5ID');
+define('C__CMDB__GET__CATLEVEL', 'cateID');
+define('C__CMDB__GET__CATLEVEL_MAX', 5);
 
 // CMDB: Ranking levels - used in Low-Level API for deletion
-define("C__CMDB__RANK__DIRECTION_DELETE", 1);
-define("C__CMDB__RANK__DIRECTION_RECYCLE", 2);
-define("C__CMDB__RANK__PURGE", 3);
+define('C__CMDB__RANK__DIRECTION_DELETE', 1);
+define('C__CMDB__RANK__DIRECTION_RECYCLE', 2);
+define('C__CMDB__RANK__PURGE', 3);
 
 // CMDB: DAO-inner constants for direction and type of network-type elements.
-define("C__CMDB__DAO_NET_PORT__AHEAD", 0); // Connectionspecific
-define("C__CMDB__DAO_NET_PORT__REAR", 1); // Connectionspecific
-define("C__CMDB__DAO_NET_PORT__PHYSICAL", 1); // Portspecific
-define("C__CMDB__DAO_NET_PORT__VIRTUAL", 2); // Portspecific
-define("C__CMDB__DAO_NET_INTERFACE__PHYSICAL", 1); // Interfacespecific
-define("C__CMDB__DAO_NET_INTERFACE__VIRTUAL", 2); // Interfacespecific
+define('C__CMDB__DAO_NET_PORT__AHEAD', 0); // Connectionspecific
+define('C__CMDB__DAO_NET_PORT__REAR', 1); // Connectionspecific
+define('C__CMDB__DAO_NET_PORT__PHYSICAL', 1); // Portspecific
+define('C__CMDB__DAO_NET_PORT__VIRTUAL', 2); // Portspecific
+define('C__CMDB__DAO_NET_INTERFACE__PHYSICAL', 1); // Interfacespecific
+define('C__CMDB__DAO_NET_INTERFACE__VIRTUAL', 2); // Interfacespecific
 
 // CMDB: DAO-inner constants for endpoint selection of an universal interface.
-define("C__CMDB__DAO_UI_ENDPOINT__AHEAD", 1);
-define("C__CMDB__DAO_UI_ENDPOINT__REAR", 2);
+define('C__CMDB__DAO_UI_ENDPOINT__AHEAD', 1);
+define('C__CMDB__DAO_UI_ENDPOINT__REAR', 2);
 
 // CMDB: DAO-inner constants for endpoint selection of a FC storage connection.
-define("C__CMDB__DAO_STOR_FC__AHEAD", 1);
-define("C__CMDB__DAO_STOR_FC__REAR", 2);
+define('C__CMDB__DAO_STOR_FC__AHEAD', 1);
+define('C__CMDB__DAO_STOR_FC__REAR', 2);
 
 // CMDB ACTIONS.
-define("C__CMDB__ACTION__CATEGORY_CREATE", 0x0001);
-define("C__CMDB__ACTION__CATEGORY_RANK", 0x0002);
-define("C__CMDB__ACTION__CATEGORY_UPDATE", 0x0003);
-define("C__CMDB__ACTION__CONFIG_OBJECT", 0x0101);
-define("C__CMDB__ACTION__CONFIG_OBJECTTYPE", 0x0102);
-define("C__CMDB__ACTION__OBJECT_CREATE", 0x0201);
-define("C__CMDB__ACTION__OBJECT_RANK", 0x0202);
-
-/*******************************************************************************
- * CONSTANTS USED IN CONTACTS
- *******************************************************************************/
-// Views constants for 'Contacts & Identities'.
-define("C__CONTACT__VIEW__TREE", 2001);
-define("C__CONTACT__VIEW__LIST", 2002);
-define("C__CONTACT__VIEW__LIST_PERSON", 2003);
-define("C__CONTACT__VIEW__LIST_GROUP", 2004);
-define("C__CONTACT__VIEW__LIST_ORGANISATION", 2005);
-define("C__CONTACT__VIEW__DETAIL_PERSON", 2006);
-define("C__CONTACT__VIEW__DETAIL_GROUP", 2007);
-define("C__CONTACT__VIEW__DETAIL_ORGANISATION", 2008);
-define("C__CONTACT__VIEW__DETAIL_STARTPAGE", 2009); // Startseite im Information zu Kontakten
-define("C__CONTACT__VIEW__LIST_PERSON_WITHOUT_ORGANISATION", 2010); // alle personen ohne organisationszuordung
-define("C__CONTACT__VIEW__NAGIOS_PERSON", 2011);
-define("C__CONTACT__VIEW__LIST_LDAP", 2012);
-define("C__CONTACT__VIEW__NAGIOS_GROUP", 2013);
-
-// Menu selection IDs for 'Contacts & Identities'.
-define("C__CONTACT_TREE__ORGANSIATION_MAIN", 1); // alle organisationen
-define("C__CONTACT_TREE__ORGANSIATION_MASTER_DATA", 2); // eine spezifische organisation
-define("C__CONTACT_TREE__ORGANSIATION_PERSON", 3); // alle personen einer organisation
-define("C__CONTACT_TREE__PERSON_MAIN", 4); // alle personen
-define("C__CONTACT_TREE__PERSON_MASTER_DATA", 5); // eine spezifische person
-define("C__CONTACT_TREE__PERSON_GROUP", 6); // alle gruppen einer person
-define("C__CONTACT_TREE__GROUP_MAIN", 7); // alle gruppen
-define("C__CONTACT_TREE__GROUP_MASTER_DATA", 8); // eine spezifische gruppe
-define("C__CONTACT_TREE__GROUP_PERSON", 9); // alle personen einer gruppe
-define("C__CONTACT_TREE__STARTPAGE", 10); // startseite
-define("C__CONTACT_TREE__PERSON_WITHOUT_ORGANISATION", 11); // alle personen ohne organisationszuordung
-define("C__CONTACT_TREE__PERSON_NAGIOS", 12); // nagiosdaten einer person
-define("C__CONTACT_TREE__LDAP", 13); // ldap servers
-define("C__CONTACT_TREE__GROUP_NAGIOS", 14); // nagiosdaten einer gruppe
-
-// Bit addition for value of _GET[p_iFilter], to filter the currently displayed tree.
-define("C__CONTACT_BROWSER_FILTER__ORGANSATION", 1 << 0);
-define("C__CONTACT_BROWSER_FILTER__PERSON", 1 << 1);
-define("C__CONTACT_BROWSER_FILTER__GROUP", 1 << 2);
-
-// GET Parameters for Contacts.
-define("C__CONTACT__GET__MENU_SELECTION", "contactMenuSelection");
-define("C__CONTACT_PERSON_ID", "cpID");
-define("C__CONTACT_ORGANISATION_ID", "coID");
-define("C__CONTACT_GROUP_ID", "cgID");
-
-/*******************************************************************************
- * CONSTANTS USED IN TASKS
- *******************************************************************************/
-define("C__TASK__VIEW__LIST_ALL", 3001);
-define("C__TASK__VIEW__LIST_WORKORDER", 3002);
-define("C__TASK__VIEW__LIST_CHECKLIST", 3003);
-define("C__TASK__VIEW__DETAIL_WORKORDER", 3050);
-define("C__TASK__VIEW__DETAIL_CHECKLIST", 3051);
-
-define("C__TASK__VIEW__TREE", 3101);
-
-define("C__TASK__GET__ID", "tID");
-define("C__TASK__GET__STATUS", "tS");
-define("C__TASK__GET__ACCEPT", "tA");
-define("C__TASK__GET__COMPLETED", "tC");
-
-define("C__TASK__OCCURRENCE__ONCE", 1);
-define("C__TASK__OCCURRENCE__HOURLY", 2);
-define("C__TASK__OCCURRENCE__DAILY", 3);
-define("C__TASK__OCCURRENCE__WEEKLY", 4);
-define("C__TASK__OCCURRENCE__EVERY_TWO_WEEKS", 5);
-define("C__TASK__OCCURRENCE__MONTHLY", 6);
-define("C__TASK__OCCURRENCE__YEARLY", 7);
-
-/*******************************************************************************
- * TASK EMAIL CONSTANTS
- *******************************************************************************/
-define("C__EMAIL_TEMPLATE__TASK__BEFORE_ENDDATE", 1);
-define("C__EMAIL_TEMPLATE__TASK__NOTIFICATION", 2);
-define("C__EMAIL_TEMPLATE__TASK__ACCEPT", 3);
-define("C__EMAIL_TEMPLATE__TASK__STATUS_OPEN", 4);
-define("C__EMAIL_TEMPLATE__TASK__STATUS_DUE", 5);
-define("C__EMAIL_TEMPLATE__TASK__STATUS_CLOSED", 6);
-define("C__EMAIL_TEMPLATE__TASK__COMPLETION_ACCEPTED", 7);
+define('C__CMDB__ACTION__CATEGORY_CREATE', 0x0001);
+define('C__CMDB__ACTION__CATEGORY_RANK', 0x0002);
+define('C__CMDB__ACTION__CATEGORY_UPDATE', 0x0003);
+define('C__CMDB__ACTION__CONFIG_OBJECT', 0x0101);
+define('C__CMDB__ACTION__CONFIG_OBJECTTYPE', 0x0102);
+define('C__CMDB__ACTION__OBJECT_CREATE', 0x0201);
+define('C__CMDB__ACTION__OBJECT_RANK', 0x0202);
 
 /*******************************************************************************
  * DATABASE SPECIFIC CONSTANTS
  *******************************************************************************/
-define("C__DB_GENERAL__INSERT", 1);
-define("C__DB_GENERAL__UPDATE", 2);
-define("C__DB_GENERAL__REPLACE", 3);
+define('C__DB_GENERAL__INSERT', 1);
+define('C__DB_GENERAL__UPDATE', 2);
+define('C__DB_GENERAL__REPLACE', 3);
 
 /*******************************************************************************
  * GLOBALLY USED GET PARAMETER CONSTANTS
  *******************************************************************************/
-define("C__GET__AJAX_REQUEST", "aj_request");
-define("C__GET__FILE__ID", "f_id");
-define("C__GET__FILE_MANAGER", "file_manager");
-define("C__GET__FILE_NAME", "file_name");
-define("C__GET__MODULE", "mod");
-define("C__GET__MODULE_ID", "moduleID");
-define("C__GET__PARAM", "param");
-define("C__GET__MODULE_SUB_ID", "moduleSubID");
-define("C__GET__MAIN_MENU__NAVIGATION_ID", "mNavID");
-define("C__GET__NAVMODE", "navMode");
-define("C__GET__SETTINGS_PAGE", "pID");
-define("C__GET__TREE_NODE", "treeNode");
-define("C__GET__ID", "id");
+define('C__GET__AJAX_REQUEST', 'aj_request');
+define('C__GET__FILE__ID', 'f_id');
+define('C__GET__FILE_MANAGER', 'file_manager');
+define('C__GET__FILE_NAME', 'file_name');
+define('C__GET__MODULE', 'mod');
+define('C__GET__MODULE_ID', 'moduleID');
+define('C__GET__PARAM', 'param');
+define('C__GET__MODULE_SUB_ID', 'moduleSubID');
+define('C__GET__MAIN_MENU__NAVIGATION_ID', 'mNavID');
+define('C__GET__NAVMODE', 'navMode');
+define('C__GET__SETTINGS_PAGE', 'pID');
+define('C__GET__TREE_NODE', 'treeNode');
+define('C__GET__ID', 'id');
 
 /*******************************************************************************
  * USER SETTINGS PAGES
  *******************************************************************************/
-define("C__SETTINGS_PAGE__USER", 1);
-define("C__SETTINGS_PAGE__THEME", 2);
-define("C__SETTINGS_PAGE__CMDB_STATUS", 3);
-define("C__SETTINGS_PAGE__SYSTEM", 4);
-
-/*******************************************************************************
- * GLOBALLY USED SESSION PARAMETERS
- *******************************************************************************/
-define("C__SESSION__REC_STATUS__LIST_VIEW", "cRecStatusListView");
-
-/*******************************************************************************
- * JOB CONTROL SYSTEM - SPECIFIC
- *******************************************************************************/
-define("C__JCS__OS_UNIX", 1);
-define("C__JCS__OS_WINDOWS", 2);
+define('C__SETTINGS_PAGE__USER', 1);
+define('C__SETTINGS_PAGE__THEME', 2);
+define('C__SETTINGS_PAGE__CMDB_STATUS', 3);
+define('C__SETTINGS_PAGE__SYSTEM', 4);
 
 /*******************************************************************************
  * CONSTANTS FOR SEARCH  MODULE
  *******************************************************************************/
-define("C__SEARCH__GET__WHAT", "s");
-define("C__SEARCH__GET__HIGHLIGHT", "highlight");
+define('C__SEARCH__GET__WHAT', 's');
+define('C__SEARCH__GET__HIGHLIGHT', 'highlight');
 
 // Virtual machine.
-define("C__VM__GUEST", 2);
-define("C__VM__NO", 3);
+define('C__VM__GUEST', 2);
+define('C__VM__NO', 3);
 
 /*******************************************************************************
  * CATEGORY PROPERTIES
@@ -451,6 +356,7 @@ define('C__PROPERTY__DEPENDENCY__SELECT', 'select');
 define('C__PROPERTY__UI__TYPE__POPUP', 'popup');
 define('C__PROPERTY__UI__TYPE__MULTISELECT', 'multiselect');
 define('C__PROPERTY__UI__TYPE__TEXT', 'text');
+define('C__PROPERTY__UI__TYPE__LINK', 'link');
 define('C__PROPERTY__UI__TYPE__TEXTAREA', 'textarea');
 define('C__PROPERTY__UI__TYPE__DIALOG', 'dialog');
 define('C__PROPERTY__UI__TYPE__DIALOG_LIST', 'f_dialog_list');
@@ -502,13 +408,6 @@ define('C__MONTH__DECEMBER', 'december');
 define('C__CATEGORY_DATA__HELPER', 'helper');
 
 /**
- * Parameter(s) for the helper's method.
- *
- * @deprecated  Never used.
- */
-define('C__CATEGORY_DATA__ARG', 'arg');
-
-/**
  * @deprecated
  */
 define('C__CATEGORY_DATA__METHOD', 'method');
@@ -552,41 +451,42 @@ define('C__UPDATE_MIGRATION', true);
 /**
  * License related constants
  */
-define("C__LICENCE__OBJECT_COUNT", 0x001);
-define("C__LICENCE__DB_NAME", 0x002);
-define("C__LICENCE__CUSTOMER_NAME", 0x003);
-define("C__LICENCE__REG_DATE", 0x004);
-define("C__LICENCE__RUNTIME", 0x005);
-define("C__LICENCE__EMAIL", 0x006);
-define("C__LICENCE__KEY", 0x007);
-define("C__LICENCE__TYPE", 0x008);
-define("C__LICENCE__DATA", 0x009);
-define("C__LICENCE__CONTRACT", 0x010);
-define("C__LICENCE__MAX_CLIENTS", 0x011);
+define('C__LICENCE__OBJECT_COUNT', 0x001);
+define('C__LICENCE__DB_NAME', 0x002);
+define('C__LICENCE__CUSTOMER_NAME', 0x003);
+define('C__LICENCE__REG_DATE', 0x004);
+define('C__LICENCE__RUNTIME', 0x005);
+define('C__LICENCE__EMAIL', 0x006);
+define('C__LICENCE__KEY', 0x007);
+define('C__LICENCE__TYPE', 0x008);
+define('C__LICENCE__DATA', 0x009);
+define('C__LICENCE__CONTRACT', 0x010);
+define('C__LICENCE__MAX_CLIENTS', 0x011);
 
-define("LICENCE_ERROR_OBJECT_COUNT", -1);
-define("LICENCE_ERROR_DB", -2);
-define("LICENCE_ERROR_REG_DATE", -3);
-define("LICENCE_ERROR_OVERTIME", -4);
-define("LICENCE_ERROR_KEY", -5);
-define("LICENCE_ERROR_EXISTS", -6);
-define("LICENCE_ERROR_TYPE", -7);
-define("LICENCE_ERROR_INVALID", -8);
-define("LICENCE_ERROR_UNREADABLE", -9);
-define("LICENCE_ERROR_INVALID_TYPE", -10);
-define("LICENCE_ERROR_NO_DB", -11);
-define("LICENCE_ERROR_SYSTEM", -100);
+define('LICENCE_ERROR_OBJECT_COUNT', -1);
+define('LICENCE_ERROR_DB', -2);
+define('LICENCE_ERROR_REG_DATE', -3);
+define('LICENCE_ERROR_OVERTIME', -4);
+define('LICENCE_ERROR_KEY', -5);
+define('LICENCE_ERROR_EXISTS', -6);
+define('LICENCE_ERROR_TYPE', -7);
+define('LICENCE_ERROR_INVALID', -8);
+define('LICENCE_ERROR_UNREADABLE', -9);
+define('LICENCE_ERROR_INVALID_TYPE', -10);
+define('LICENCE_ERROR_NO_DB', -11);
+define('LICENCE_ERROR_SYSTEM', -100);
 
-define("C__LICENCE_TYPE__SINGLE", 0);
-define("C__LICENCE_TYPE__HOSTING", 1);
-define("C__LICENCE_TYPE__HOSTING_SINGLE", 2);
-define("C__LICENCE_TYPE__BUYERS_LICENCE", 3);
-define("C__LICENCE_TYPE__BUYERS_LICENCE_HOSTING", 4);
+define('C__LICENCE_TYPE__SINGLE', 0);
+define('C__LICENCE_TYPE__HOSTING', 1);
+define('C__LICENCE_TYPE__HOSTING_SINGLE', 2);
+define('C__LICENCE_TYPE__BUYERS_LICENCE', 3);
+define('C__LICENCE_TYPE__BUYERS_LICENCE_HOSTING', 4);
+
+define("C__LICENCE_TYPE__NEW__IDOIT", 5);
+define("C__LICENCE_TYPE__NEW__ADDON", 6);
 
 /**
  * Define the default TCPDF font directory. This is necessary, because we copy all TCPDF fonts in our own "<i-doit>/upload/fonts" dir.
- *
- * @todo  This can be removed when the "document" add-on exceeds the version 1.1.5!
  */
 if (!defined('K_PATH_FONTS')) {
     define('K_PATH_FONTS', dirname(__DIR__) . '/upload/fonts/');

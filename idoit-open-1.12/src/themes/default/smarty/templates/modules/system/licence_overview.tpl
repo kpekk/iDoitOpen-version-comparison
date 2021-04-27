@@ -44,9 +44,6 @@
 			<button type="button" class="btn text-bold mr5" onclick="new Effect.SlideDown('object_count_detail',{duration:0.5});this.up().hide();">
 				<span>[{isys type="lang" ident="LC__LICENCE_OVERVIEW__OBJECTCOUNT_BY_TYPE"}]</span>
 			</button>
-			<a class="btn text-bold" href="?moduleID=[{$smarty.get.moduleID|escape}]&handle=licence_installation">
-				<span>[{isys type="lang" ident="LC__LICENCE__INSTALL"}]</span>
-			</a>
 		</p>
 
 		<div class="mt10 border" style="display:none" id="object_count_detail">
@@ -82,7 +79,7 @@
 				<th>[{isys type="lang" ident="LC__LICENCE_OVERVIEW__CURRENT_VALUE"}]</th>
 			</tr>
 			</thead>
-			<tbody></tbody>
+			<tbody>
 			<tr class="CMDBListElementsOdd">
 				<td><strong>[{isys type="lang" ident="LC__LICENCE_OVERVIEW__CMDB_REFERENCES"}]</strong></td>
 				<td>[{$stat_counts.cmdb_references}]</td>
@@ -101,51 +98,33 @@
 
 	<div class="cb"></div>
 
-	<h2 class="mt5 p10 border-top header gradient text-shadow">[{isys type="lang" ident="LC__LICENCE__INSTALLED_LICENCES"}]</h2>
+    <h2 class="mt5 p10 border-top header gradient text-shadow">Licenses</h2>
 
-	<table class="mainTable">
-		<thead>
-			<tr>
-				<th>[{isys type="lang" ident="LC__CATG__CONTACT_COMPANY"}]</th>
-				<th>[{isys type="lang" ident="LC__CATG__CONTACT_EMAIL"}]</th>
-				<th>[{isys type="lang" ident="LC__LICENCE__LICENCED_DATABASE"}]</th>
-				<th>[{isys type="lang" ident="LC__LICENCE__LICENCE_TYPE"}]</th>
-				<th>[{isys type="lang" ident="LC__LICENCE__MAX_AMOUNT_OF_OBJECTS"}]</th>
-				<th>[{isys type="lang" ident="LC__LICENCE__REGISTRATION_DATE"}]</th>
-				<th>[{isys type="lang" ident="LC__CMDB__CATS__LICENCE_EXPIRE"}]</th>
-				<th>[{isys type="lang" ident="LC__SETTINGS__SYSTEM__OPTIONS"}]</th>
-			</tr>
-		</thead>
-		<tbody>
-			[{if is_array($licenses) && count($licences) <= 0}]
-				<tr>
-					<td>
-						<span>[{isys type="lang" ident="LC__LICENCE__CURRENTLY_NO_LICENCES"}]</span>
-					</td>
-				</tr>
-			[{else}]
-				[{foreach from=$licences item="licence"}]
-				<tr class="[{cycle values="CMDBListElementsOdd,CMDBListElementsEven"}]">
-					<td class="text-bold">[{$licence.organisation}]</td>
-					<td>[{$licence.email}]</td>
-					<td>[{$licence.database}]</td>
-					<td class="text-underline">[{$licence.licencetype|ucfirst}]</td>
-					<td class="text-green text-bold">[{if $licence.objcount eq 0}]Unlimitiert[{else}][{$licence.objcount}][{/if}]</td>
-					<td>[{$licence.reg_date|date_format:"%Y-%m-%d"}]</td>
-					<td [{if $licence.expires < $smarty.now}]class="text-red text-bold text-underline"[{/if}]>[{$licence.expires|date_format:"%Y-%m-%d"}]</td>
-					<td>
-						[{if $licence.type != $smarty.const.C__LICENCE_TYPE__HOSTING_SINGLE}]
-						<button class="btn text-red text-bold" onclick="if (confirm('[{isys type="lang" ident="LC__LICENCE__REMOVE_CONFIRMATION"}]'))document.location='?moduleID=[{$smarty.get.moduleID|escape}]&handle=licence_overview&id=[{$licence.id}]&delete';return false;">
-							<img src="[{$dir_images}]icons/silk/page_delete.png" class="mr5" /><span>[{isys type="lang" ident="LC__LICENCE__REMOVE"}]</span>
-						</button>
-						[{/if}]
-					</td>
-				</tr>
-				[{/foreach}]
-			[{/if}]
-		</tbody>
-	</table>
+    <div class="p5 fl">
+        <b>Licensed Add-ons:</b><br /><br/>
+
+        [{foreach from=$licensedAddOns key=$addOnKey item=$addOn}]
+            [{if $addOn.licensed}] <img src="../images/icons/silk/tick.png" /> [{$addOn.label}]&nbsp;&nbsp;&nbsp;[{/if}]
+        [{/foreach}]
+<br/>
+<br/>
+        [{$stringTimeLimit}]
+
+        [{if $expiresWithinSixMonths}]
+        <div class="progress mt5">
+            <div id="remaining_time_percent_[{$uid}]" class="progress-bar" data-width-percent="[{$remainingTimePercentage}]" style="width:0; background-color:transparent;"></div>
+        </div>
+        [{/if}]
+    </div>
 </div>
+
+<script type="text/javascript">
+    (function () {
+        "use strict";
+
+        progressBarInit(true);
+    }());
+</script>
 
 <style type="text/css">
 	#system-licence-overview .mainTable td {

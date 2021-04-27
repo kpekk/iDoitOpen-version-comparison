@@ -253,7 +253,8 @@ class Property
 
                 return $dao->get_property_by_key($this->getKey());
             }
-        } catch (\Exception $e) {}
+        } catch (\Exception $e) {
+        }
         return null;
     }
 }

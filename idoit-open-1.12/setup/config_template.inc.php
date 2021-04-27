@@ -45,7 +45,11 @@ $g_admin_auth = [
 //     'temp' => '/tmp/i-doit/'
 // ];
 
+$g_license_token = '%config.license.token%';
+
 /**
  * Crypto hash used as key for encription with phpseclib
  */
 $g_crypto_hash = '%config.crypt.hash%';
+
+$g_disable_addon_upload = '%config.admin.disable_addon_upload%';

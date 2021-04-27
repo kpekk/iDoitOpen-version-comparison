@@ -78,7 +78,7 @@
             l_element = l_element.up();
         }
 
-		window.location.href = '?' + C__CMDB__GET__OBJECT + '=' + objId + "&treeView="+"&treePath=" + l_path.join(',');
+		window.location.href = window.www_dir + '?' + C__CMDB__GET__OBJECT + '=' + objId + "&treeView="+"&treePath=" + l_path.join(',');
 	};
 
     window.toggleTreeExpand = function () {
@@ -109,21 +109,4 @@
 	        }
         }
     };
-
-	// Render directory-categories as "filled" when child-elements are filled. Fixes #4106.
-    if ($('dmenu_tree0')) {
-        $('dmenu_tree0').select('div.clip div.node a').each(function (el) {
-            var dir_anchor;
-
-            if (!el.down('span.noentries')) {
-                // We found a filled sub-category, now to go back to the "directory"-element and remove it's "noentries" class.
-                dir_anchor = el.up('div.clip').previous().down('a span.noentries');
-
-                if (dir_anchor) {
-                    dir_anchor.up('div.node').show();
-                    dir_anchor.up().update(dir_anchor.innerHTML);
-                }
-            }
-        });
-    }
 </script>

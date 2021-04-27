@@ -15,7 +15,6 @@
  */
 class isys_statistics_dao extends isys_module_dao
 {
-
     private $m_cmdb_dao = null;
 
     /**
@@ -28,46 +27,42 @@ class isys_statistics_dao extends isys_module_dao
     {
         // @see  ID-3349 Skip certain objects.
         $skipObjectCount = [
-            'C__OBJ__ROOT_LOCATION',
-            'C__OBJ__PERSON_GUEST',
-            'C__OBJ__PERSON_READER',
-            'C__OBJ__PERSON_EDITOR',
-            'C__OBJ__PERSON_AUTHOR',
-            'C__OBJ__PERSON_ARCHIVAR',
-            'C__OBJ__PERSON_ADMIN',
-            'C__OBJ__PERSON_GROUP_READER',
-            'C__OBJ__PERSON_GROUP_EDITOR',
-            'C__OBJ__PERSON_GROUP_AUTHOR',
-            'C__OBJ__PERSON_GROUP_ARCHIVAR',
-            'C__OBJ__PERSON_GROUP_ADMIN',
-            'C__OBJ__NET_GLOBAL_IPV4',
-            'C__OBJ__NET_GLOBAL_IPV6',
-            'C__OBJ__PERSON_API_SYSTEM',
-            'C__OBJ__RACK_SEGMENT__2SLOT',
-            'C__OBJ__RACK_SEGMENT__4SLOT',
-            'C__OBJ__RACK_SEGMENT__8SLOT'
+            "'C__OBJ__ROOT_LOCATION'",
+            "'C__OBJ__PERSON_GUEST'",
+            "'C__OBJ__PERSON_READER'",
+            "'C__OBJ__PERSON_EDITOR'",
+            "'C__OBJ__PERSON_AUTHOR'",
+            "'C__OBJ__PERSON_ARCHIVAR'",
+            "'C__OBJ__PERSON_ADMIN'",
+            "'C__OBJ__PERSON_GROUP_READER'",
+            "'C__OBJ__PERSON_GROUP_EDITOR'",
+            "'C__OBJ__PERSON_GROUP_AUTHOR'",
+            "'C__OBJ__PERSON_GROUP_ARCHIVAR'",
+            "'C__OBJ__PERSON_GROUP_ADMIN'",
+            "'C__OBJ__NET_GLOBAL_IPV4'",
+            "'C__OBJ__NET_GLOBAL_IPV6'",
+            "'C__OBJ__PERSON_API_SYSTEM'",
+            "'C__OBJ__RACK_SEGMENT__2SLOT'",
+            "'C__OBJ__RACK_SEGMENT__4SLOT'",
+            "'C__OBJ__RACK_SEGMENT__8SLOT'"
         ];
 
-        $skipObjectTypeCount = array_filter([
-            'C__OBJTYPE__RELATION',
-            'C__OBJTYPE__PARALLEL_RELATION',
-            'C__OBJTYPE__NAGIOS_SERVICE',
-            'C__OBJTYPE__NAGIOS_HOST_TPL',
-            'C__OBJTYPE__NAGIOS_SERVICE_TPL'
-        ], 'defined');
-        
-        $objectTypeCondition = array_map(function ($objectTypeConstant) {
-            return '(SELECT isys_obj_type__id FROM isys_obj_type WHERE isys_obj_type__const = "' . $objectTypeConstant . '")';
-        }, $skipObjectTypeCount);
+        $skipObjectTypeCount = [
+            "'C__OBJTYPE__RELATION'",
+            "'C__OBJTYPE__PARALLEL_RELATION'",
+            "'C__OBJTYPE__NAGIOS_SERVICE'",
+            "'C__OBJTYPE__NAGIOS_HOST_TPL'",
+            "'C__OBJTYPE__NAGIOS_SERVICE_TPL'"
+        ];
 
-        $condition = 'AND isys_obj__id NOT IN (SELECT isys_obj__id FROM isys_obj WHERE isys_obj__const IN  ("' . implode('","', $skipObjectCount) . '")) ' .
-            'AND isys_obj__isys_obj_type__id NOT IN (' . implode(',', $objectTypeCondition) . ')';
+        $condition = 'AND isys_obj__id NOT IN (SELECT isys_obj__id FROM isys_obj WHERE isys_obj__const IN  (' . implode(',', $skipObjectCount) . ')) ' .
+            'AND isys_obj__isys_obj_type__id NOT IN (SELECT isys_obj_type__id FROM isys_obj_type WHERE isys_obj_type__const IN (' . implode(',', $skipObjectTypeCount) . '))';
 
         if ($this->m_cmdb_dao) {
             return $this->m_cmdb_dao->count_objects(null, $objectTypeId, true, $condition);
-        } else {
-            throw new Exception('Could not count objects: isys_cmdb_dao was not found.');
         }
+
+        throw new Exception('Could not count objects: isys_cmdb_dao was not found.');
     }
 
     /**
@@ -75,7 +70,6 @@ class isys_statistics_dao extends isys_module_dao
      */
     public function count_cmdb_references()
     {
-
         $l_sql = "SELECT COUNT(*) AS counter FROM isys_connection";
         $l_dao = $this->retrieve($l_sql);
         $l_row = $l_dao->get_row();
@@ -139,5 +133,4 @@ class isys_statistics_dao extends isys_module_dao
         parent::__construct($p_db);
         $this->m_cmdb_dao = $p_cmdb_dao;
     }
-
 }

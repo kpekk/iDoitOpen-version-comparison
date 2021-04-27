@@ -31,7 +31,8 @@ var Multiedit = Class.create({
             sortDirection: '',
             selectedIds: [],
             context: 'module',
-            overlay: null
+            overlay: null,
+            disabledKeys: []
         }, options || {});
         
         this.addObservers();
@@ -553,7 +554,7 @@ var Multiedit = Class.create({
             }
             
             // iterate through each row
-            trData = rows[i].select('select,input');
+            trData = rows[i].select('select,input,textarea');
             
             if (!trDataLength) {
                 trDataLength = trData.length;
@@ -584,12 +585,13 @@ var Multiedit = Class.create({
                 
                 newValue = trData[j].up('td').readAttribute('data-sort');
                 
-                if (trData[j].hasClassName('chosen-select')) {
+                if (trData[j].hasClassName('chosen-select') && trData[j].next('div')) {
                     chosenSelect = trData[j].next('div').down('ul.chosen-choices').select('li.search-choice');
-                    if (chosenSelect.length > 0) {
+                    if (chosenSelect.length > 0)
+                    {
                         dataValue = '';
-                        
-                        chosenSelect.forEach(function (ele){
+    
+                        chosenSelect.forEach(function (ele) {
                             dataValue += trData[j].options[ele.down('a').readAttribute('rel')].value + ',';
                         });
                         dataValue = dataValue.substr(0, dataValue.length - 1);
@@ -820,7 +822,7 @@ var Multiedit = Class.create({
         
         switch (elementObject.nodeName.toLowerCase()) {
             case 'select':
-                selection = elementObject.selectedOptions;
+                selection = elementObject.select('option:selected');
                 selectionLength = selection.length;
                 var selectValues = '';
                 
@@ -837,6 +839,7 @@ var Multiedit = Class.create({
                 elementObject.fire('chosen:updated');
                 
                 break;
+            case 'textarea':
             case 'input':
                 viewValue = elementObject.value;
                 viewElement = $(elementObject.id.replace('HIDDEN', 'VIEW'));
@@ -919,6 +922,9 @@ var Multiedit = Class.create({
                 if (json.success) {
                     var identifier = objectId + '-' + entryId;
                     var $tr = $('object-row_' + identifier);
+                    var disabledKeysLength = this.options.disabledKeys.length;
+                    var disabledKey;
+                    
                     if (!$tr) {
                         $tr = document.createElement('tr');
                         $tr.setAttribute('id', 'object-row_' + identifier);
@@ -932,6 +938,14 @@ var Multiedit = Class.create({
                     var updateElement = $('object-row_' + identifier);
                     
                     updateElement.update(json.data);
+                    
+                    if (disabledKeysLength > 0) {
+                        for (i = 0; i < disabledKeysLength; i++) {
+                            disabledKey = this.options.disabledKeys[i];
+                            this.disableColumn(disabledKey);
+                        }
+                    }
+                    
                     updateElement.highlight();
                 } else {
                     idoit.Notify.error(json.message);
@@ -1029,10 +1043,12 @@ var Multiedit = Class.create({
         var pattern = 'th[data-key],td[data-key]';
         this.options.multiEditHeader.select(pattern).invoke('removeClassName', 'hide');
         this.options.multiEditList.select(pattern).invoke('removeClassName', 'hide');
+        this.options.disabledKeys = [];
     },
     
     disableColumn: function (key) {
         var pattern = 'th[data-key="' + key + '"],td[data-key="' + key + '"]';
+        this.options.disabledKeys.push(key);
         this.options.multiEditHeader.select(pattern).invoke('addClassName', 'hide');
         this.options.multiEditList.select(pattern).invoke('addClassName', 'hide');
     },

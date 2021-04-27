@@ -71,4 +71,23 @@ class isys_cmdb_ui_category_s_database_access extends isys_cmdb_ui_category_spec
 
         return parent::process_list($p_cat, $p_get_param_override, $p_strVarName, $p_strTemplateName, true, true, "isys_cats_database_access");
     }
+
+    /**
+     * Process category view
+     *
+     * @param isys_cmdb_dao_category $p_cat
+     *
+     * @return array|null
+     * @throws isys_exception_general
+     */
+    public function process(isys_cmdb_dao_category $p_cat)
+    {
+        /**
+         * Redirect to list processor
+         *
+         * @see ID-6351
+         */
+        return $this->process_list($p_cat);
+    }
+
 }

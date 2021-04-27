@@ -56,7 +56,7 @@
                     $cancelButton.addClassName('disabled');
                     $ajaxLoader.removeClassName('hide');
                     var category = $('add_values-category').value,
-                        categoryInfo = ('add_values-category-info').value,
+                        categoryInfo = $('add_values-category-info').value,
                         randomHash = function () {
                             return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
                         };

@@ -155,7 +155,7 @@ class isys_module_report_pro extends isys_module_report implements isys_module_a
                         foreach ($l_data as $l_key => $l_value) {
                             if (in_array($l_key, $l_result['headers'])) {
                                 $l_value = _LL(preg_replace('#<script(.*?)>(.*?)</script>#', '', $l_value)) . '&nbsp;';
-                         
+
                                 if (!$showHtml) {
                                     $l_value = nl2br(_LL(strip_tags(preg_replace('#<script(.*?)>(.*?)</script>#', '', $l_value), '<span><a></a><img/>'))) . '&nbsp;';
                                 }
@@ -250,7 +250,6 @@ class isys_module_report_pro extends isys_module_report implements isys_module_a
                                     "class"       => $l_class,
                                     "name"        => $this->language->get($l_class_object->name()),
                                     "description" => $this->language->get($l_class_object->description()),
-                                    "type"        => $l_class_object->type(),
                                     "viewtype"    => $l_class_object->viewtype()
                                 ];
                             } else {
@@ -283,7 +282,6 @@ class isys_module_report_pro extends isys_module_report implements isys_module_a
                             "class"       => $l_classname,
                             "name"        => $this->language->get($l_class->name()),
                             "description" => $this->language->get($l_class->description()),
-                            "type"        => $l_class->type(),
                             "viewtype"    => $l_class->viewtype()
                         ];
                     } else {
@@ -1037,7 +1035,8 @@ class isys_module_report_pro extends isys_module_report implements isys_module_a
             'query'       => $l_row['isys_report__query'],
             'mandator'    => $l_row['isys_report__mandator'],
             'datetime'    => $l_row['isys_report__datetime'],
-            'last_edited' => $l_row['isys_report__last_edited']
+            'last_edited' => $l_row['isys_report__last_edited'],
+            'show_html'   => $l_row['isys_report__show_html']
         ];
 
         try {
@@ -1328,7 +1327,7 @@ class isys_module_report_pro extends isys_module_report implements isys_module_a
             isys_application::instance()->container->get('template')->assign("content_title", "Report-Views")
                 ->include_template('contentbottomcontent', 'content/bottom/content/object_table_list.tpl');
         } else {
-            $l_class = strtoupper($_GET["reportID"]);
+            $l_class = strtoupper($_GET['reportID']);
 
             isys_auth_report::instance()
                 ->check(isys_auth::VIEW, 'VIEWS/' . $l_class);
@@ -1337,22 +1336,19 @@ class isys_module_report_pro extends isys_module_report implements isys_module_a
                 /** @var isys_report_view $l_view */
                 $l_view = new $l_class();
 
-                isys_application::instance()->container->get('template')->assign("content_title", $this->language->get($l_view->name()));
-                $l_tpl = '';
+                isys_application::instance()->container->get('template')
+                    ->assign('content_title', $this->language->get($l_view::name()))
+                    ->assign('viewTemplate', $l_view->template())
+                    ->include_template('contentbottomcontent', self::get_tpl_dir() . 'view.tpl');
 
-                if ($l_view->external() === false) {
-                    $l_tpl = $this->get_tpl_dir();
+                // ID-6399 Only call "init" if available.
+                if (method_exists($l_view, 'init')) {
+                    $l_view->init();
                 }
 
-                isys_application::instance()->container->get('template')->assign("viewTemplate", $l_tpl . $l_view->template());
-
-                if ($l_view->init()) {
-                    $l_view->start();
-                }
-
-                isys_application::instance()->container->get('template')->include_template('contentbottomcontent', $this->get_tpl_dir() . 'view.tpl');
+                $l_view->start();
             } else {
-                throw new Exception("Error: Report does not exist.");
+                throw new Exception('Error: Report does not exist.');
             }
         }
     }

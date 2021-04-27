@@ -31,6 +31,12 @@
 						       value="***" />
 					</td>
 				</tr>
+                <tr>
+                    <td>Weblicense Token</td>
+                    <td>
+                        <input type="text" id="license_token" name="license_token" value="[{$config.license_token}]" />
+                    </td>
+                </tr>
 			</table>
 		</div>
 	</fieldset>
@@ -128,7 +134,8 @@
                                 'db_port':        $('db_port').value,
                                 'db_user':        $('db_user').value,
                                 'db_pass':        $('db_pass1').value,
-                                'db_name':        $('db_name').value
+                                'db_name':        $('db_name').value,
+                                'license_token':  $('license_token').value
                             },
                             onComplete: function (xhr) {
                                 var json = xhr.responseJSON,

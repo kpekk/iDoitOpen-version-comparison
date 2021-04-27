@@ -254,6 +254,10 @@ $g_config = [
         "content" => "",
         "name"    => "Password"
     ],
+    'config.license.token' => [
+        "content" => "",
+        "name"    => 'License token'
+    ],
     "config.dir.fileman.file"   => [
         "content" => dirname(__DIR__) . "/upload/files/",
         "name"    => "Save path for file manager"
@@ -323,6 +327,10 @@ $g_config = [
     'config.crypt.hash'         => [
         "content" => sha1(uniqid('', true)),
         "name"    => 'Crypto hash used as key for encription with phpseclib'
+    ],
+    "config.admin.disable_addon_upload"    => [
+        "content" => "0",
+        "name"    => "Disabling add-on upload in admin center (0 = enabled, 1 = disabled)"
     ]
 ];
 

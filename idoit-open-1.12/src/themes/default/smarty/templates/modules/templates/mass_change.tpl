@@ -70,6 +70,12 @@
 		[{isys type="lang" ident="LC__MODULE__IMPORT__CSV__LOGGING__ALL"}]
 	</label><br />
 
+    <h4 style="margin-top: 1em; margin-bottom: 0.5em;">3.4 [{isys type='lang' ident='LC__MASS_CHANGE__OTHER_OPTIONS'}]</h4>
+    <label>
+        <input type="checkbox" name="overwrite-cmdb-status" checked>
+        [{isys type="lang" ident="LC__MASS_CHANGE__OVERWRITE_CMDB_STATUS"}]
+    </label><br />
+
     <h3 class="mb5" style="margin-top: 1em; margin-bottom: 0.5em;">4. [{isys type="lang" ident="LC__MASS_CHANGE__APPLY_MASS_CHANGE"}]</h3>
 
     [{isys type="f_submit" id="apply_mass_change" name="apply_mass_change" p_bDisabled=1 p_strValue="LC__MASS_CHANGE__APPLY_MASS_CHANGE" p_bEditMode="1"}]

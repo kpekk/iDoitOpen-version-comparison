@@ -102,9 +102,13 @@ class isys_cmdb_ui_category_g_global extends isys_cmdb_ui_category_global
         ];
 
         // CMDB STATUS.
-        $l_rules["C__OBJ__CMDB_STATUS"]["p_strTable"] = "isys_cmdb_status";
-        $l_rules["C__OBJ__CMDB_STATUS"]["condition"] = "isys_cmdb_status__id NOT IN ('" . defined_or_default('C__CMDB_STATUS__IDOIT_STATUS_TEMPLATE') . "')";
-        $l_rules["C__OBJ__CMDB_STATUS"]['p_arDisabled'] = [];
+        $l_rules['C__OBJ__CMDB_STATUS'] = [
+            'p_strTable' => 'isys_cmdb_status',
+            'condition' => "isys_cmdb_status__id NOT IN ('" . defined_or_default('C__CMDB_STATUS__IDOIT_STATUS_TEMPLATE') . "')",
+            'p_arDisabled' => [],
+            'p_bDbFieldNN' => 1
+        ];
+
         if (defined('C__CMDB_STATUS__IDOIT_STATUS')) {
             $l_rules["C__OBJ__CMDB_STATUS"]['p_arDisabled'][constant('C__CMDB_STATUS__IDOIT_STATUS')] = 'LC__CMDB_STATUS__IDOIT_STATUS';
         }
@@ -142,6 +146,7 @@ class isys_cmdb_ui_category_g_global extends isys_cmdb_ui_category_global
         if ($l_posts['template'] !== '' || (int)$l_catdata['isys_obj__status'] === C__RECORD_STATUS__MASS_CHANGES_TEMPLATE ||
             (int)$l_catdata['isys_obj__status'] === C__RECORD_STATUS__TEMPLATE || in_array((int)$l_catdata['isys_obj__isys_obj_type__id'], $l_blacklisted_object_types)) {
             $l_show_in_tree = null;
+            $l_rules["C__OBJ__CMDB_STATUS"]['p_arDisabled'] = [];
         }
 
         $l_res = $p_cat->get_object_types(null, $l_show_in_tree);
@@ -167,16 +172,29 @@ class isys_cmdb_ui_category_g_global extends isys_cmdb_ui_category_global
         $editmode = (bool) $this->get_template_component()->editmode();
         $placeholderData = false;
 
-        if ($editmode || $l_catdata['isys_obj__status'] != C__RECORD_STATUS__MASS_CHANGES_TEMPLATE) {
+        if ($editmode) {
             $sql = 'SELECT isys_obj__id AS id, isys_obj__isys_obj_type__id AS typeId, isys_obj__title as title, isys_obj__sysid AS sysid 
-                    FROM isys_obj 
-                    WHERE isys_obj__isys_obj_type__id ' . $p_cat->prepare_in_condition(filter_defined_constants(['C__OBJTYPE__CABLE', 'C__OBJTYPE__RELATION']), true) . ' 
-                    ORDER BY RAND() 
-                    LIMIT 1;';
+                FROM isys_obj 
+                WHERE isys_obj__id = ' . $p_cat->convert_sql_id($l_catdata['isys_obj__id']) . '
+                LIMIT 1;';
+
+            if ($l_catdata['isys_obj__status'] == C__RECORD_STATUS__BIRTH) {
+                $sql = 'SELECT isys_obj__id AS id, isys_obj__isys_obj_type__id AS typeId, isys_obj__title as title, isys_obj__sysid AS sysid 
+                        FROM isys_obj 
+                        WHERE isys_obj__isys_obj_type__id ' . $p_cat->prepare_in_condition(filter_defined_constants(['C__OBJTYPE__CABLE', 'C__OBJTYPE__RELATION']), true) . ' 
+                        ORDER BY RAND() 
+                        LIMIT 1;';
+            }
 
             $objectData = $p_cat->retrieve($sql)->get_row();
 
-            $placeholderData = isys_cmdb_dao_category_g_accounting::get_placeholders_info_with_data(true, $objectData['id'], $objectData['typeId'], $objectData['title'], $objectData['sysid']);
+            $placeholderData = isys_cmdb_dao_category_g_accounting::get_placeholders_info_with_data(
+                true,
+                $objectData['id'],
+                $objectData['typeId'],
+                $objectData['title'],
+                $objectData['sysid']
+            );
         }
 
         // Apply rules.

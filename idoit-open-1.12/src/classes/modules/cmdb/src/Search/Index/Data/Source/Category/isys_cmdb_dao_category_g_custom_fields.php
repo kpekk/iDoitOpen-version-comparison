@@ -52,7 +52,7 @@ class isys_cmdb_dao_category_g_custom_fields extends AbstractCategorySource impl
         $complexTypes = ['f_popup' => 'retrieveSqlForDialogEntries'];
 
         $sql = sprintf(
-            "SELECT isys_obj__id, isys_obj__status, isys_obj__isys_obj_type__id, isys_catg_custom_fields_list__data__id, isys_catg_custom_fields_list__id, isys_catg_custom_fields_list__status, isys_catg_custom_fields_list__field_key, isys_catg_custom_fields_list__field_content, isys_obj__id 
+            "SELECT isys_obj__id, isys_obj__status, isys_obj__isys_obj_type__id, isys_catg_custom_fields_list__data__id, isys_catg_custom_fields_list__id, isys_catg_custom_fields_list__status, isys_catg_custom_fields_list__field_key, isys_catg_custom_fields_list__field_content, isys_obj__id
              FROM isys_catg_custom_fields_list
              INNER JOIN isysgui_catg_custom ON isysgui_catg_custom.isysgui_catg_custom__id = isys_catg_custom_fields_list.isys_catg_custom_fields_list__isysgui_catg_custom__id
              INNER JOIN isys_obj obj ON (isys_catg_custom_fields_list.isys_catg_custom_fields_list__isys_obj__id = obj.isys_obj__id)
@@ -142,7 +142,7 @@ class isys_cmdb_dao_category_g_custom_fields extends AbstractCategorySource impl
                 $set['isys_obj__isys_obj_type__id'],
                 $set['isys_obj__id'],
                 $set['isys_obj__status'],
-                str_replace('.', '_', $this->categoryDao->getCategoryTitle()),
+                str_replace(['.', ' '], '_', $this->categoryDao->getCategoryTitle()),
                 $set['isys_catg_custom_fields_list__data__id'],
                 $set['isys_catg_custom_fields_list__status'],
                 $set['isys_catg_custom_fields_list__field_key']
@@ -164,7 +164,7 @@ class isys_cmdb_dao_category_g_custom_fields extends AbstractCategorySource impl
     private function retrieveSqlForDialogEntries(Config $config)
     {
         $sql = sprintf(
-            "SELECT isys_obj__id, isys_obj__status, isys_obj__isys_obj_type__id, isys_catg_custom_fields_list__id, isys_catg_custom_fields_list__status, isys_catg_custom_fields_list__field_key, isys_catg_custom_fields_list__field_content, isys_obj__id, CONCAT(isys_obj__isys_obj_type__id, '.', isys_obj__id, '.custom_fields.', isys_catg_custom_fields_list__data__id, '.', REPLACE(isysgui_catg_custom__title, '.', '_'), '.', isysgui_catg_custom__id, '.', isys_catg_custom_fields_list__field_key) index_key, GROUP_CONCAT(isys_dialog_plus_custom__title separator ', ') as isys_catg_custom_fields_list__field_content, isys_obj__id 
+            "SELECT isys_obj__id, isys_obj__status, isys_obj__isys_obj_type__id, isys_catg_custom_fields_list__id, isys_catg_custom_fields_list__status, isys_catg_custom_fields_list__field_key, isys_catg_custom_fields_list__field_content, isys_obj__id, CONCAT(isys_obj__isys_obj_type__id, '.', isys_obj__id, '.custom_fields.', isys_catg_custom_fields_list__data__id, '.', REPLACE(isysgui_catg_custom__title, '.', '_'), '.', isysgui_catg_custom__id, '.', isys_catg_custom_fields_list__field_key) index_key, GROUP_CONCAT(isys_dialog_plus_custom__title separator ', ') as isys_catg_custom_fields_list__field_content, isys_obj__id, isys_catg_custom_fields_list__data__id 
              FROM isys_catg_custom_fields_list
              INNER JOIN isysgui_catg_custom ON isysgui_catg_custom.isysgui_catg_custom__id = isys_catg_custom_fields_list.isys_catg_custom_fields_list__isysgui_catg_custom__id
              INNER JOIN isys_obj obj ON (isys_catg_custom_fields_list.isys_catg_custom_fields_list__isys_obj__id = obj.isys_obj__id)

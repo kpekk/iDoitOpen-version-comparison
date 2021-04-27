@@ -88,7 +88,7 @@ class isys_component_menu extends isys_component
             ->get_gets();
 
         if (isset($l_gets[C__CMDB__GET__OBJECTGROUP])) {
-            $l_sql_condition = 'AND isys_obj_type_group__id = \'' . $l_gets[C__CMDB__GET__OBJECTGROUP] . '\' ';
+            $l_sql_condition = 'AND isys_obj_type_group__id = \'' . (int)$g_comp_database->escape_string($l_gets[C__CMDB__GET__OBJECTGROUP]) . '\' ';
         } elseif (isset($l_gets[C__CMDB__GET__OBJECTTYPE])) {
             $l_allowed_objecttypes = isys_auth_cmdb_object_types::instance()
                 ->get_allowed_objecttypes();

@@ -186,7 +186,7 @@ class Retriever
                             // Get the custom category ID by the provided field key.
                             preg_match('~c_\d+$~', $attributeKey, $match);
 
-                            if (isset($match[0]) && isys_strlen($match[0])) {
+                            if (isset($match[0]) && mb_strlen($match[0])) {
                                 $sql = 'SELECT isys_catg_custom_fields_list__isysgui_catg_custom__id AS customCategoryId 
                                     FROM isys_catg_custom_fields_list
                                     WHERE isys_catg_custom_fields_list__field_key = ' . $propertyDao->convert_sql_text($match[0]);
@@ -198,7 +198,8 @@ class Retriever
 
                         $property = $daoInstance->get_property_by_key($attributeKey);
 
-                        return ($this->showCategoryNames ? $lang->get($daoInstance->getCategoryTitle()) . ' &raquo; ' : '') .
+                        // @see  ID-6426  Decode the HTML "&raquo;" (because I don't want to use UTF8 characters in code).
+                        return ($this->showCategoryNames ? $lang->get($daoInstance->getCategoryTitle()) . isys_glob_html_entity_decode(' &raquo; ') : '') .
                             $lang->get($property[C__PROPERTY__INFO][C__PROPERTY__INFO__TITLE]);
                     }
 

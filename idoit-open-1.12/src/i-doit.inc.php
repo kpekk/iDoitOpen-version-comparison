@@ -48,6 +48,13 @@ try {
     // Store status array.
     if ($_POST['cmdb_status']) {
         $_SESSION['cmdb_status'] = $_POST['cmdb_status'];
+
+        // @see ID-6409 Save CMDB-Status filter for a user.
+        if (isys_tenantsettings::get('cmdb.gui.remember-cmdb-status', false)) {
+            isys_usersettings::set('cmdb.gui.mydoit-cmdb-status-0', $_POST['cmdb_status'][0] ?: 0);
+            isys_usersettings::set('cmdb.gui.mydoit-cmdb-status-1', $_POST['cmdb_status'][1] ?: 0);
+            isys_usersettings::set('cmdb.gui.mydoit-cmdb-status-2', $_POST['cmdb_status'][2] ?: 0);
+        }
     }
 
     if (!isset($_SESSION['cmdb_status']) || !is_array($_SESSION['cmdb_status'])) {
@@ -57,6 +64,13 @@ try {
             0,
             0
         ];
+
+        // @see ID-6409 Save CMDB-Status filter for a user.
+        if (isys_tenantsettings::get('cmdb.gui.remember-cmdb-status', false)) {
+            $_SESSION['cmdb_status'][0] = isys_usersettings::get('cmdb.gui.mydoit-cmdb-status-0', 0);
+            $_SESSION['cmdb_status'][1] = isys_usersettings::get('cmdb.gui.mydoit-cmdb-status-1', 0);
+            $_SESSION['cmdb_status'][2] = isys_usersettings::get('cmdb.gui.mydoit-cmdb-status-2', 0);
+        }
     }
 
     // Write cRecStatusListView to session.
@@ -67,10 +81,10 @@ try {
         if (!isset($_SESSION['cRecStatusListView'])) {
             // Set default value
             $_SESSION['cRecStatusListView'] = C__RECORD_STATUS__NORMAL;
-        } else if ($_SESSION['cRecStatusListView'] > C__RECORD_STATUS__DELETED) {
+        } elseif ($_SESSION['cRecStatusListView'] > C__RECORD_STATUS__DELETED) {
             if ($_GET[C__CMDB__GET__VIEWMODE] == C__CMDB__VIEW__LIST_CATEGORY) {
                 $_SESSION['cRecStatusListView'] = C__RECORD_STATUS__NORMAL;
-            } else if ($_GET[C__CMDB__GET__VIEWMODE] == C__CMDB__VIEW__LIST_OBJECT && $_SESSION['cRecStatusListView'] != C__RECORD_STATUS__TEMPLATE) {
+            } elseif ($_GET[C__CMDB__GET__VIEWMODE] == C__CMDB__VIEW__LIST_OBJECT && $_SESSION['cRecStatusListView'] != C__RECORD_STATUS__TEMPLATE) {
                 $_SESSION['cRecStatusListView'] = C__RECORD_STATUS__NORMAL;
             }
         }

@@ -553,4 +553,14 @@ class isys_report
             $this->m_last_edited = $this->m_datetime;
         }
     }
+
+    /**
+     * Should this export show HTML?
+     *
+     * @return bool
+     */
+    public function shouldShowHtml()
+    {
+        return (bool)$this->showHtml;
+    }
 }

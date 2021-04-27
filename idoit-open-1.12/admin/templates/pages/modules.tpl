@@ -15,6 +15,11 @@
 
 				<table class="contentTable" width="100%">
 					<colgroup><col width="160" /></colgroup>
+                    <tr>
+                    [{if $g_disable_addon_upload == 1}]
+                        <td>You disabled uploading of Add-ons in your src/config.inc.php</td>
+                    [{/if}]
+                    </tr>
 					<tr>
 						<td class="bold"><label for="mandator">Activate for tenant</label></td>
 						<td>
@@ -30,12 +35,12 @@
 					</tr>
 					<tr>
 						<td class="bold"><label for="module_file">ZIP File</label></td>
-						<td><input type="file" name="module_file" id="module_file" /></td>
+						<td><input type="file" name="module_file" id="module_file"[{if $g_disable_addon_upload == 1}] disabled[{/if}]/></td>
 					</tr>
 				</table>
 
 				<div>
-					<button class="btn" type="button" onclick="$('add_loading').show(); $('form').submit();">
+					<button class="btn" type="button" onclick="$('add_loading').show(); $('form').submit();"[{if $g_disable_addon_upload == 1}] disabled[{/if}]>
 						<img src="../images/icons/silk/brick_add.png" class="mr5" /><span>Upload and install</span>
 					</button>
 					<button class="btn" type="button" onclick="$('module_toolbar').show();new Effect.SlideUp('add-new', {duration:0.3});new Effect.Appear('modules',{duration:0.4});">

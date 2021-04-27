@@ -1,18 +1,17 @@
 <?php
 /**
- * Handler for QR Requests
+ * Template for QR Code popup.
  *
  * @package     i-doit
  * @subpackage  General
- * @author      Dennis Stuecken <dstuecken@i-doit.de>
- * @version     1.0
+ * @author      Leonard Fischer <lfischer@i-doit.com>
  * @copyright   synetics GmbH
  * @license     http://www.gnu.org/licenses/agpl-3.0.html GNU AGPLv3
  */
 
-$l_url = @$_GET['url'];
-$l_ajax_url = $l_url . '?ajax=1&call=qrcode&func=load_qr_code';
-$l_obj_id = @$_GET['objID'] ?: 0;
+$l_obj_id = filter_input(INPUT_GET, 'objID', FILTER_VALIDATE_INT) ?: 0;
+$l_url = filter_input(INPUT_GET, 'url', FILTER_VALIDATE_URL) ?: '';
+
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -61,33 +60,37 @@ $l_obj_id = @$_GET['objID'] ?: 0;
     </tr>
 </table>
 
+<?php if (!empty($l_url)) : ?>
 <script type="text/javascript">
-    new Ajax.Request('<?php echo $l_ajax_url; ?>', {
+    new Ajax.Request('<?php echo $l_url; ?>?ajax=1&call=qrcode&func=load_qr_code', {
         method:     'post',
         parameters: {
             objID:<?php echo $l_obj_id; ?>
         },
         onSuccess:  function (response) {
             var json = response.responseJSON;
-            
+
             $('code').writeAttribute('src', 'qr_img.php?s=2&d=' + json.data.url);
             $('logo').writeAttribute('src', json.data.logo);
-            $('description').update(json.data.description);
-            
+
+            if (json.data.description) {
+                $('description').update(json.data.description);
+            }
+
             // We need this timer for the browser to correctly detect the image heights...
             setTimeout('calc_sizes_and_print()', 100);
         }
     });
-    
+
     function calc_sizes_and_print() {
         // Now we try to set the logo to the same size as the QR Code.
         $('logo').writeAttribute('height', $('code').getHeight() + 'px');
-        
-        if (window.print)
-        {
+
+        if (window.print) {
             window.print();
         }
     }
 </script>
+<?php endif; ?>
 </body>
 </html>

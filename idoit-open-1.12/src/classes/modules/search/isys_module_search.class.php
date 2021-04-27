@@ -24,9 +24,9 @@ class isys_module_search extends isys_module implements isys_module_interface, i
     // Define, that this module uses a "pretty" URL.
     const MAIN_MENU_REWRITE_LINK = true;
 
-    const AUTOMATIC_DEEP_SEARCH_ACTIVE              = 0;
+    const AUTOMATIC_DEEP_SEARCH_ACTIVE              = 2;
     const AUTOMATIC_DEEP_SEARCH_ACTIVE_EMPTY_RESULT = 1;
-    const AUTOMATIC_DEEP_SEARCH_NONACTIVE           = 2;
+    const AUTOMATIC_DEEP_SEARCH_NONACTIVE           = 0;
 
     /**
      * @var bool

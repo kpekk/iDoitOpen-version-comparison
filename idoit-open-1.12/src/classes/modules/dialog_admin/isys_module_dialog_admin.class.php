@@ -295,12 +295,12 @@ class isys_module_dialog_admin extends isys_module implements isys_module_interf
                     $dialogIdentifier = (isset($l_gets['identifier']) ? trim($l_gets['identifier']) : null);
 
                     // @see  ID-5418  Do not check for "empty" in case a user inserts a zero.
-                    if (isys_strlen($dialogTitle)) {
+                    if (mb_strlen($dialogTitle)) {
                         $id = null;
                         $daoDialog = new isys_cmdb_dao_dialog(isys_application::instance()->container->get('database'), $l_gets['table']);
 
                         // Validate the constant string (if given).
-                        if (isys_strlen($dialogConstant)) {
+                        if (mb_strlen($dialogConstant)) {
                             if (preg_match('~^[a-zA-Z_][a-zA-Z0-9_]*$~', $dialogConstant, $match) !== 1) {
                                 isys_notify::warning($language->get('LC__DIALOG_ADMIN__INVALID_CONSTANT'), ['sticky' => true]);
                                 $dialogConstant = '';
@@ -542,6 +542,8 @@ class isys_module_dialog_admin extends isys_module implements isys_module_interf
             $l_objList = new isys_component_list(null, $l_listres);
 
             $l_objList->config($l_arTableHeader, $l_strRowLink, '[{' . $p_table . '__id}]', true);
+            $l_objList->set_table_config($l_objList->get_table_config()
+                ->setFilterProperty($p_table . '__title'));
 
             $l_objList->createTempTable();
 

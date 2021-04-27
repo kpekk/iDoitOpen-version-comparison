@@ -127,19 +127,20 @@ class isys_cmdb_dao_category_g_ip extends AbstractCategorySource
 
             $documents[$document->getKey()] = $document;
 
-            $metadata = new DocumentMetadata(
-                get_class($this->categoryDao),
-                $this->getIdentifier(),
-                $set['isys_obj__isys_obj_type__id'],
-                $set['isys_obj__id'],
-                $set['isys_obj__status'],
-                $this->categoryDao->getCategoryTitle(),
-                $set['isys_catg_ip_list__id'],
-                $set['isys_catg_ip_list__status'],
-                'LC__CATG__IP__ALIASES'
-            );
-
             foreach ($set['aliases'] as $index => $alias) {
+                // Create metadata for alias document
+                $metadata = new DocumentMetadata(
+                    get_class($this->categoryDao),
+                    $this->getIdentifier(),
+                    $set['isys_obj__isys_obj_type__id'],
+                    $set['isys_obj__id'],
+                    $set['isys_obj__status'],
+                    $this->categoryDao->getCategoryTitle(),
+                    $set['isys_catg_ip_list__id'],
+                    $set['isys_catg_ip_list__status'],
+                    'LC__CATG__IP__ALIASES.' . $index
+                );
+
                 $document = new Document($metadata);
                 $document->setVersion(SearchEngine::VERSION);
                 $document->setType('cmdb');

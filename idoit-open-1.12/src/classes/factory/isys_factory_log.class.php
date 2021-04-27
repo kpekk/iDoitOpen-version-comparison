@@ -5,48 +5,49 @@
  *
  * Factory for logger.
  *
+ * @deprecated  Please use something else!
  * @package     i-doit
  * @subpackage  Log
- * @author      Benjamin Heisig <bheisig@synetics.de>
  * @copyright   synetics GmbH
  * @license     http://www.gnu.org/licenses/agpl-3.0.html GNU AGPLv3
  */
 class isys_factory_log extends isys_factory
 {
     /**
-     * Contains all factorized log topics.
-     *
-     * @var  array  Array of strings
+     * @var array
      */
-    protected static $m_topics = [];
+    protected static $topics = [];
 
     /**
-     * Gets an instance of a class.
+     * @param  string $topic
+     * @param  null   $unused
      *
-     * @param   string $p_topic  Log topic
-     * @param   null   $p_params Unused parameter. Is needed because of strict standards.
-     *
-     * @return  isys_log
+     * @deprecated
+     * @return isys_log|mixed
      */
-    public static function get_instance($p_topic, $p_params = null)
+    public static function get_instance($topic, $unused = null)
     {
         global $g_config, $g_product_info;
 
-        $l_object = isys_log::get_instance($p_topic);
+        $logger = isys_log::get_instance($topic);
 
-        if (!in_array($p_topic, self::$m_topics)) {
-            $l_log_file = $g_config['base_dir'] . 'log/' . $p_topic . '_' . date('Y-m-d_H_i_s') . '.log';
-            $l_header = '# i-doit ' . $g_product_info['version'] . ' ' . $g_product_info['type'] . PHP_EOL . '# host URL ' . C__HTTP_HOST . PHP_EOL . '# log for "' .
-                $p_topic . '"' . PHP_EOL . '# started at ' . date('c') . PHP_EOL . '# written to "' . $l_log_file . '"' . PHP_EOL;
+        if (!in_array($topic, self::$topics, true)) {
+            $logFile = $g_config['base_dir'] . 'log/' . $topic . '_' . date('Y-m-d_H_i_s') . '.log';
 
-            $l_object->set_log_level(isys_log::C__ALL & ~isys_log::C__DEBUG)
+            $l_header = '# i-doit ' . $g_product_info['version'] . ' ' . $g_product_info['type'] . PHP_EOL .
+                '# host URL ' . C__HTTP_HOST . PHP_EOL .
+                '# log for "' . $topic . '"' . PHP_EOL .
+                '# started at ' . date('c') . PHP_EOL .
+                '# written to "' . $logFile . '"' . PHP_EOL;
+
+            $logger->set_log_level(isys_log::C__ALL & ~isys_log::C__DEBUG)
                 ->set_verbose_level(isys_log::C__FATAL | isys_log::C__ERROR | isys_log::C__WARNING | isys_log::C__NOTICE)
-                ->set_log_file($l_log_file)
+                ->set_log_file($logFile)
                 ->set_header($l_header);
 
-            self::$m_topics[] = $p_topic;
+            self::$topics[] = $topic;
         }
 
-        return $l_object;
+        return $logger;
     }
 }

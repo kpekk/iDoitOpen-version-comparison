@@ -22,6 +22,14 @@
         </td>
     </tr>
     <tr>
+        <td>&nbsp;</td>
+        <td class="stepConfTitle">License authorization token:</td>
+        <td class="stepConfContent">
+            <input class="confInputDir" type="text" name="config.license.token" id="config.license.token"
+                   value="[CONFIG.LICENSE.TOKEN]" />
+        </td>
+    </tr>
+    <tr>
         <td colspan="3" style="padding-left:10px;color:grey;">
             The i-doit Admin-Center is an administrational interface for managing mandators and i-doit licences.
             <strong>You can leave the password blank to disable it.</strong>

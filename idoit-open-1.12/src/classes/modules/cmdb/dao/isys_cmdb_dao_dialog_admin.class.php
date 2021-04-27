@@ -58,7 +58,7 @@ class isys_cmdb_dao_dialog_admin extends isys_cmdb_dao
 
             $l_sql = 'INSERT INTO ' . $p_table . ' SET ' . $p_table . '__title = ' . $this->convert_sql_text(trim($p_title)) . ' ';
 
-            if (isys_strlen($p_const) && in_array($p_table . '__const', $l_fields)) {
+            if (mb_strlen($p_const) && in_array($p_table . '__const', $l_fields)) {
                 $p_const = $this->get_constant_prefix($p_table) . $this->format_constant($p_table, $p_const);
 
                 // If it already exists than we add a timestamp to the constant
@@ -126,7 +126,7 @@ class isys_cmdb_dao_dialog_admin extends isys_cmdb_dao
             $l_sql = 'UPDATE ' . $p_table . ' SET ' . $p_table . '__title = ' . $this->convert_sql_text($p_title) . ', ' . $p_table . '__sort = ' .
                 $this->convert_sql_int($p_sort) . ', ';
 
-            if (isys_strlen($p_const)) {
+            if (mb_strlen($p_const)) {
                 $l_sql .= $p_table . '__const = ' . $this->convert_sql_text($p_const) . ', ';
             }
 

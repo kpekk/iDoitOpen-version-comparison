@@ -49,9 +49,13 @@
 
     <script type="text/javascript">
         Event.observe(window, 'load', function () {
-            $('btn_next').value = 'Yes, i did a backup! - Start the update';
-            $('btn_next').style.width = '400px';
-            $('btn_next').style.fontWeight = 'bold';
+            var $nextButton = $('btn_next');
+
+            if ($nextButton) {
+                $nextButton
+                    .setStyle({width:'400px', fontWeight:'bold'})
+                    .setValue('Yes, i did a backup! - Start the update');
+            }
         });
     </script>
 </div>

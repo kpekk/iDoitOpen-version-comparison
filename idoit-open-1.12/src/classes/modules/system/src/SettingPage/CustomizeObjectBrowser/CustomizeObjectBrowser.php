@@ -4,6 +4,7 @@ namespace idoit\Module\System\SettingPage\CustomizeObjectBrowser;
 
 use idoit\Component\Browser\Retriever;
 use idoit\Module\System\SettingPage\SettingPage;
+use isys_auth as Auth;
 use isys_cmdb_dao;
 use isys_cmdb_dao_category_g_custom_fields;
 use isys_component_list;
@@ -11,12 +12,13 @@ use isys_component_template_navbar;
 use isys_core;
 use isys_exception_general;
 use isys_format_json as JSON;
-use isys_helper_link;
-use isys_helper_textformat;
-use isys_module_system;
-use isys_notify;
-use isys_popup_browser_object_ng;
-use isys_tenantsettings;
+use isys_helper_link as HelperLink;
+use isys_helper_textformat as HelperTextformat;
+use isys_module_cmdb as ModuleCmdb;
+use isys_module_system as ModuleSystem;
+use isys_notify as Notify;
+use isys_popup_browser_object_ng as BrowserObjectNg;
+use isys_tenantsettings as TenantSettings;
 
 /**
  * Class CustomizeObjectBrowser
@@ -57,10 +59,10 @@ class CustomizeObjectBrowser extends SettingPage
 
                 $this->saveData($objectBrowserKey, $properties, $objectTypes, $displayAttributeCategories, $defaultObjectType, $defaultSortingField, $defaultSortingDirection);
 
-                // no break
+            // no break
             case C__NAVMODE__EDIT:
                 if (isset($_POST[C__GET__ID][0])) {
-                    $redirectUrl = isys_helper_link::create_url([
+                    $redirectUrl = HelperLink::create_url([
                         C__GET__MODULE_ID => defined_or_default('C__MODULE__SYSTEM'),
                         'what'            => 'customizeObjectBrowser',
                         C__GET__TREE_NODE => $_GET[C__GET__TREE_NODE],
@@ -97,6 +99,10 @@ class CustomizeObjectBrowser extends SettingPage
      */
     private function renderList()
     {
+        ModuleCmdb::get_auth()->check(Auth::VIEW, 'object_browser_configuration');
+
+        $allowedToEdit = ModuleCmdb::get_auth()->is_allowed_to(Auth::EDIT, 'object_browser_configuration');
+        $allowedToDelete = ModuleCmdb::get_auth()->is_allowed_to(Auth::DELETE, 'object_browser_configuration');
         $dao = isys_cmdb_dao::instance($this->db);
         $categoriesList = $dao->get_all_categories();
         $objectBrowsers = [];
@@ -104,8 +110,10 @@ class CustomizeObjectBrowser extends SettingPage
         isys_component_template_navbar::getInstance()
             ->hide_all_buttons()
             ->set_js_onclick("$('navMode').setValue(" . C__NAVMODE__EDIT . "); $('isys_form').submit();", C__NAVBAR_BUTTON__EDIT)
-            ->set_active(true, C__NAVBAR_BUTTON__EDIT)
-            ->set_active(true, C__NAVBAR_BUTTON__PURGE);
+            ->set_active($allowedToEdit, C__NAVBAR_BUTTON__EDIT)
+            ->set_visible(true, C__NAVBAR_BUTTON__EDIT)
+            ->set_active($allowedToDelete, C__NAVBAR_BUTTON__PURGE)
+            ->set_visible(true, C__NAVBAR_BUTTON__PURGE);
 
         // @see  ID-5728  Because of some special cases, we need a blacklist of object browsers to skip.
         $blacklist = [
@@ -185,7 +193,7 @@ class CustomizeObjectBrowser extends SettingPage
                         continue;
                     }
 
-                    $attributes = isys_tenantsettings::get('cmdb.object-browser.' . $objectBrowserKey . '.attributes', '');
+                    $attributes = TenantSettings::get('cmdb.object-browser.' . $objectBrowserKey . '.attributes', '');
 
                     if (!empty($attributes) && is_array($attributes)) {
                         $customProperties = $this->preparePropertyList($attributes);
@@ -213,7 +221,7 @@ class CustomizeObjectBrowser extends SettingPage
             'customProperties'   => 'LC__CMDB__TREE__SYSTEM__CMDB_EXPLORER__CUSTOM_PROPERTIES'
         ];
 
-        $rowLink = isys_helper_link::create_url([
+        $rowLink = HelperLink::create_url([
             C__GET__MODULE_ID => defined_or_default('C__MODULE__SYSTEM'),
             'what'            => 'customizeObjectBrowser',
             C__GET__TREE_NODE => $_GET[C__GET__TREE_NODE],
@@ -228,7 +236,7 @@ class CustomizeObjectBrowser extends SettingPage
             ->assign('content_title', $this->lang->get('LC__CMDB__TREE__SYSTEM__CMDB_EXPLORER'))
             ->assign('objectBrowserList', $objectBrowserList->getTempTableHtml())
             ->smarty_tom_add_rule('tom.content.navbar.cRecStatus.p_bInvisible=1')
-            ->include_template('contentbottomcontent', isys_module_system::getPath() . 'templates/SettingPage/CustomizeObjectBrowser/list.tpl');
+            ->include_template('contentbottomcontent', ModuleSystem::getPath() . 'templates/SettingPage/CustomizeObjectBrowser/list.tpl');
     }
 
     /**
@@ -246,6 +254,8 @@ class CustomizeObjectBrowser extends SettingPage
      */
     private function saveData($objectBrowserKey, array $properties, array $objectTypes, $displayAttributeCategories, $defaultObjectType = null, $defaultSortingField = null, $defaultSortingDirection = null)
     {
+        ModuleCmdb::get_auth()->check(Auth::EDIT, 'object_browser_configuration');
+
         $dao = isys_cmdb_dao::instance($this->db);
 
         // We need this to provide the correct sorting.
@@ -262,25 +272,25 @@ class CustomizeObjectBrowser extends SettingPage
 
         ksort($objectBrowserProperties);
 
-        isys_tenantsettings::set('cmdb.object-browser.' . $objectBrowserKey . '.attributes', array_values($objectBrowserProperties));
-        isys_tenantsettings::set('cmdb.object-browser.' . $objectBrowserKey . '.displayAttributeCategories', (bool) $displayAttributeCategories);
-        isys_tenantsettings::set('cmdb.object-browser.' . $objectBrowserKey . '.defaultSortingField', $defaultSortingField);
-        isys_tenantsettings::set('cmdb.object-browser.' . $objectBrowserKey . '.defaultSortingFieldIndex', $propertyOrder[$defaultSortingField]);
-        isys_tenantsettings::set('cmdb.object-browser.' . $objectBrowserKey . '.defaultSortingDirection', ($defaultSortingDirection === 'asc' ? 'asc' : 'desc'));
+        TenantSettings::set('cmdb.object-browser.' . $objectBrowserKey . '.attributes', array_values($objectBrowserProperties));
+        TenantSettings::set('cmdb.object-browser.' . $objectBrowserKey . '.displayAttributeCategories', (bool) $displayAttributeCategories);
+        TenantSettings::set('cmdb.object-browser.' . $objectBrowserKey . '.defaultSortingField', $defaultSortingField);
+        TenantSettings::set('cmdb.object-browser.' . $objectBrowserKey . '.defaultSortingFieldIndex', $propertyOrder[$defaultSortingField]);
+        TenantSettings::set('cmdb.object-browser.' . $objectBrowserKey . '.defaultSortingDirection', ($defaultSortingDirection === 'asc' ? 'asc' : 'desc'));
 
         if ($defaultObjectType !== null) {
-            isys_tenantsettings::set('cmdb.object-browser.' . $objectBrowserKey . '.defaultObjectType', $defaultObjectType);
+            TenantSettings::set('cmdb.object-browser.' . $objectBrowserKey . '.defaultObjectType', $defaultObjectType);
         } else {
-            isys_tenantsettings::remove('cmdb.object-browser.' . $objectBrowserKey . '.defaultObjectType');
+            TenantSettings::remove('cmdb.object-browser.' . $objectBrowserKey . '.defaultObjectType');
         }
 
         if (count($objectTypes)) {
-            isys_tenantsettings::set('cmdb.object-browser.' . $objectBrowserKey . '.objectTypes', array_values($objectTypes));
+            TenantSettings::set('cmdb.object-browser.' . $objectBrowserKey . '.objectTypes', array_values($objectTypes));
         } else {
-            isys_tenantsettings::remove('cmdb.object-browser.' . $objectBrowserKey . '.objectTypes');
+            TenantSettings::remove('cmdb.object-browser.' . $objectBrowserKey . '.objectTypes');
         }
 
-        isys_notify::success($this->lang->get('LC__INFOBOX__DATA_WAS_SAVED'));
+        Notify::success($this->lang->get('LC__INFOBOX__DATA_WAS_SAVED'));
     }
 
     /**
@@ -295,13 +305,16 @@ class CustomizeObjectBrowser extends SettingPage
      */
     private function renderForm($categoryConstant, $propertyKey, $objectBrowserKey)
     {
+        ModuleCmdb::get_auth()->check(Auth::VIEW, 'object_browser_configuration');
+
+        $allowedToEdit = ModuleCmdb::get_auth()->is_allowed_to(Auth::EDIT, 'object_browser_configuration');
         $dao = isys_cmdb_dao::instance($this->db);
         $category = $dao->get_cat_by_const($categoryConstant);
 
         isys_component_template_navbar::getInstance()
             ->hide_all_buttons()
             ->set_js_onclick("$('navMode').setValue(" . C__NAVMODE__SAVE . "); $('isys_form').submit();", C__NAVBAR_BUTTON__SAVE)
-            ->set_active(true, C__NAVBAR_BUTTON__SAVE);
+            ->set_active($allowedToEdit, C__NAVBAR_BUTTON__SAVE);
 
         $categoryDaoClass = $category['class_name'];
 
@@ -342,15 +355,15 @@ class CustomizeObjectBrowser extends SettingPage
         }
 
         $property = $categoryDao->get_property_by_key($propertyKey);
-        $selectedAttributes = isys_tenantsettings::get('cmdb.object-browser.' . $objectBrowserKey . '.attributes', (new Retriever())->getAttributes());
+        $selectedAttributes = TenantSettings::get('cmdb.object-browser.' . $objectBrowserKey . '.attributes', (new Retriever())->getAttributes());
 
         $objectTypes = [];
         $categoryFilterList = [];
         $categoryFilterObjectTypeList = [];
 
         // If category filters are set, we display these and prevent the user from adding own object types.
-        if (isset($property[C__PROPERTY__UI][C__PROPERTY__UI__PARAMS][isys_popup_browser_object_ng::C__CAT_FILTER])) {
-            $categoryFilters = explode(';', $property[C__PROPERTY__UI][C__PROPERTY__UI__PARAMS][isys_popup_browser_object_ng::C__CAT_FILTER]);
+        if (isset($property[C__PROPERTY__UI][C__PROPERTY__UI__PARAMS][BrowserObjectNg::C__CAT_FILTER])) {
+            $categoryFilters = explode(';', $property[C__PROPERTY__UI][C__PROPERTY__UI__PARAMS][BrowserObjectNg::C__CAT_FILTER]);
             $dao = isys_cmdb_dao::instance($this->db);
 
             foreach ($categoryFilters as $categoryFilter) {
@@ -395,18 +408,18 @@ class CustomizeObjectBrowser extends SettingPage
                 'p_strClass'      => 'input-mini',
                 'p_bDbFieldNN'    => true,
                 'p_arData'        => get_smarty_arr_YES_NO(),
-                'p_strSelectedID' => (int) isys_tenantsettings::get('cmdb.object-browser.' . $objectBrowserKey . '.displayAttributeCategories', false)
+                'p_strSelectedID' => (int) TenantSettings::get('cmdb.object-browser.' . $objectBrowserKey . '.displayAttributeCategories', false)
             ],
             'C__CUSTOMIZE_OBJECT_BROWSER__DEFAULT_OBJECT_TYPE'      => [
                 'chosen'          => true,
                 'p_strClass'      => 'input-small',
                 'p_arData'        => $objectTypes,
-                'p_strSelectedID' => isys_tenantsettings::get('cmdb.object-browser.' . $objectBrowserKey . '.defaultObjectType', null)
+                'p_strSelectedID' => TenantSettings::get('cmdb.object-browser.' . $objectBrowserKey . '.defaultObjectType', null)
             ],
             'C__CUSTOMIZE_OBJECT_BROWSER__PROPERTIES'               => [
                 'grouping'           => false,
                 'allow_sorting'      => true,
-                'default_sorting'    => isys_tenantsettings::get('cmdb.object-browser.' . $objectBrowserKey . '.defaultSortingField', 0),
+                'default_sorting'    => TenantSettings::get('cmdb.object-browser.' . $objectBrowserKey . '.defaultSortingField', 0),
                 'check_sorting'      => false,
                 'sortable'           => true,
                 'p_bInfoIconSpacer'  => 0,
@@ -418,7 +431,7 @@ class CustomizeObjectBrowser extends SettingPage
             'C__CUSTOMIZE_OBJECT_BROWSER__OBJECT_TYPES[]'           => [
                 'chosen'          => true,
                 'p_arData'        => $objectTypes,
-                'p_strSelectedID' => implode(',', (array)isys_tenantsettings::get('cmdb.object-browser.' . $objectBrowserKey . '.objectTypes', [])),
+                'p_strSelectedID' => implode(',', (array)TenantSettings::get('cmdb.object-browser.' . $objectBrowserKey . '.objectTypes', [])),
                 'p_multiple'      => true,
                 'p_bDbFieldNN'    => true,
             ],
@@ -429,19 +442,22 @@ class CustomizeObjectBrowser extends SettingPage
                     'asc' => 'LC__CMDB__SORTING__ASC',
                     'desc' => 'LC__CMDB__SORTING__DESC'
                 ],
-                'p_strSelectedID' => isys_tenantsettings::get('cmdb.object-browser.' . $objectBrowserKey . '.defaultSortingDirection', 'asc')
+                'p_strSelectedID' => TenantSettings::get('cmdb.object-browser.' . $objectBrowserKey . '.defaultSortingDirection', 'asc')
             ]
         ];
 
+        if ($allowedToEdit) {
+            $this->tpl->activate_editmode();
+        }
+
         $this->tpl
-            ->activate_editmode()
             ->assign('category', $category)
             ->assign('categoryParentTitle', $categoryParentTitle)
             ->assign('property', $property)
-            ->assign('catFilter', isys_helper_textformat::this_this_or_that($categoryFilterList))
-            ->assign('catFilterObjectTypes', isys_helper_textformat::this_this_and_that($categoryFilterObjectTypeList))
+            ->assign('catFilter', HelperTextformat::this_this_or_that($categoryFilterList))
+            ->assign('catFilterObjectTypes', HelperTextformat::this_this_and_that($categoryFilterObjectTypeList))
             ->smarty_tom_add_rules('tom.content.bottom.content', $rules)
-            ->include_template('contentbottomcontent', isys_module_system::getPath() . 'templates/SettingPage/CustomizeObjectBrowser/form.tpl');
+            ->include_template('contentbottomcontent', ModuleSystem::getPath() . 'templates/SettingPage/CustomizeObjectBrowser/form.tpl');
     }
 
     /**
@@ -453,17 +469,19 @@ class CustomizeObjectBrowser extends SettingPage
      */
     private function resetConfiguration(array $keys)
     {
+        ModuleCmdb::get_auth()->check(Auth::DELETE, 'object_browser_configuration');
+
         foreach ($keys as $key) {
             list($categoryConstant, $propertyKey, $objectBrowserKey) = explode('::', $key);
 
-            isys_tenantsettings::remove('cmdb.object-browser.' . $objectBrowserKey . '.displayAttributeCategories');
-            isys_tenantsettings::remove('cmdb.object-browser.' . $objectBrowserKey . '.defaultObjectType');
-            isys_tenantsettings::remove('cmdb.object-browser.' . $objectBrowserKey . '.attributes');
-            isys_tenantsettings::remove('cmdb.object-browser.' . $objectBrowserKey . '.objectTypes');
-            isys_tenantsettings::remove('cmdb.object-browser.' . $objectBrowserKey . '.defaultSortingField');
-            isys_tenantsettings::remove('cmdb.object-browser.' . $objectBrowserKey . '.defaultSortingFieldIndex');
-            isys_tenantsettings::remove('cmdb.object-browser.' . $objectBrowserKey . '.defaultSortingDirection');
-            isys_tenantsettings::regenerate();
+            TenantSettings::remove('cmdb.object-browser.' . $objectBrowserKey . '.displayAttributeCategories');
+            TenantSettings::remove('cmdb.object-browser.' . $objectBrowserKey . '.defaultObjectType');
+            TenantSettings::remove('cmdb.object-browser.' . $objectBrowserKey . '.attributes');
+            TenantSettings::remove('cmdb.object-browser.' . $objectBrowserKey . '.objectTypes');
+            TenantSettings::remove('cmdb.object-browser.' . $objectBrowserKey . '.defaultSortingField');
+            TenantSettings::remove('cmdb.object-browser.' . $objectBrowserKey . '.defaultSortingFieldIndex');
+            TenantSettings::remove('cmdb.object-browser.' . $objectBrowserKey . '.defaultSortingDirection');
+            TenantSettings::regenerate();
         }
     }
 

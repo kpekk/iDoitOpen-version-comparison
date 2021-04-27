@@ -908,7 +908,7 @@ class isys_export_helper
                     $l_di_array = $l_data_item->get_data_item_array();
 
                     foreach ($l_di_array as $l_object_id => $l_tmp) {
-                        $l_contacts[] = $this->export_contact($l_object_id, $l_cmdb_dao->get_objTypeID($l_object_id));
+                        $l_contacts[] = $this->export_contact($l_object_id);
                     }
                 }
 
@@ -970,104 +970,167 @@ class isys_export_helper
     }
 
     /**
-     * @param     $p_object_id
-     * @param int $p_obj_type
+     * @param  int $objectId
      *
      * @return array
      * @throws isys_exception_database
      */
-    public function export_contact($p_object_id, $p_obj_type = null)
+    public function export_contact($objectId)
     {
-        if (defined('C__OBJTYPE__PERSON') && $p_obj_type === null) {
-            $p_obj_type = C__OBJTYPE__PERSON;
+        if (!is_numeric($objectId) || $objectId <= 0) {
+            return [];
         }
-        $l_return = [];
 
-        if ($p_object_id > 0) {
-            $l_cmdb_dao = isys_cmdb_dao::instance($this->m_database);
-            $l_result = $l_cmdb_dao->retrieve("SELECT isys_obj_type__isysgui_cats__id, isys_obj_type__const FROM isys_obj_type WHERE isys_obj_type__id = " .
-                $l_cmdb_dao->convert_sql_id($p_obj_type . ";"))
+        $cmdbDao = isys_application::instance()->container->get('cmdb_dao');
+
+        $sql = 'SELECT isys_obj__title AS objectTitle, isys_obj__sysid AS objectSysId, isys_obj_type__const AS objectTypeConst, isysgui_cats__const AS categoryConst
+            FROM isys_obj
+            INNER JOIN isys_obj_type ON isys_obj_type__id = isys_obj__isys_obj_type__id 
+            INNER JOIN isysgui_cats ON isysgui_cats__id = isys_obj_type__isysgui_cats__id 
+            WHERE isys_obj__id = ' . $cmdbDao->convert_sql_id($objectId) . '
+            LIMIT 1;';
+
+        $objectData = $cmdbDao->retrieve($sql)->get_row();
+
+        $objectTitle = $objectData['objectTitle'];
+        $objectSysId = $objectData['objectSysId'];
+        $objectTypeConstant = $objectData['objectTypeConst'];
+        $specificCategoryConstant = $objectData['categoryConst'];
+
+        if (in_array($specificCategoryConstant, ['C__CATS__PERSON', 'C__CATS__PERSON_MASTER'], true)) {
+            $personData = isys_cmdb_dao_category_s_person_master::instance($this->m_database)
+                ->get_data(null, $objectId)
                 ->get_row();
-            $l_specific_category = $l_result['isys_obj_type__isysgui_cats__id'];
-            $l_objectData = $l_cmdb_dao->get_object_by_id($p_object_id, true)
-                ->get_row();
-            $l_sysID = $l_objectData['isys_obj__sysid'];
-            $l_object_title = $l_objectData['isys_obj__title'];
 
-            if ($l_specific_category == defined_or_default('C__CATS__PERSON')) {
-                $l_dao = isys_cmdb_dao_category_s_person_master::instance($this->m_database);
-                $l_data = $l_dao->get_data(null, $p_object_id);
-
-                $l_row = $l_data->get_row();
-
-                if (!$l_row) {
-                    $l_row = [];
-                }
-
-                /* Get data into our return array */
-                $l_return = [
-                    "id"                  => $p_object_id,
-                    "title"               => $l_object_title,
-                    "first_name"          => $l_row["isys_cats_person_list__first_name"],
-                    "last_name"           => $l_row["isys_cats_person_list__last_name"],
-                    "ldap_id"             => $l_row["isys_cats_person_list__isys_ldap__id"],
-                    "department"          => $l_row["isys_cats_person_list__department"],
-                    "position"            => $l_row["isys_cats_person_list__position"],
-                    "mail"                => $l_row["isys_cats_person_list__mail_address"],
-                    "phone_company"       => $l_row["isys_cats_person_list__phone_company"],
-                    "phone_mobile"        => $l_row["isys_cats_person_list__phone_mobile"],
-                    "phone_home"          => $l_row["isys_cats_person_list__phone_home"],
-                    "fax"                 => $l_row["isys_cats_person_list__fax"],
-                    "login"               => $l_row["isys_cats_person_list__title"],
-                    "user_pass"           => $l_row["isys_cats_person_list__user_pass"],
-                    "sysid"               => $l_sysID,
-                    "organization"        => $l_row["isys_connection__isys_obj__id"],
-                    "organization_title"  => $l_dao->get_obj_name_by_id_as_string($l_row["isys_connection__isys_obj__id"]),
-                    "type"                => $l_result['isys_obj_type__const'],
-                    "salutation"          => $l_row['isys_cats_person_list__salutation'],
-                    "academic_degree"     => $l_row['isys_cats_person_list__academic_degree'],
-                    "function"            => $l_row['isys_cats_person_list__function'],
-                    "service_designation" => $l_row['isys_cats_person_list__service_designation'],
-                    "street"              => $l_row['isys_cats_person_list__street'],
-                    "city"                => $l_row['isys_cats_person_list__city'],
-                    "zip_code"            => $l_row['isys_cats_person_list__zip_code'],
-                    "pager"               => $l_row['isys_cats_person_list__pager'],
-                    "personnel_number"    => $l_row['isys_cats_person_list__personnel_number'],
+            if ($personData) {
+                return [
+                    'id'                  => $objectId,
+                    'title'               => $objectTitle,
+                    'first_name'          => $personData['isys_cats_person_list__first_name'],
+                    'last_name'           => $personData['isys_cats_person_list__last_name'],
+                    'ldap_id'             => $personData['isys_cats_person_list__isys_ldap__id'],
+                    'department'          => $personData['isys_cats_person_list__department'],
+                    'position'            => $personData['isys_cats_person_list__position'],
+                    'mail'                => $personData['isys_cats_person_list__mail_address'],
+                    'phone_company'       => $personData['isys_cats_person_list__phone_company'],
+                    'phone_mobile'        => $personData['isys_cats_person_list__phone_mobile'],
+                    'phone_home'          => $personData['isys_cats_person_list__phone_home'],
+                    'fax'                 => $personData['isys_cats_person_list__fax'],
+                    'login'               => $personData['isys_cats_person_list__title'],
+                    'user_pass'           => $personData['isys_cats_person_list__user_pass'],
+                    'sysid'               => $objectSysId,
+                    'organization'        => $personData['isys_connection__isys_obj__id'],
+                    'organization_title'  => $cmdbDao->get_obj_name_by_id_as_string($personData['isys_connection__isys_obj__id']),
+                    'type'                => $objectTypeConstant,
+                    'salutation'          => $personData['isys_cats_person_list__salutation'],
+                    'academic_degree'     => $personData['isys_cats_person_list__academic_degree'],
+                    'function'            => $personData['isys_cats_person_list__function'],
+                    'service_designation' => $personData['isys_cats_person_list__service_designation'],
+                    'street'              => $personData['isys_cats_person_list__street'],
+                    'city'                => $personData['isys_cats_person_list__city'],
+                    'zip_code'            => $personData['isys_cats_person_list__zip_code'],
+                    'pager'               => $personData['isys_cats_person_list__pager'],
+                    'personnel_number'    => $personData['isys_cats_person_list__personnel_number']
                 ];
-            } elseif ($l_specific_category == 'C__CATS__PERSON_GROUP') {
-                $l_dao = isys_cmdb_dao_category_s_person_group_master::instance($this->m_database);
-                $l_data = $l_dao->get_data(null, $p_object_id);
-
-                $l_row = $l_data->get_row();
-
-                /* Get data into our return array */
-                if ($l_row) {
-                    $l_return = [
-                        "id"            => $p_object_id,
-                        "title"         => $l_row["isys_cats_person_group_list__title"],
-                        "ldap_group"    => $l_row["isys_cats_person_group_list__ldap_group"],
-                        "email_address" => $l_row["isys_cats_person_group_list__email_address"],
-                        "phone"         => $l_row["isys_cats_person_group_list__phone"],
-                        "right_group"   => $l_row["isys_cats_person_group_list__right_group"],
-                        "sysid"         => $l_row["isys_obj__sysid"],
-                        "type"          => $l_result['isys_obj_type__const']
-                    ];
-                } else {
-                    $l_return = [
-                        "id"            => $p_object_id,
-                        "title"         => $l_object_title,
-                        "ldap_group"    => null,
-                        "email_address" => null,
-                        "phone"         => null,
-                        "right_group"   => null,
-                        "sysid"         => $l_sysID,
-                        "type"          => $l_result['isys_obj_type__const']
-                    ];
-                }
             }
+
+            // Get data into our return array.
+            return [
+                'id'                  => $objectId,
+                'title'               => $objectTitle,
+                'first_name'          => null,
+                'last_name'           => null,
+                'ldap_id'             => null,
+                'department'          => null,
+                'position'            => null,
+                'mail'                => null,
+                'phone_company'       => null,
+                'phone_mobile'        => null,
+                'phone_home'          => null,
+                'fax'                 => null,
+                'login'               => null,
+                'user_pass'           => null,
+                'sysid'               => $objectSysId,
+                'organization'        => null,
+                'organization_title'  => null,
+                'type'                => $objectTypeConstant,
+                'salutation'          => null,
+                'academic_degree'     => null,
+                'function'            => null,
+                'service_designation' => null,
+                'street'              => null,
+                'city'                => null,
+                'zip_code'            => null,
+                'pager'               => null,
+                'personnel_number'    => null
+            ];
         }
 
-        return $l_return;
+        if (in_array($specificCategoryConstant, ['C__CATS__PERSON_GROUP', 'C__CATS__PERSON_GROUP_MASTER'], true)) {
+            $personGroupData = isys_cmdb_dao_category_s_person_group_master::instance($this->m_database)
+                ->get_data(null, $objectId)
+                ->get_row();
+
+            // Get data into our return array.
+            if ($personGroupData) {
+                return [
+                    'id'            => $objectId,
+                    'title'         => $personGroupData['isys_cats_person_group_list__title'],
+                    'ldap_group'    => $personGroupData['isys_cats_person_group_list__ldap_group'],
+                    'email_address' => $personGroupData['isys_cats_person_group_list__email_address'],
+                    'phone'         => $personGroupData['isys_cats_person_group_list__phone'],
+                    'right_group'   => $personGroupData['isys_cats_person_group_list__right_group'],
+                    'sysid'         => $objectSysId,
+                    'type'          => $objectTypeConstant
+                ];
+            }
+
+            return [
+                'id'            => $objectId,
+                'title'         => $objectTitle,
+                'ldap_group'    => null,
+                'email_address' => null,
+                'phone'         => null,
+                'right_group'   => null,
+                'sysid'         => $objectSysId,
+                'type'          => $objectTypeConstant
+            ];
+        }
+
+        if (in_array($specificCategoryConstant, ['C__CATS__ORGANIZATION', 'C__CATS__ORGANIZATION_MASTER_DATA'], true)) {
+            $organizationData = isys_cmdb_dao_category_s_organization_master::instance($this->m_database)
+                ->get_data(null, $objectId)
+                ->get_row();
+
+            // Get data into our return array.
+            if ($organizationData) {
+                return [
+                    'id'                => $objectId,
+                    'title'             => $organizationData['isys_cats_organization_list__title'],
+                    'telephone'         => $organizationData['isys_cats_organization_list__telephone'],
+                    'fax'               => $organizationData['isys_cats_organization_list__fax'],
+                    'website'           => $organizationData['isys_cats_organization_list__website'],
+                    'headquarter'       => $organizationData['isys_connection__isys_obj__id'],
+                    'headquarter_title' => $cmdbDao->get_obj_name_by_id_as_string($organizationData['isys_connection__isys_obj__id']),
+                    'sysid'             => $objectSysId,
+                    'type'              => $objectTypeConstant
+                ];
+            }
+
+            return [
+                'id'                => $objectId,
+                'title'             => $objectTitle,
+                'telephone'         => null,
+                'fax'               => null,
+                'website'           => null,
+                'headquarter'       => null,
+                'headquarter_title' => null,
+                'sysid'             => $objectSysId,
+                'type'              => $objectTypeConstant
+            ];
+        }
+
+        return [];
     }
 
     /**
@@ -1077,8 +1140,6 @@ class isys_export_helper
      */
     public function convert($value)
     {
-        global $g_convert;
-
         $formatInfo = $this->get_format_info();
 
         if ($value && is_array($formatInfo)) {
@@ -1087,9 +1148,9 @@ class isys_export_helper
             if (isset($formatInfo[C__PROPERTY__FORMAT__CALLBACK][2][0]) && !empty($unitConstant)) {
                 $convertMethod = $formatInfo[C__PROPERTY__FORMAT__CALLBACK][2][0];
 
-                if (method_exists($g_convert, $convertMethod) && is_string($convertMethod)) {
+                if (is_string($convertMethod)) {
                     return [
-                        'title' => $g_convert->$convertMethod(isys_helper::filter_number($value), $unitConstant, C__CONVERT_DIRECTION__BACKWARD)
+                        'title' => isys_convert::$convertMethod(isys_helper::filter_number($value), $unitConstant, C__CONVERT_DIRECTION__BACKWARD)
                     ];
                 }
             }
@@ -1931,8 +1992,6 @@ class isys_export_helper
     /**
      * Import method for the cable connections.
      *
-     * @todo    This todo was here already. Is this method wrong?
-     *
      * @param   array $p_value
      *
      * @return  array
@@ -2598,7 +2657,6 @@ class isys_export_helper
     /**
      * Import method for raid storage.
      *
-     * @todo    What is there todo? This todo was here before.
      * @return  boolean
      */
     public function storage_raid_import()
@@ -3472,7 +3530,6 @@ class isys_export_helper
     /**
      * Import method for raid capacity.
      *
-     * @todo   What is the to do here?
      * @return boolean
      */
     public function raid_capacity_import()
@@ -3928,7 +3985,6 @@ class isys_export_helper
     /**
      * Import method for guarantee status.
      *
-     * @todo    What is there to do here?
      * @return  boolean
      */
     public function get_guarantee_status_import()
@@ -4840,8 +4896,6 @@ class isys_export_helper
 
     /**
      * Imports dialog multiselect information.
-     *
-     * @todo   This todo was here before... What is there to do?
      *
      * @param  array $p_value
      *
@@ -6185,7 +6239,7 @@ class isys_export_helper
     {
         $l_dao_contact = isys_cmdb_dao_category_g_contact::instance($this->m_database);
         $l_contacts = [];
-        $l_contacts[] = $this->export_contact($p_value, $l_dao_contact->get_objTypeID($p_value));
+        $l_contacts[] = $this->export_contact($p_value);
 
         return new isys_export_data($l_contacts);
     }
@@ -6203,7 +6257,7 @@ class isys_export_helper
     {
         $l_dao_contact = isys_cmdb_dao_category_g_contact::instance($this->m_database);
         $l_contacts = [];
-        $l_contacts[] = $this->export_contact($p_value, $l_dao_contact->get_objTypeID($p_value));
+        $l_contacts[] = $this->export_contact($p_value);
 
         return new isys_export_data($l_contacts);
     }
@@ -6440,6 +6494,9 @@ class isys_export_helper
      */
     public function network_port_property_default_vlan_import($p_value)
     {
+        if (isset($p_value[C__DATA__VALUE])) {
+            $p_value = $p_value[C__DATA__VALUE];
+        }
         if (isset($p_value['ref_type']) && defined($p_value['ref_type'])) {
             if (isset($this->m_object_ids[$p_value['id']])) {
                 return $this->m_object_ids[$p_value['id']];

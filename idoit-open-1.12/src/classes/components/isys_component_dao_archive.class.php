@@ -67,7 +67,7 @@ class isys_component_dao_archive extends isys_component_dao_logbook
 
             return $deletedRecords;
         } catch (Exception $e) {
-            throw new Exception ($e->getMessage());
+            throw new Exception($e->getMessage());
         }
     }
 
@@ -186,7 +186,6 @@ class isys_component_dao_archive extends isys_component_dao_logbook
                 LEFT JOIN isys_archive_logbook ON isys_logbook__id = isys_catg_logb_list__isys_logbook__id
                 WHERE isys_logbook__date < ' . $this->convert_sql_datetime($p_fromDate) . '
                 ORDER BY isys_logbook__id ASC)');
-
             } else {
                 $l_entries = $this->get_data($p_interval);
 
@@ -219,7 +218,7 @@ class isys_component_dao_archive extends isys_component_dao_logbook
                     isys_logbook__changecount               =   ' . ((int)$l_entry["isys_logbook__changecount"]);
 
                     if (!$p_daoLogbook->update($l_update)) {
-                        throw new Exception ("Error executing: " . $l_update);
+                        throw new Exception("Error executing: " . $l_update);
                     }
 
                     if ($l_entry["isys_catg_logb_list__id"] != "") {
@@ -243,7 +242,7 @@ class isys_component_dao_archive extends isys_component_dao_logbook
                             ")";
 
                         if (!$p_daoLogbook->update($l_update)) {
-                            throw new Exception ("Error executing: " . $l_update);
+                            throw new Exception("Error executing: " . $l_update);
                         }
                     }
 
@@ -335,13 +334,15 @@ class isys_component_dao_archive extends isys_component_dao_logbook
                         isys_logbook__obj_type_static,
                         isys_logbook__isys_logbook_reason__id,
                         isys_logbook__changecount
-                    FROM isys_logbook ORDER BY isys_logbook__id ASC);');
+                    FROM isys_logbook 
+                    WHERE isys_logbook__date < ' . $this->convert_sql_datetime($p_fromDate) . ' 
+                    ORDER BY isys_logbook__id ASC);');
                 if ($update) {
                     $archivedRecords = $p_daoLogbook->get_database_component()
                         ->affected_rows();
                 }
 
-                $p_daoLogbook->update('INSERT
+                $insertLogbookCategory = 'INSERT
 							IGNORE INTO isys_archive_catg_logb_list (
                                 isys_catg_logb_list__id,
                                 isys_catg_logb_list__isys_logbook__id,
@@ -361,11 +362,14 @@ class isys_component_dao_archive extends isys_component_dao_logbook
                                 isys_catg_logb_list__isys_obj__id
 							   FROM isys_catg_logb_list
 							   LEFT JOIN isys_logbook ON isys_logbook__id = isys_catg_logb_list__isys_logbook__id
-							   WHERE isys_logbook__date > ' . $this->convert_sql_datetime($p_fromDate) . '
-							   ORDER BY isys_logbook__id ASC)');
+							   WHERE isys_logbook__date < ' . $this->convert_sql_datetime($p_fromDate) . '
+							   ORDER BY isys_logbook__id ASC)';
 
-                $archivedRecords += $p_daoLogbook->get_database_component()
-                    ->affected_rows();
+                if ($insertLogbookCategory) {
+                    $p_daoLogbook->update($insertLogbookCategory);
+                    $archivedRecords += $p_daoLogbook->get_database_component()
+                        ->affected_rows();
+                }
             } else {
                 $l_entries = $p_daoLogbook->get_data($p_interval);
 
@@ -394,7 +398,7 @@ class isys_component_dao_archive extends isys_component_dao_logbook
                     isys_logbook__changecount               =   ' . ((int)$l_entry["isys_logbook__changecount"]);
 
                     if (!$this->update($l_update)) {
-                        throw new Exception ("Error executing: " . $l_update);
+                        throw new Exception("Error executing: " . $l_update);
                     }
 
                     if ($l_entry["isys_catg_logb_list__id"] != "") {
@@ -418,7 +422,7 @@ class isys_component_dao_archive extends isys_component_dao_logbook
                             ")";
 
                         if (!$this->update($l_update)) {
-                            throw new Exception ("Error executing: " . $l_update);
+                            throw new Exception("Error executing: " . $l_update);
                         }
                         $archivedRecords++;
                     }
@@ -429,7 +433,7 @@ class isys_component_dao_archive extends isys_component_dao_logbook
             }
         } catch (Exception $e) {
             $this->cancel_update();
-            throw new Exception ("Failed synchronizing with archive: " . $e->getMessage());
+            throw new Exception("Failed synchronizing with archive: " . $e->getMessage());
         }
         $this->apply_update();
 

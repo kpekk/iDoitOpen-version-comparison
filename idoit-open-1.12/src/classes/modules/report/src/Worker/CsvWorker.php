@@ -4,7 +4,6 @@ namespace idoit\Module\Report\Worker;
 
 use idoit\Module\Report\Protocol\Worker;
 use League\Csv\Writer;
-use League\Csv\Reader;
 
 /**
  * Report CSV Export
@@ -73,13 +72,13 @@ class CsvWorker extends FileExport implements Worker
      */
     public function __construct(Writer $csvWriter = null)
     {
-        $this->csvWriter = $csvWriter->addFormatter(function ($data) {
-            foreach ($data AS &$k) {
-                $k = strtr(html_entity_decode($k), ["\t" => '', "\r" => '']);
-            }
+        $this->csvWriter = $csvWriter
+            ->addFormatter(function ($data) {
+                foreach ($data as &$k) {
+                    $k = strtr(html_entity_decode($k), ["\t" => '', "\r" => '']);
+                }
 
-            return $data;
-        })
-            ->setDelimiter(\isys_tenantsettings::get('report.csv-export-delimiter', ';'));
+                return $data;
+            });
     }
 }

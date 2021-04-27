@@ -1354,25 +1354,6 @@ class isys_cmdb_dao_category_g_network_ifacel extends isys_cmdb_dao_category_glo
                     C__PROPERTY__PROVIDES__REPORT => true
                 ]
             ],
-            '_connected_port'    => [
-                C__PROPERTY__INFO     => [
-                    C__PROPERTY__INFO__TITLE       => 'LC__CATG__CONNECTOR__ASSIGNED_CONNECTOR',
-                    C__PROPERTY__INFO__DESCRIPTION => 'Assigned connector'
-                ],
-                C__PROPERTY__DATA     => [
-                    C__PROPERTY__DATA__FIELD => 'isys_catg_log_port_list__isys_catg_log_port_list__id',
-                ],
-                C__PROPERTY__FORMAT   => [
-                    C__PROPERTY__FORMAT__CALLBACK => [
-                        $this,
-                        'retrieveAssignedConnector'
-                    ]
-                ],
-                C__PROPERTY__PROVIDES => [
-                    C__PROPERTY__PROVIDES__LIST   => false,
-                    C__PROPERTY__PROVIDES__REPORT => true
-                ]
-            ],
             '_parent'            => [
                 C__PROPERTY__INFO     => [
                     C__PROPERTY__INFO__TITLE       => 'LC__CMDB__CATG__INTERFACE_L__PARENT',
@@ -1896,7 +1877,7 @@ class isys_cmdb_dao_category_g_network_ifacel extends isys_cmdb_dao_category_glo
                     C__PROPERTY__PROVIDES__SEARCH    => false,
                     C__PROPERTY__PROVIDES__IMPORT    => false,
                     C__PROPERTY__PROVIDES__EXPORT    => false,
-                    C__PROPERTY__PROVIDES__REPORT    => false,
+                    C__PROPERTY__PROVIDES__REPORT    => true,
                     C__PROPERTY__PROVIDES__LIST      => false,
                     C__PROPERTY__PROVIDES__MULTIEDIT => false
                 ],

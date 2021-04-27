@@ -206,7 +206,7 @@ class isys_cmdb_dao_category_s_organization_master extends isys_cmdb_dao_categor
                 ],
                 C__PROPERTY__UI       => [
                     C__PROPERTY__UI__ID     => 'C__CONTACT__ORGANISATION_WEBSITE',
-                    C__PROPERTY__UI__TYPE   => 'f_link',
+                    C__PROPERTY__UI__TYPE   => C__PROPERTY__UI__TYPE__LINK,
                     C__PROPERTY__UI__PARAMS => [
                         'p_strTarget' => '_blank',
                     ],
@@ -463,128 +463,129 @@ class isys_cmdb_dao_category_s_organization_master extends isys_cmdb_dao_categor
     {
         $l_catdata = $this->get_general_data();
 
-        $p_intOldRecStatus = $l_catdata["isys_cats_organization_list__status"];
+        $p_intOldRecStatus = $l_catdata['isys_cats_organization_list__status'];
 
-        $l_list_id = $l_catdata["isys_cats_organization_list__id"];
+        $l_list_id = $l_catdata['isys_cats_organization_list__id'];
 
         if (empty($l_list_id)) {
-            $l_list_id = $this->create_connector("isys_cats_organization_list", $_GET[C__CMDB__GET__OBJECT]);
+            $l_list_id = $this->create_connector('isys_cats_organization_list', $_GET[C__CMDB__GET__OBJECT]);
         }
 
         if ($l_list_id) {
-            if (empty($_POST["C__CMDB__CAT__COMMENTARY_" . $this->get_category_type() . $this->get_category_id()])) {
-                $l_description = $_POST["C__CMDB__CAT__COMMENTARY_" . $this->get_category_type() . defined_or_default('C__CATS__ORGANIZATION')];
+            if (empty($_POST['C__CMDB__CAT__COMMENTARY_' . $this->get_category_type() . $this->get_category_id()])) {
+                $l_description = $_POST['C__CMDB__CAT__COMMENTARY_' . $this->get_category_type() . defined_or_default('C__CATS__ORGANIZATION')];
             } else {
-                $l_description = $_POST["C__CMDB__CAT__COMMENTARY_" . $this->get_category_type() . $this->get_category_id()];
+                $l_description = $_POST['C__CMDB__CAT__COMMENTARY_' . $this->get_category_type() . $this->get_category_id()];
             }
 
             $l_bRet = $this->save(
                 $l_list_id,
                 C__RECORD_STATUS__NORMAL,
-                $_POST["C__CONTACT__ORGANISATION_TITLE"],
-                $_POST["C__CONTACT__ORGANISATION_PHONE"],
-                $_POST["C__CONTACT__ORGANISATION_FAX"],
-                $_POST["C__CONTACT__ORGANISATION_WEBSITE"],
-                $_POST["C__CONTACT__ORGANISATION_ASSIGNMENT"],
+                $_POST['C__CONTACT__ORGANISATION_TITLE'],
+                $_POST['C__CONTACT__ORGANISATION_PHONE'],
+                $_POST['C__CONTACT__ORGANISATION_FAX'],
+                $_POST['C__CONTACT__ORGANISATION_WEBSITE'],
+                $_POST['C__CONTACT__ORGANISATION_ASSIGNMENT'],
                 $l_description
             );
 
             $this->m_strLogbookSQL = $this->get_last_query();
 
-            if ($l_bRet) {
-                if (!$this->update_orga_object($_GET[C__CMDB__GET__OBJECT], $_POST["C__CONTACT__ORGANISATION_TITLE"])) {
-                    throw new isys_exception_dao_cmdb("Error while updating organization object");
-                }
+            if ($l_bRet && !$this->update_orga_object($_GET[C__CMDB__GET__OBJECT], $_POST['C__CONTACT__ORGANISATION_TITLE'])) {
+                throw new isys_exception_dao_cmdb('Error while updating organization object');
             }
         }
 
         return $l_bRet == true ? $l_list_id : -1;
     }
 
-    public function save(
-        $p_catlevel,
-        $p_status = C__RECORD_STATUS__NORMAL,
-        $p_title = null,
-        $p_telephone = null,
-        $p_fax = null,
-        $p_website = null,
-        $p_headquarter = null,
-        $p_description = null
-    ) {
-        $l_old_data = $this->get_data($p_catlevel)
-            ->get_row();
+    /**
+     * @param      $p_catlevel
+     * @param int  $p_status
+     * @param null $p_title
+     * @param null $p_telephone
+     * @param null $p_fax
+     * @param null $p_website
+     * @param null $p_headquarter
+     * @param null $p_description
+     *
+     * @return bool
+     * @throws isys_exception_dao
+     */
+    public function save($p_catlevel, $p_status = C__RECORD_STATUS__NORMAL, $p_title = null, $p_telephone = null, $p_fax = null, $p_website = null, $p_headquarter = null, $p_description = null)
+    {
+        $l_old_data = $this->get_data($p_catlevel)->get_row();
 
-        if (!empty($l_old_data["isys_cats_organization_list__isys_connection__id"])) {
-            $l_id = isys_cmdb_dao_connection::instance($this->m_db)
-                ->update_connection($l_old_data["isys_cats_organization_list__isys_connection__id"], $p_headquarter);
+        if (empty($l_old_data['isys_cats_organization_list__isys_connection__id'])) {
+            $l_id = isys_cmdb_dao_connection::instance($this->m_db)->add_connection($p_headquarter);
         } else {
-            $l_id = isys_cmdb_dao_connection::instance($this->m_db)
-                ->add_connection($p_headquarter);
+            $l_id = isys_cmdb_dao_connection::instance($this->m_db)->update_connection($l_old_data['isys_cats_organization_list__isys_connection__id'], $p_headquarter);
         }
+
+        // @see ID-6582  Always set "isys_cats_organization_list__isys_connection__id" with the connection ID.
 
         $changes = [
             'isys_obj__status = ' . $this->convert_sql_id($p_status),
             'isys_cats_organization_list__status = ' . $this->convert_sql_id($p_status),
+            'isys_cats_organization_list__isys_connection__id = ' . $this->convert_sql_id($l_id),
         ];
-        if (!is_null($p_title)) {
+
+        if ($p_title !== null) {
             $changes[] = 'isys_obj__title = ' . $this->convert_sql_text($p_title);
             $changes[] = 'isys_cats_organization_list__title = ' . $this->convert_sql_text($p_title);
         }
-        if (!is_null($p_telephone)) {
+
+        if ($p_telephone !== null) {
             $changes[] = 'isys_cats_organization_list__telephone = ' . $this->convert_sql_text($p_telephone);
         }
-        if (!is_null($p_fax)) {
+
+        if ($p_fax !== null) {
             $changes[] = 'isys_cats_organization_list__fax = ' . $this->convert_sql_text($p_fax);
         }
-        if (!is_null($p_website)) {
+
+        if ($p_website !== null) {
             $changes[] = 'isys_cats_organization_list__website = ' . $this->convert_sql_text($p_website);
         }
-        if (!is_null($p_headquarter)) {
-            $changes[] = 'isys_cats_organization_list__isys_connection__id = ' . $this->convert_sql_id($p_headquarter);
-        }
-        if (!is_null($p_description)) {
+
+        if ($p_description !== null) {
             $changes[] = 'isys_cats_organization_list__description = ' . $this->convert_sql_text($p_description);
         }
-        $l_sql = "UPDATE isys_cats_organization_list
+
+        $l_sql = 'UPDATE isys_cats_organization_list
             INNER JOIN isys_obj ON isys_obj__id = isys_cats_organization_list__isys_obj__id
-            SET " . implode(', ', $changes) .
-            ' WHERE isys_cats_organization_list__id = ' . $this->convert_sql_id($p_catlevel);
+            SET ' . implode(', ', $changes) . ' 
+            WHERE isys_cats_organization_list__id = ' . $this->convert_sql_id($p_catlevel) . ';';
 
-        if ($this->update($l_sql)) {
-            isys_cmdb_dao_category_g_global::instance($this->m_db)
-                ->handle_template_status($l_old_data["isys_obj__status"], $l_old_data["isys_obj__id"]);
-
-            // Create implicit relation.
-            try {
-                $l_data = $this->get_data($p_catlevel)
-                    ->get_row();
-
-                if ($l_data && $l_data["isys_cats_organization_list__isys_obj__id"] > 0) {
-                    $l_relation_dao = isys_factory::get_instance('isys_cmdb_dao_category_g_relation', $this->get_database_component());
-
-                    if ($p_headquarter > 0) {
-                        // Update relation.
-                        $l_relation_dao->handle_relation(
-                            $p_catlevel,
-                            $this->m_table,
-                            defined_or_default('C__RELATION_TYPE__ORGANIZATION_HEADQUARTER'),
-                            $l_data[$this->m_table . "__isys_catg_relation_list__id"],
-                            $p_headquarter,
-                            $l_data[$this->m_table . "__isys_obj__id"]
-                        );
-                    } else {
-                        // Remove relation.
-                        $l_relation_dao->delete_relation($l_data['isys_cats_organization_list__isys_catg_relation_list__id']);
-                    }
-                }
-            } catch (Exception $e) {
-                throw $e;
-            }
-
-            return $this->apply_update();
+        if (!$this->update($l_sql) || !$this->apply_update()) {
+            return false;
         }
 
-        return false;
+        isys_cmdb_dao_category_g_global::instance($this->m_db)
+            ->handle_template_status($l_old_data['isys_obj__status'], $l_old_data['isys_obj__id']);
+
+        // Create implicit relation.
+        $l_data = $this->get_data($p_catlevel)->get_row();
+
+        if ($l_data && $l_data['isys_cats_organization_list__isys_obj__id'] > 0) {
+            $l_relation_dao = isys_factory::get_instance('isys_cmdb_dao_category_g_relation', $this->get_database_component());
+
+            if ($p_headquarter > 0) {
+                // Update relation.
+                $l_relation_dao->handle_relation(
+                    $p_catlevel,
+                    $this->m_table,
+                    defined_or_default('C__RELATION_TYPE__ORGANIZATION_HEADQUARTER'),
+                    $l_data[$this->m_table . '__isys_catg_relation_list__id'],
+                    $p_headquarter,
+                    $l_data[$this->m_table . '__isys_obj__id']
+                );
+            } else {
+                // Remove relation.
+                $l_relation_dao->delete_relation($l_data['isys_cats_organization_list__isys_catg_relation_list__id']);
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -597,7 +598,9 @@ class isys_cmdb_dao_category_s_organization_master extends isys_cmdb_dao_categor
      */
     public function update_orga_object($p_object_id, $p_title)
     {
-        $l_sql = 'UPDATE isys_obj SET isys_obj__title = ' . $this->convert_sql_text($p_title) . ' WHERE isys_obj__id = ' . $this->convert_sql_id($p_object_id) . ';';
+        $l_sql = 'UPDATE isys_obj 
+            SET isys_obj__title = ' . $this->convert_sql_text($p_title) . ' 
+            WHERE isys_obj__id = ' . $this->convert_sql_id($p_object_id) . ';';
 
         return $this->update($l_sql) && $this->apply_update();
     }
@@ -605,57 +608,47 @@ class isys_cmdb_dao_category_s_organization_master extends isys_cmdb_dao_categor
     /**
      * Executes the query to create new oragization
      *
-     * @return int the newly created ID or false
+     * @param $p_objID
+     * @param $p_newRecStatus
+     * @param $p_title
+     * @param $p_street
+     * @param $p_zip_code
+     * @param $p_city
+     * @param $p_country
+     * @param $p_telephone
+     * @param $p_fax
+     * @param $p_website
+     * @param $p_connection_id
+     * @param $p_headquarter_id
+     * @param $p_description
+     *
+     * @return bool|int
+     * @throws isys_exception_dao
      * @author Van Quyen Hoang <qhoang@i-doit.org>
      */
-    public function create(
-        $p_objID,
-        $p_newRecStatus,
-        $p_title,
-        $p_street,
-        $p_zip_code,
-        $p_city,
-        $p_country,
-        $p_telephone,
-        $p_fax,
-        $p_website,
-        $p_connection_id,
-        $p_headquarter_id,
-        $p_description
-    ) {
-        if (is_null($p_connection_id)) {
+    public function create($p_objID, $p_newRecStatus, $p_title, $p_street, $p_zip_code, $p_city, $p_country, $p_telephone, $p_fax, $p_website, $p_connection_id, $p_headquarter_id = null, $p_description = '')
+    {
+        if ($p_connection_id === null) {
             $l_dao_connection = new isys_cmdb_dao_connection($this->m_db);
-            $p_connection_id = $l_dao_connection->add_connection(null);
+            $p_connection_id = $l_dao_connection->add_connection($p_headquarter_id);
         }
 
-        $l_sql = "INSERT IGNORE INTO isys_cats_organization_list (
-					isys_cats_organization_list__isys_obj__id,
-					isys_cats_organization_list__title,
-					isys_cats_organization_list__status,
-					isys_cats_organization_list__telephone,
-					isys_cats_organization_list__fax,
-					isys_cats_organization_list__website,
-					isys_cats_organization_list__isys_connection__id,
-					isys_cats_organization_list__headquarter,
-					isys_cats_organization_list__description)
-					VALUES ";
-
-        $l_sql .= "(" . $this->convert_sql_id($p_objID) . ",
-					" . $this->convert_sql_text($p_title) . ",
-					" . $this->convert_sql_id($p_newRecStatus) . ",
-					" . $this->convert_sql_text($p_telephone) . ",
-					" . $this->convert_sql_text($p_fax) . ",
-					" . $this->convert_sql_text($p_website) . ",
-					" . $this->convert_sql_id($p_connection_id) . ",
-					" . $this->convert_sql_id($p_headquarter_id) . ",
-					" . $this->convert_sql_text($p_description) . "
-					)";
+        $l_sql = 'INSERT IGNORE INTO isys_cats_organization_list SET
+            isys_cats_organization_list__isys_obj__id = ' . $this->convert_sql_id($p_objID) . ',
+            isys_cats_organization_list__title = ' . $this->convert_sql_text($p_title) . ',
+            isys_cats_organization_list__status = ' . $this->convert_sql_id($p_newRecStatus) . ',
+            isys_cats_organization_list__telephone = ' . $this->convert_sql_text($p_telephone) . ',
+            isys_cats_organization_list__fax = ' . $this->convert_sql_text($p_fax) . ',
+            isys_cats_organization_list__website = ' . $this->convert_sql_text($p_website) . ',
+            isys_cats_organization_list__isys_connection__id = ' . $this->convert_sql_id($p_connection_id) . ',
+            isys_cats_organization_list__headquarter = ' . $this->convert_sql_id($p_headquarter_id) . ',
+            isys_cats_organization_list__description = ' . $this->convert_sql_text($p_description) . ';';
 
         if ($this->update($l_sql) && $this->apply_update()) {
             return $this->get_last_insert_id();
-        } else {
-            return false;
         }
+
+        return false;
     }
 
     /**

@@ -237,8 +237,10 @@ class isys_cmdb_view_tree_object extends isys_cmdb_view_tree
                         continue;
                     }
 
-                    if (in_array($l_category['isysgui_catg__id'],
-                        filter_defined_constants(['C__CATG__LOGBOOK', 'C__CATG__PLANNING', 'C__CATG__RELATION', 'C__CATG__VIRTUAL_TICKETS', 'C__CATG__VIRTUAL_AUTH']))) {
+                    if (in_array(
+                        $l_category['isysgui_catg__id'],
+                        filter_defined_constants(['C__CATG__LOGBOOK', 'C__CATG__PLANNING', 'C__CATG__RELATION', 'C__CATG__VIRTUAL_TICKETS', 'C__CATG__VIRTUAL_AUTH', 'C__CATG__MULTIEDIT'])
+                    )) {
                         continue;
                     }
 

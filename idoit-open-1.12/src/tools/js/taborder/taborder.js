@@ -470,7 +470,7 @@ TableOrderer.prototype = {
 		this.tableColumnsName.each(function(i) {
 			option += '\t<option value="'+i+'">'+i.replace('_',' ').capitalize()+'</option>\n';
 		});
-        
+  
 		$(this.table.id+'-options')
 			.insert({bottom : this.msgs.filterLabel})
 			.insert({bottom : '<select id="'+this.table.id+'-filter-column">'+option+'</select>'})
@@ -609,6 +609,21 @@ TableOrderer.prototype = {
 			this.table.insert({bottom: this.createRow(i,index)});
 		}.bind(this));
 
+		// Append the quickinfo events, if necessary.
+		if (this.table.down('.quickinfo')) {
+            this.table.select('span.quickinfo[data-obj-id]').each(function (element) {
+                var obj_id = element.readAttribute('data-obj-id');
+                
+                new Tip('obj-browser-quickinfo-' + obj_id, '', {
+                    'ajax':      {'url': '?ajax=1&call=quick_info&objID=' + obj_id},
+                    'delay':     0,
+                    'style':     'default',
+                    'effect':    'appear',
+                    'className': 'objectinfo'
+                });
+            });
+        }
+		
 		// if there are no results
 		if(display.size() === 0) {
 			s = this.tableColumnsName.size();

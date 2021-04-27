@@ -612,8 +612,8 @@ class isys_cmdb_dao_category_g_controller_fcport extends isys_cmdb_dao_category_
                     ]
                 ],
                 C__PROPERTY__PROVIDES => [
-                    C__PROPERTY__PROVIDES__VIRTUAL    => true,
-                    C__PROPERTY__PROVIDES__REPORT     => false,
+                    C__PROPERTY__PROVIDES__VIRTUAL    => false,
+                    C__PROPERTY__PROVIDES__REPORT     => true,
                     C__PROPERTY__PROVIDES__LIST       => true,
                     C__PROPERTY__PROVIDES__SEARCH     => true,
                     C__PROPERTY__PROVIDES__EXPORT     => false,

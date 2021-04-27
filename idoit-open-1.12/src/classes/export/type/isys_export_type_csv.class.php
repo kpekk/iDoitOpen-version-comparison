@@ -1,6 +1,7 @@
 <?php
 
 /**
+ * @deprecated  Use "\League\Csv\Writer" for writing CSV files!
  * @package     i-doit
  * @subpackage  Export
  * @author      Dennis Stuecken <dstuecken@i-doit.org>
@@ -13,12 +14,12 @@ class isys_export_type_csv extends isys_export_type
     /**
      * @var  string
      */
-    protected $m_extension = "csv";
+    protected $m_extension = 'csv';
 
     /**
      * @var  string
      */
-    private $m_max_line = "";
+    private $m_max_line = '';
 
     /**
      * Parses an array and returns a copy of $this.
@@ -28,7 +29,6 @@ class isys_export_type_csv extends isys_export_type
      *
      * @throws  isys_exception_general
      * @return  string
-     * @todo    FELDTRENNER ÜBER GUI SETZEN
      */
     public function parse($p_array, $p_export_format = null)
     {
@@ -37,19 +37,19 @@ class isys_export_type_csv extends isys_export_type
             $this->set_max_line($p_array);
 
             foreach ($p_array as $l_column) {
-                for ($l_counter = 0;$l_counter <= $this->m_max_line;$l_counter++) {
-                    $l_string .= $l_column[$l_counter] . ";";
+                for ($l_counter = 0; $l_counter <= $this->m_max_line; $l_counter++) {
+                    $l_string .= $l_column[$l_counter] . ';';
                 }
 
-                $l_string .= "\n";
+                $l_string .= PHP_EOL;
             }
 
             $this->set_formatted_export($l_string);
 
             return $this;
-        } else {
-            throw new isys_exception_general("Input not an array. (isys_export_type_csv->parse())");
         }
+
+        throw new isys_exception_general('Input not an array. (isys_export_type_csv->parse())');
     }
 
     /**
@@ -62,10 +62,11 @@ class isys_export_type_csv extends isys_export_type
         if (!is_countable($p_array)) {
             return;
         }
-        for ($l_i = 0;$l_i < 5;$l_i++) {
+        for ($l_i = 0; $l_i < 5; $l_i++) {
             if (!is_countable($p_array[$l_i])) {
                 continue;
             }
+
             if ($this->m_max_line < count($p_array[$l_i])) {
                 $this->m_max_line = count($p_array[$l_i]);
             }
@@ -79,7 +80,7 @@ class isys_export_type_csv extends isys_export_type
      */
     public function __construct($p_encoding = null)
     {
-        if (!is_null($p_encoding)) {
+        if ($p_encoding !== null) {
             $this->m_encoding = $p_encoding;
         }
     }

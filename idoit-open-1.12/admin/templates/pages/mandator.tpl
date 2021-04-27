@@ -81,22 +81,36 @@
 	/**
 	 * Submit mandator action (activate, deactivate, delete)
 	 */
-	function submit_mandators(p_action) {
+	function submit_mandators(p_action, reload = true) {
 
 		$('toolbar_loading').show();
-		var arIds = [];
+		var arIds = [],
+            licenseObjectCounts = {};
 		$A(document.getElementsByName('id[]')).each(function (node) {
 			if (node.checked) arIds.push(node.value);
 		});
 
+        $A(document.getElementsByName('license_objects[]')).each(function (node) {
+            licenseObjectCounts[node.getAttribute('data-mandator-id')] = node.value;
+        });
+
+        var formData = $('add_form').serialize(true);
+		formData['ids'] = Object.toJSON(arIds);
+		formData['license_object_counts'] = Object.toJSON(licenseObjectCounts);
+		formData['active_license_distribution'] = document.getElementsByName('active_license_distribution')[0].checked;
+
 		new Ajax.Updater('ajax_result', '?req=mandator&action=' + p_action,
 				{
-					parameters: {ids: Object.toJSON(arIds)},
+					parameters: formData,
 					onComplete: function (transport) {
 						$('ajax_result').appear().highlight();
 						$('toolbar_loading').hide();
 						window.transportHandler(transport);
-						reload_mandators();
+
+						if (reload)
+                        {
+                            reload_mandators();
+                        }
 					}
 				});
 
@@ -327,4 +341,77 @@
 			);
 		}
 	});
+
+	var listenerAdded = false;
+
+	var listenersLicenses = function() {
+	    var toggleAttribute = function(element, name, force) {
+            if(force !== void 0) force = !!force
+
+            if (element.getAttribute(name) !== null) {
+                if (force) return true;
+
+                element.removeAttribute(name);
+                return false;
+            } else {
+                if (force === false) return false;
+
+                element.setAttribute(name, "");
+                return true;
+            }
+        };
+
+        var licenseObjects = document.getElementById('total_license_objects').innerText,
+            activeLicenseDistribution = document.getElementsByName("active_license_distribution")[0];
+
+        activeLicenseDistribution.addEventListener("change", function () {
+            var valueElements = document.getElementsByClassName('mandator_license_objects');
+
+            for (var i = 0; i < valueElements.length; i++) {
+                toggleAttribute(valueElements[i], 'disabled', true);
+            }
+
+            var totalObjects = licenseObjects,
+                tenants = document.getElementsByClassName('mandator-row'),
+                tenantsCount = tenants.length;
+
+            function getIntDividedIntoMultiple(dividend, divisor, multiple)
+            {
+                var values = [];
+                while (dividend> 0 && divisor > 0)
+                {
+                    var a = Math.round(dividend/ divisor / multiple) * multiple;
+                    dividend -= a;
+                    divisor--;
+                    values.push(a);
+                }
+
+                return values;
+            }
+
+            var objectCounts = getIntDividedIntoMultiple(totalObjects, tenantsCount, 1);
+
+            for (var i = 0; i < tenants.length; i++) {
+                var input = tenants[i].getElementsByClassName('mandator_license_objects')[0];
+
+                input.value = objectCounts[i];
+            }
+        });
+
+        listenerAdded = true;
+    };
+
+    document.addEventListener("DOMContentLoaded", function(event) {
+        listenersLicenses();
+    });
+
+    document.addEventListener("DOMSubtreeModified", function(event) {
+        if (document.getElementsByName("active_license_distribution").length === 0) {
+            listenerAdded = false;
+        }
+
+        if (document.getElementsByName("active_license_distribution").length !== 0 && listenerAdded !== true) {
+            listenersLicenses();
+        }
+    });
 </script>

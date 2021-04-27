@@ -33,7 +33,7 @@ Browser.portList = Class.create(Browser.objectList, {
         // Is port already connected?
         var l_in_use = [{if $usageWarning}](values[2].length > 1 && !checked)[{else}]false[{/if}];
 
-        return '<input type="radio" id="port-id-' + values[0] + '" name="portSelection" ' + (checked ? 'checked="checked" ' : ' ') + 'onclick="window.portSelection(' + values[0] + ', \'' + values[1] + '\', '+ l_in_use +');" />';
+        return '<input type="radio" id="port-id-' + values[0] + '" name="portSelection" ' + (checked ? 'checked="checked" ' : ' ') + 'onclick="window.portSelection(' + values[0] + ', \'' + encodeURI(values[1]).replace(/'/g, '%27') + '\', '+ l_in_use +');" />';
     }
 });
 
@@ -61,27 +61,25 @@ window.portSelection = function (pId, pName, pInUse) {
 window.moveToParent = function (hiddenElement, viewElement) {
     var $view     = $(viewElement),
         $hidden   = $(hiddenElement),
-        selection = window.browserPreselection.getSelection();
+        selection = window.browserPreselection.getSelection(),
+        val       = '';
     
     if (selection.length === 0) {
         if ($view) {
             $view.setValue('[{isys type="lang" ident="LC__UNIVERSAL__CONNECTION_DETACHED" p_bHtmlEncode=0}]');
         }
-        
-        if ($hidden) {
-            $hidden.setValue('');
-        }
     } else {
         if ($view) {
             $view.setValue('[{isys type="lang" ident="LC__CMDB__OBJECT_BROWSER__SCRIPT__SELECTED_OBJECTS" p_bHtmlEncode=0}]'.replace('{0}', selection.length));
         }
-        
-        if ($hidden) {
-            if (window.browserPreselection.isMultiselection()) {
-                $hidden.setValue(JSON.stringify(selection));
-            } else {
-                $hidden.setValue(JSON.stringify(selection[0]));
-            }
+        val = JSON.stringify(selection[0]);
+    }
+    
+    if ($hidden) {
+        if (window.browserPreselection.isMultiselection()) {
+            $hidden.setValue(JSON.stringify(selection));
+        } else {
+            $hidden.setValue(val);
         }
     }
 

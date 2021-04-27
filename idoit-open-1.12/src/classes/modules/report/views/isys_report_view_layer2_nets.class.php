@@ -5,52 +5,14 @@
  *
  * @package     i-doit
  * @subpackage  Reports
- * @author      Leonard Fischer <lfischer@i-doit.org>
+ * @author      Leonard Fischer <lfischer@i-doit.com>
  * @copyright   Copyright 2011 - synetics GmbH
  * @license     http://www.gnu.org/licenses/agpl-3.0.html GNU AGPLv3
- * @since       0.9.9-8
  */
 class isys_report_view_layer2_nets extends isys_report_view
 {
     /**
-     * Method for ajax-requests. Must be implemented.
-     *
-     * @author  Leonard Fischer <lfischer@i-doit.org>
-     */
-    public function ajax_request()
-    {
-        ;
-    }
-
-    /**
-     * Method for retrieving the language constant of the report-description.
-     *
-     * @return  string
-     * @author  Leonard Fischer <lfischer@i-doit.org>
-     * @todo    Should we update the parent method to retrieve this automatically?
-     */
-    public static function description()
-    {
-        return 'LC__REPORT__VIEW__LAYER2_NETS__DESCRIPTION';
-    }
-
-    /**
-     * Initialize method.
-     *
-     * @return  boolean
-     * @author  Leonard Fischer <lfischer@i-doit.org>
-     */
-    public function init()
-    {
-        return true;
-    }
-
-    /**
-     * Method for retrieving the language constant of the report-name.
-     *
-     * @return  string
-     * @author  Leonard Fischer <lfischer@i-doit.org>
-     * @todo    Should we update the parent method to retrieve this automatically?
+     * @return string
      */
     public static function name()
     {
@@ -58,24 +20,43 @@ class isys_report_view_layer2_nets extends isys_report_view
     }
 
     /**
-     * Start-method - Implement the logic for displaying your data here.
+     * @return string
+     */
+    public static function description()
+    {
+        return 'LC__REPORT__VIEW__LAYER2_NETS__DESCRIPTION';
+    }
+
+    /**
+     * @return string
+     */
+    public function template()
+    {
+        return isys_module_report::getPath() . 'templates/view_layer2_nets.tpl';
+    }
+
+    /**
+     * @return string
+     */
+    public static function viewtype()
+    {
+        return 'LC__CMDB__OBJTYPE__RELATION';
+    }
+
+    /**
      *
-     * @global  isys_component_database $g_comp_database
-     * @author  Leonard Fischer <lfischer@i-doit.org>
      */
     public function start()
     {
-        global $g_comp_database;
-
         // Preparing some variables.
         $l_data = [];
         $l_return = [];
 
         // Initializing the DAO's.
-        $l_obj_dao = new isys_cmdb_dao($g_comp_database);
-        $l_l2_assigned_hosts_dao = new isys_cmdb_dao_category_s_layer2_net_assigned_ports($g_comp_database);
-        $l_port_dao = new isys_cmdb_dao_category_g_network_port($g_comp_database);
-        $l_l3_dao = new isys_cmdb_dao_category_s_net($g_comp_database);
+        $l_obj_dao = new isys_cmdb_dao($this->database);
+        $l_l2_assigned_hosts_dao = new isys_cmdb_dao_category_s_layer2_net_assigned_ports($this->database);
+        $l_port_dao = new isys_cmdb_dao_category_g_network_port($this->database);
+        $l_l3_dao = new isys_cmdb_dao_category_s_net($this->database);
 
         // At first we search all objects of the type "layer2 net".
         $l_obj_res = $l_obj_dao->get_objects_by_type(defined_or_default('C__OBJTYPE__LAYER2_NET'));
@@ -88,8 +69,13 @@ class isys_report_view_layer2_nets extends isys_report_view
                 $l_data[$l_layer2_link] = [];
             }
 
-            $l_l2_assigned_hosts_res = $l_l2_assigned_hosts_dao->get_data(null, null,
-                'AND isys_cats_layer2_net_assigned_ports_list__isys_obj__id = ' . (int)$l_obj_row['isys_obj__id'], null, C__RECORD_STATUS__NORMAL);
+            $l_l2_assigned_hosts_res = $l_l2_assigned_hosts_dao->get_data(
+                null,
+                null,
+                'AND isys_cats_layer2_net_assigned_ports_list__isys_obj__id = ' . (int)$l_obj_row['isys_obj__id'],
+                null,
+                C__RECORD_STATUS__NORMAL
+            );
 
             while ($l_l2_assigned_hosts_row = $l_l2_assigned_hosts_res->get_row()) {
                 $l_port = $l_port_dao->get_data($l_l2_assigned_hosts_row['isys_catg_port_list__id'])
@@ -154,42 +140,6 @@ class isys_report_view_layer2_nets extends isys_report_view
         }
 
         // Finally assign the data to the template.
-        isys_application::instance()->template->assign('data', isys_format_json::encode($l_return));
-    }
-
-    /**
-     * Method for retrieving the template-name of this report.
-     *
-     * @return  string
-     * @author  Leonard Fischer <lfischer@i-doit.org>
-     * @todo    Should we update the parent method to retrieve this automatically?
-     */
-    public function template()
-    {
-        return 'view_layer2_nets.tpl';
-    }
-
-    /**
-     * Method for declaring the type of this report.
-     *
-     * @return  integer
-     * @author  Leonard Fischer <lfischer@i-doit.org>
-     */
-    public static function type()
-    {
-        return self::c_php_view;
-    }
-
-    /**
-     * Method for declaring the view-type.
-     *
-     * @return  string
-     * @author  Leonard Fischer <lfischer@i-doit.org>
-     */
-    public static function viewtype()
-    {
-        return 'LC__CMDB__OBJTYPE__RELATION';
+        $this->template->assign('data', isys_format_json::encode($l_return));
     }
 }
-
-?>

@@ -66,8 +66,12 @@ class isys_cmdb_dao_category_s_person_login extends isys_cmdb_dao_category_s_per
         }
 
         if ($l_list_id) {
-            $l_bRet = $this->save($l_list_id, $_POST["C__CONTACT__PERSON_USER_NAME"], $_POST["C__CONTACT__PERSON_PASSWORD"],
-                $_POST["C__CMDB__CAT__COMMENTARY_" . $this->get_category_type() . $this->get_category_id()]);
+            $l_bRet = $this->save(
+                $l_list_id,
+                $_POST["C__CONTACT__PERSON_USER_NAME"],
+                $_POST["C__CONTACT__PERSON_PASSWORD"],
+                $_POST["C__CMDB__CAT__COMMENTARY_" . $this->get_category_type() . $this->get_category_id()]
+            );
 
             $this->m_strLogbookSQL = $this->get_last_query();
         }
@@ -191,8 +195,13 @@ class isys_cmdb_dao_category_s_person_login extends isys_cmdb_dao_category_s_per
 
             if ($p_status === isys_import_handler_cmdb::C__CREATE || $p_status === isys_import_handler_cmdb::C__UPDATE) {
                 // Save category data.
-                $l_indicator = $this->save($p_category_data['data_id'], $p_category_data['properties']['title'][C__DATA__VALUE],
-                    $p_category_data['properties']['user_pass'][C__DATA__VALUE], $p_category_data['properties']['description'][C__DATA__VALUE], C__RECORD_STATUS__NORMAL);
+                $l_indicator = $this->save(
+                    $p_category_data['data_id'],
+                    $p_category_data['properties']['title'][C__DATA__VALUE],
+                    $p_category_data['properties']['user_pass'][C__DATA__VALUE],
+                    $p_category_data['properties']['description'][C__DATA__VALUE],
+                    C__RECORD_STATUS__NORMAL
+                );
             }
         }
 
@@ -220,12 +229,12 @@ class isys_cmdb_dao_category_s_person_login extends isys_cmdb_dao_category_s_per
                 ->get("LC__LOGIN__PASSWORDS_DONT_MATCH");
         }
 
-        if (isset($p_data['user_pass']) && isys_strlen($p_data['user_pass']) < $l_password_minlength && $p_data['user_pass'] != '') {
+        if (isset($p_data['user_pass']) && mb_strlen($p_data['user_pass']) < $l_password_minlength && $p_data['user_pass'] != '') {
             $l_return['user_pass'] = isys_application::instance()->container->get('language')
                 ->get("LC__LOGIN__SAVE_ERROR", $l_password_minlength);
         }
 
-        if (isset($p_data['user_pass2']) && isys_strlen($p_data['user_pass2']) < $l_password_minlength && $p_data['user_pass2'] != '') {
+        if (isset($p_data['user_pass2']) && mb_strlen($p_data['user_pass2']) < $l_password_minlength && $p_data['user_pass2'] != '') {
             $l_return['user_pass2'] = isys_application::instance()->container->get('language')
                 ->get("LC__LOGIN__SAVE_ERROR", $l_password_minlength);
         }

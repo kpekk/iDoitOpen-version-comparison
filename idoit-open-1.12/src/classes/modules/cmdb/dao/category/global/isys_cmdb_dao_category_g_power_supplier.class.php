@@ -159,15 +159,21 @@ class isys_cmdb_dao_category_g_power_supplier extends isys_cmdb_dao_category_glo
                     C__PROPERTY__DATA__FIELD       => 'isys_catg_power_supplier_list__isys_catg_connector_list__id',
                     C__PROPERTY__DATA__TABLE_ALIAS => 'connected_connector',
                     C__PROPERTY__DATA__FIELD_ALIAS => 'con_connector',
-                    C__PROPERTY__DATA__SELECT      => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory('SELECT CONCAT(isys_obj__title, \' {\', isys_obj__id, \'}\')
+                    C__PROPERTY__DATA__SELECT      => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory(
+                        'SELECT CONCAT(isys_obj__title, \' {\', isys_obj__id, \'}\')
                             FROM isys_catg_power_supplier_list
                             INNER JOIN isys_catg_connector_list con1 ON con1.isys_catg_connector_list__id = isys_catg_power_supplier_list__isys_catg_connector_list__id
                             LEFT JOIN isys_catg_connector_list con2 ON con2.isys_catg_connector_list__isys_cable_connection__id = con1.isys_catg_connector_list__isys_cable_connection__id
                               AND con2.isys_catg_connector_list__id != con1.isys_catg_connector_list__id
-                            INNER JOIN isys_obj ON isys_obj__id = con2.isys_catg_connector_list__isys_obj__id', 'isys_catg_power_supplier_list',
-                        'isys_catg_power_supplier_list__id', 'isys_catg_power_supplier_list__isys_obj__id', '', '',
+                            INNER JOIN isys_obj ON isys_obj__id = con2.isys_catg_connector_list__isys_obj__id',
+                        'isys_catg_power_supplier_list',
+                        'isys_catg_power_supplier_list__id',
+                        'isys_catg_power_supplier_list__isys_obj__id',
+                        '',
+                        '',
                         idoit\Module\Report\SqlQuery\Structure\SelectCondition::factory([]),
-                        idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['isys_catg_power_supplier_list__isys_obj__id']))
+                        idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['isys_catg_power_supplier_list__isys_obj__id'])
+                    )
                 ],
                 C__PROPERTY__UI       => [
                     C__PROPERTY__UI__ID     => 'C__CATG__POWER_SUPPLIER__DEST',
@@ -185,7 +191,7 @@ class isys_cmdb_dao_category_g_power_supplier extends isys_cmdb_dao_category_glo
                 C__PROPERTY__PROVIDES => [
                     C__PROPERTY__PROVIDES__SEARCH    => false,
                     C__PROPERTY__PROVIDES__MULTIEDIT => true,
-                    C__PROPERTY__PROVIDES__VIRTUAL   => true
+                    C__PROPERTY__PROVIDES__VIRTUAL   => false
                 ],
                 C__PROPERTY__FORMAT   => [
                     C__PROPERTY__FORMAT__CALLBACK => [
@@ -203,14 +209,20 @@ class isys_cmdb_dao_category_g_power_supplier extends isys_cmdb_dao_category_glo
                     C__PROPERTY__DATA__FIELD       => 'isys_catg_power_supplier_list__isys_catg_connector_list__id',
                     C__PROPERTY__DATA__TABLE_ALIAS => 'connected',
                     C__PROPERTY__DATA__FIELD_ALIAS => 'con_connector',
-                    C__PROPERTY__DATA__SELECT      => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory('SELECT con2.isys_catg_connector_list__title
+                    C__PROPERTY__DATA__SELECT      => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory(
+                        'SELECT con2.isys_catg_connector_list__title
                             FROM isys_catg_power_supplier_list
                             INNER JOIN isys_catg_connector_list con1 ON con1.isys_catg_connector_list__id = isys_catg_power_supplier_list__isys_catg_connector_list__id
                             LEFT JOIN isys_catg_connector_list con2 ON con2.isys_catg_connector_list__isys_cable_connection__id = con1.isys_catg_connector_list__isys_cable_connection__id
-                              AND con2.isys_catg_connector_list__id != con1.isys_catg_connector_list__id', 'isys_catg_power_supplier_list',
-                        'isys_catg_power_supplier_list__id', 'isys_catg_power_supplier_list__isys_obj__id', '', '',
+                              AND con2.isys_catg_connector_list__id != con1.isys_catg_connector_list__id',
+                        'isys_catg_power_supplier_list',
+                        'isys_catg_power_supplier_list__id',
+                        'isys_catg_power_supplier_list__isys_obj__id',
+                        '',
+                        '',
                         idoit\Module\Report\SqlQuery\Structure\SelectCondition::factory([]),
-                        idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['isys_catg_power_supplier_list__isys_obj__id'])),
+                        idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['isys_catg_power_supplier_list__isys_obj__id'])
+                    ),
                     C__PROPERTY__DATA__INDEX       => true
                 ],
                 C__PROPERTY__PROVIDES => [
@@ -324,6 +336,7 @@ class isys_cmdb_dao_category_g_power_supplier extends isys_cmdb_dao_category_glo
                      * and lose the connected ahead connector
                      */
                     $createdConnector = $this->get_connector($p_category_data['data_id']);
+                    // no break
                 case isys_import_handler_cmdb::C__UPDATE:
 
                     // Prefer existing connector over provided one
@@ -374,8 +387,13 @@ class isys_cmdb_dao_category_g_power_supplier extends isys_cmdb_dao_category_glo
         $l_dao_connector = new isys_cmdb_dao_category_g_connector($this->m_db);
 
         if (empty($l_catdata['isys_catg_power_supplier_list__isys_catg_connector_list__id'])) {
-            $l_catdata['isys_catg_power_supplier_list__isys_catg_connector_list__id'] = $l_dao_connector->create($_GET[C__CMDB__GET__OBJECT], C__CONNECTOR__OUTPUT, null, null,
-                $this->obj_get_title_by_id_as_string($_GET[C__CMDB__GET__OBJECT]));
+            $l_catdata['isys_catg_power_supplier_list__isys_catg_connector_list__id'] = $l_dao_connector->create(
+                $_GET[C__CMDB__GET__OBJECT],
+                C__CONNECTOR__OUTPUT,
+                null,
+                null,
+                $this->obj_get_title_by_id_as_string($_GET[C__CMDB__GET__OBJECT])
+            );
         }
 
         $l_cable_name = $_POST['C__CATG__POWER_SUPPLIER__DEST__CABLE_NAME'];
@@ -383,11 +401,20 @@ class isys_cmdb_dao_category_g_power_supplier extends isys_cmdb_dao_category_glo
         $l_connected_connector = $_POST['C__CATG__POWER_SUPPLIER__DEST__HIDDEN'];
 
         if ($l_catdata['isys_catg_power_supplier_list__id'] != '') {
-            $l_bRet = $this->save($l_catdata['isys_catg_power_supplier_list__id'], C__RECORD_STATUS__NORMAL,
-                $l_catdata['isys_catg_power_supplier_list__isys_catg_connector_list__id'], $l_connected_connector, $l_cableID, $l_milli_volt, $l_milli_watt, $l_milli_ampere,
+            $l_bRet = $this->save(
+                $l_catdata['isys_catg_power_supplier_list__id'],
+                C__RECORD_STATUS__NORMAL,
+                $l_catdata['isys_catg_power_supplier_list__isys_catg_connector_list__id'],
+                $l_connected_connector,
+                $l_cableID,
+                $l_milli_volt,
+                $l_milli_watt,
+                $l_milli_ampere,
                 ($l_cable_name ?: isys_application::instance()->container->get('language')
                         ->get('LC__CMDB__CATG__POWER_SUPPLIER') . ' ' . $l_catdata['isys_catg_power_supplier_list__isys_obj__id']),
-                $_POST['C__CMDB__CAT__COMMENTARY_' . $this->get_category_type() . $this->get_category_id()], null);
+                $_POST['C__CMDB__CAT__COMMENTARY_' . $this->get_category_type() . $this->get_category_id()],
+                null
+            );
         }
 
         return $l_bRet == true ? null : $l_intErrorCode;
@@ -460,8 +487,12 @@ class isys_cmdb_dao_category_g_power_supplier extends isys_cmdb_dao_category_glo
                         $p_cableID = $l_dao_cable_con->get_assigned_cable($p_connectorRearID);
                     }
 
-                    $l_cable_connection_id = $l_dao_cable_con->handle_cable_connection_detachment($l_dao_cable_con->get_cable_connection_id_by_connector_id($p_connectorRearID),
-                        $p_connectorRearID, $p_connectorAheadID, $p_cableID);
+                    $l_cable_connection_id = $l_dao_cable_con->handle_cable_connection_detachment(
+                        $l_dao_cable_con->get_cable_connection_id_by_connector_id($p_connectorRearID),
+                        $p_connectorRearID,
+                        $p_connectorAheadID,
+                        $p_cableID
+                    );
                     $l_dao_cable_con->handle_cable_connection_attachment($p_connectorRearID, $p_connectorAheadID, $p_cableID, $p_title, $l_cable_connection_id);
                 }
 
@@ -543,8 +574,18 @@ class isys_cmdb_dao_category_g_power_supplier extends isys_cmdb_dao_category_glo
         $l_dao_connector = new isys_cmdb_dao_category_g_connector($g_comp_database);
 
         if ($p_connection_id == null) {
-            $p_connection_id = $l_dao_connector->create($p_cat_level, C__CONNECTOR__OUTPUT, null, null, $p_title, null, $p_connector_sibling, null, 'C__CATG__POWER_SUPPLIER',
-                null);
+            $p_connection_id = $l_dao_connector->create(
+                $p_cat_level,
+                C__CONNECTOR__OUTPUT,
+                null,
+                null,
+                $p_title,
+                null,
+                $p_connector_sibling,
+                null,
+                'C__CATG__POWER_SUPPLIER',
+                null
+            );
         }
 
         $l_strSql = 'INSERT INTO ' . 'isys_catg_power_supplier_list ' . 'SET ' . 'isys_catg_power_supplier_list__isys_catg_connector_list__id = ' .

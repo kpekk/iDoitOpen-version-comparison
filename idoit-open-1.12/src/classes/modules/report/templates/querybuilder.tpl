@@ -32,12 +32,12 @@
 		</div>
 	</fieldset>
 
-	<fieldset class="overview">
-		<legend><span>[{isys type="lang" ident="LC__REPORT__FORM__OUTPUT"}]: <button type="button" class="btn btn-small checkup">[{isys type="lang" ident="LC__REPORT__FORM__CHECK"}]</button></span></legend>
-        <fieldset class="overview" style="margin-top: 20px;">
-            <legend id="report_advanced_options_legend"><span>[{isys type="lang" ident="LC__REPORT__FORM__ADVANCED_OPTIONS"}]</span> <i id="report_advanced_options_arrow" class="arrow-right" style="left: 135px;
-    top: 6px;position: absolute"></i></legend>
-            <div class="p10" id="report_advanced_options" style="display: none;">
+    <fieldset class="overview" style="margin-top: 20px;">
+        <legend>
+            <span class="no-arrow">[{isys type="lang" ident="LC__REPORT__FORM__ADVANCED_OPTIONS"}]<button type="button" class="ml10 vam btn btn-small" id="report_advanced_options_button">[{isys type="lang" ident="LC__REPORT__FORM__ADVANCED_OPTIONS_SHOW"}]</button></span>
+        </legend>
+        <div class="pt5 pr10 pb5 pl10">
+            <div class="hide" id="report_advanced_options">
                 <p class="mt10 mb10">[{isys type="lang" ident="LC__REPORT__INFO__ATTRIBUTE_CHOOSER_TEXT"}]</p>
 
                 <table class="mt5 mb10">
@@ -67,8 +67,13 @@
                     </tr>
                 </table>
             </div>
-        </fieldset>
-		<div class="p10">
+        </div>
+    </fieldset>
+
+	<fieldset class="overview">
+		<legend><span>[{isys type="lang" ident="LC__REPORT__FORM__OUTPUT"}]<button type="button" class="ml10 vam btn btn-small checkup">[{isys type="lang" ident="LC__REPORT__FORM__CHECK"}]</button></span></legend>
+
+		<div class="p10 pt15">
 			[{isys type="f_property_selector"
 	            grouping=false
 	            sortable=true
@@ -91,7 +96,7 @@
 
 
 	<fieldset class="overview">
-        <legend><span>[{isys type="lang" ident="LC__REPORT__FORM__CONDITIONS"}]: <button type="button" class="btn btn-small checkup">[{isys type="lang" ident="LC__REPORT__FORM__CHECK"}]</button></span></legend>
+        <legend><span>[{isys type="lang" ident="LC__REPORT__FORM__CONDITIONS"}]<button type="button" class="ml10 vam btn btn-small checkup">[{isys type="lang" ident="LC__REPORT__FORM__CHECK"}]</button></span></legend>
 
         <div id="condition_overlay" style="position:absolute; display:[{if $report_id == '' || $querybuilder_conditions == ''}]none[{/if}]; top:0; left:0; height:100%; width: 100%;">
             <div style="position:absolute; z-index: 1001; opacity: 0.4; background: #FFF; height:100%; width: 100%;">
@@ -219,20 +224,25 @@ idoit.Translate.set('LC__REPORT__PLACEHOLDER__UNEQUAL_OBJECT', '[{isys type="lan
 idoit.Translate.set('LC__REPORT__PLACEHOLDER__GREATER_DATETIME', '[{isys type="lang" ident="LC__REPORT__PLACEHOLDER__GREATER_DATETIME"}]');
 idoit.Translate.set('LC__REPORT__PLACEHOLDER__LOWER_DATETIME', '[{isys type="lang" ident="LC__REPORT__PLACEHOLDER__LOWER_DATETIME"}]');
 idoit.Translate.set('LC__REPORT__PLACEHOLDER__REGEX', '[{isys type="lang" ident="LC__REPORT__PLACEHOLDER__REGEX"}]');
+
 [{include file="./report.js"}]
 [{include file="./report_condition.js"}]
 
-$('report_advanced_options_legend').on('click', function(){
-    var toggleElement = $('report_advanced_options');
-    var arrowElement = $('report_advanced_options_arrow');
+var $advancedOptionsButton = $('report_advanced_options_button'),
+    $advancedOptionsContainer = $('report_advanced_options');
 
-        toggleElement.style.display = toggleElement.style.display === 'none' ? '' : 'none';
+$advancedOptionsButton.on('click', function(){
+    $advancedOptionsContainer.toggleClassName('hide');
 
-        if (arrowElement.classList.contains('arrow-right')) {
-            arrowElement.classList.replace('arrow-right', 'arrow-down');
-        } else {
-            arrowElement.classList.replace('arrow-down', 'arrow-right');
-        }
+    if ($advancedOptionsContainer.hasClassName('hide')) {
+        $advancedOptionsButton.update('[{isys type="lang" ident="LC__REPORT__FORM__ADVANCED_OPTIONS_SHOW"}]');
+
+        $advancedOptionsButton.up('span').addClassName('no-arrow')
+    } else {
+        $advancedOptionsButton.update('[{isys type="lang" ident="LC__REPORT__FORM__ADVANCED_OPTIONS_HIDE"}]');
+
+        $advancedOptionsButton.up('span').removeClassName('no-arrow')
+    }
 });
 
 $$('.checkup').invoke('on', 'click', function(e){

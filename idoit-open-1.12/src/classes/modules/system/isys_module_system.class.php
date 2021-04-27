@@ -1,11 +1,14 @@
 <?php
 
+use Carbon\Carbon;
 use idoit\Component\Property\PropertyEntity;
 use idoit\Module\Cmdb\Search\Index\Data\CategoryCollector;
+use idoit\Module\License\Entity\License;
+use idoit\Module\License\LicenseService;
+use idoit\Module\License\LicenseServiceFactory;
 use idoit\Module\Search\Index\Engine\Mysql;
 use idoit\Module\Search\Index\Manager;
 use idoit\Module\System\SettingPage\CustomizeObjectBrowser\CustomizeObjectBrowser;
-use Symfony\Component\Console\Output\BufferedOutput;
 
 /**
  * i-doit
@@ -92,71 +95,39 @@ class isys_module_system extends isys_module implements isys_module_interface, i
             if (is_array($_POST) && count($_POST) > 0) {
                 if (!empty($_FILES["licence_file"]["tmp_name"])) {
                     if (class_exists('isys_module_licence')) {
+                        global $g_license_token;
+
+                        $licenseService = LicenseServiceFactory::createDefaultLicenseService(isys_application::instance()->container->database_system, $g_license_token);
+
                         // Validate uploaded licence.
                         $l_licence = new isys_module_licence();
 
-                        // We define an option for the checking-process (Don't check the start-time, so that customers can update before their old licence expires).
-                        $l_licence_check_options = ['check_start_date' => false];
-
                         // We try to catch a certain exception.
                         try {
-                            $l_lic_parse = $l_licence->check_licence_file($_FILES["licence_file"]["tmp_name"], ($l_mandator_id > 0 ? $mandatorDatabase : null));
-                        } catch (isys_exception_licence $e) {
-                            // If the licence starting-date is in the future, we try to still install it correctly and give the user feedback.
-                            if ($e->get_errorcode() == LICENCE_ERROR_REG_DATE) {
-                                // We switch the check for the licence start-time off (third parameter array).
-                                $l_lic_parse = $l_licence->check_licence_file(
-                                    $_FILES["licence_file"]["tmp_name"],
-                                    ($l_mandator_id > 0 ? $mandatorDatabase : null),
-                                    $l_licence_check_options
-                                );
-                            } else {
-                                // If we get any other exception, we still throw it.
-                                throw $e;
-                            }
-                        }
-
-                        if (isset($_POST["licence_type"]) && $l_lic_parse[C__LICENCE__TYPE] != $_POST["licence_type"]) {
-                            throw new isys_exception_licence("Wrong licence type selected", LICENCE_ERROR_TYPE);
+                            $l_lic_parse = $licenseService->parseLicenseFile($_FILES["licence_file"]["tmp_name"]);
+                        } catch (\idoit\Module\License\Exception\LegacyLicenseExpiredException $e) {
+                            $template->assign("error", $language->get('LC__LICENCE__INSTALL__FAIL_EXPIRED'));
+                        } catch (\idoit\Module\License\Exception\LegacyLicenseInvalidKeyException $e) {
+                            $template->assign("error", $language->get('LC__LICENCE__INSTALL__FAIL'));
+                        } catch (\idoit\Module\License\Exception\LegacyLicenseInvalidTypeException $e) {
+                            $template->assign("error", $language->get('LC__LICENCE__INSTALL__FAIL'));
+                        } catch (\idoit\Module\License\Exception\LegacyLicenseParseException $e) {
+                            $template->assign("error", $language->get('LC__LICENCE__INSTALL__FAIL'));
                         }
 
                         if (is_array($l_lic_parse)) {
                             $template->assign("licence_info", $l_lic_parse);
 
-                            // Delete old licence, if there is one available.
-                            if ($l_mandator_id > 0) {
-                                $l_deleted_licences = $l_licence->delete_licence_by_mandator(isys_application::instance()->database_system, $l_mandator_id);
-                            } else {
-                                $l_deleted_licences = 0;
-                            }
+                            try {
+                                $licenseService->installLegacyLicense($l_lic_parse);
 
-                            // Finally install the licence.
-                            if ($l_licence->install(isys_application::instance()->database_system, $l_lic_parse, $l_mandator_id)) {
-                                if ($l_deleted_licences > 0) {
-                                    // Upgrade successfull.
-                                    if (time() < $l_lic_parse[4]) {
-                                        // But the licence was upgraded to early - So we tell the user.
-                                        $l_message = sprintf($language->get('LC__LICENCE__UPGRADE__SUCCESSFULL__TO_EARLY'), date('d.m.Y', $l_lic_parse[4]));
-                                    } else {
-                                        $l_message = $language->get('LC__LICENCE__UPGRADE__SUCCESSFULL');
-                                        unset($_SESSION["licenced"]);
-                                    }
-                                } else {
-                                    // Installation successfull.
-                                    if (time() < $l_lic_parse[4]) {
-                                        // But the licence was installed to early - So we tell the user.
-                                        $l_message = sprintf($language->get('LC__LICENCE__INSTALL__SUCCESSFULL__TO_EARLY'), date('d.m.Y', $l_lic_parse[4]));
-                                    } else {
-                                        isys_module_licence::session_licenced(true);
-
-                                        $l_message = $language->get('LC__LICENCE__INSTALL__SUCCESSFULL');
-                                    }
-                                }
-                                // Display the message to the user.
-                                $template->assign("note", $l_message);
-                            } else {
-                                // Failed to install licence.
+                                $template->assign("note", $language->get('LC__LICENCE__INSTALL__SUCCESSFULL'));
+                            } catch (\idoit\Module\License\Exception\LegacyLicenseInstallException $e) {
                                 $template->assign("error", $language->get('LC__LICENCE__INSTALL__FAIL'));
+                            } catch (\idoit\Module\License\Exception\LegacyLicenseExistingException $e) {
+                                $template->assign("error", $language->get('LC__LICENCE__INSTALL__FAIL_EXISTS'));
+                            } catch (\idoit\Module\License\Exception\LegacyLicenseExpiredException $e) {
+                                $template->assign("error", $language->get('LC__LICENCE__INSTALL__FAIL_EXPIRED'));
                             }
                         }
                     }
@@ -306,6 +277,7 @@ class isys_module_system extends isys_module implements isys_module_interface, i
 
     /**
      * Method for handling the licence overview.
+     *
      */
     public function handle_licence_overview()
     {
@@ -332,49 +304,93 @@ class isys_module_system extends isys_module implements isys_module_interface, i
             }
         }
 
-        $l_free_objects = 0;
+        global $g_license_token;
 
-        try {
-            // Installed licences.
-            $l_licences = $l_licence->get_installed_licences(isys_application::instance()->database_system, isys_application::instance()->session->get_mandator_id());
-            $template->assign("licences", $l_licences);
+        $licenseService = LicenseServiceFactory::createDefaultLicenseService(isys_application::instance()->database_system, $g_license_token);
 
-            if (count($l_licences) > 0) {
-                foreach ($l_licences as $l_lic) {
-                    $l_free_objects += $l_lic["objcount"];
-                    $l_licence->check_licence($l_lic["licence_data"], isys_application::instance()->database);
-                }
+        $l_exceeding["objects"] = $this->language->get("LC__UNIVERSAL__NO");
 
-                /*
-                 * If interpretation reaches this code, no licence exceeding was found,
-                 * i-doit is licenced and everything is fine!
-                 */
-                $l_exceeding["objects"] = $this->language->get("LC__UNIVERSAL__NO");
-                if ($l_free_objects == 0) {
-                    $l_free_objects = "Unlimited";
-                }
-            } else {
-                // No licence installed.
-                $l_exceeding["objects"] = $this->language->get("LC__UNIVERSAL__YES");
-                $l_exceeding["objects_class"] = "text-red text-bold";
-                $template->assign("error", $this->language->get("LC__LICENCE__NO_LICENCE"));
+        $earliestExpiringLicense = $licenseService->getEarliestExpiringLicense();
+
+        $requestedAt = null;
+        $expiresAt = null;
+        $remaining = null;
+
+        $now = Carbon::now();
+
+        if ($earliestExpiringLicense instanceof License) {
+            $requestedAt = $earliestExpiringLicense->getValidityFrom()->format(isys_locale::get_instance()->get_date_format());
+            $expiresAt = $earliestExpiringLicense->getValidityTo()->format(isys_locale::get_instance()->get_date_format());
+
+            $remaining = $earliestExpiringLicense->getValidityTo()->diff($now);
+        } elseif (isset($earliestExpiringLicense[LicenseService::C__LICENCE__REG_DATE])) {
+            if (
+                $earliestExpiringLicense[LicenseService::LEGACY_LICENSE_TYPE] === LicenseService::C__LICENCE_TYPE__BUYERS_LICENCE ||
+                $earliestExpiringLicense[LicenseService::LEGACY_LICENSE_TYPE] === LicenseService::C__LICENCE_TYPE__BUYERS_LICENCE_HOSTING
+            ) {
+                $registrationDate = Carbon::createFromTimestamp($earliestExpiringLicense[LicenseService::C__LICENCE__REG_DATE]);
+
+                $requestedAt = $registrationDate->format(isys_locale::get_instance()->get_date_format());
+
+                $expires = $registrationDate->copy()->modify("+99 years");
+
+                $expiresAt = $expires->format(isys_locale::get_instance()->get_date_format());
+
+                $remaining = $expires->diff($now);
             }
-        } catch (isys_exception_licence $e) {
 
-            // An Exception was thrown. Theres a licence exceeding.
-            $template->assign("error", $e->getMessage());
+            if (isset($earliestExpiringLicense[LicenseService::C__LICENCE__RUNTIME])) {
+                $days = (int) round(abs((($earliestExpiringLicense[LicenseService::C__LICENCE__RUNTIME] / 60 / 60 / 24))));
 
-            // Change status to unlicenced.
-            $l_exceeding["objects"] = $this->language->get("LC__UNIVERSAL__YES");
-            $l_exceeding["objects_class"] = "text-red text-bold";
+                $registrationDate = Carbon::createFromTimestamp($earliestExpiringLicense[LicenseService::C__LICENCE__REG_DATE]);
 
-            // Object count specific handling.
-            switch ($e->get_errorcode()) {
-                case LICENCE_ERROR_OBJECT_COUNT:
-                    ;
-                    break;
+                $requestedAt = $registrationDate->format(isys_locale::get_instance()->get_date_format());
+
+                $expires = $registrationDate->copy()->modify("+{$days} days");
+
+                $expiresAt = $expires->format(isys_locale::get_instance()->get_date_format());
+
+                $remaining = $expires->diff($now);
             }
         }
+
+        $expiresWithinSixMonths = Carbon::parse($expiresAt)
+            ->between(
+                $now,
+                $now->copy()->addMonths(6)
+            );
+
+        $remainingTimePercentage = 0;
+
+        if ($expiresWithinSixMonths) {
+            $remainingTimePercentage = 100 / $now->diffInDays($now->copy()->addMonths(6)) * $now->diffInDays(Carbon::parse($expiresAt));
+        }
+
+        $stringTimeLimit = $this->language->get('LC__WIDGET__EVAL__TIME_LIMIT', [
+            $requestedAt,
+            $expiresAt,
+            $remaining->y,
+            $remaining->m,
+            $remaining->d
+        ]);
+
+        if (!$licenseService->isTenantLicensed(isys_application::instance()->session->get_mandator_id())) {
+            $l_exceeding["objects"] = $this->language->get("LC__UNIVERSAL__YES");
+            $l_exceeding["objects_class"] = "text-red text-bold";
+            $template->assign("error", $this->language->get("LC__LICENCE__NO_LICENCE"));
+
+            $stringTimeLimit = $this->language->get('LC__WIDGET__EVAL__TIME_LIMIT_EXCEEDED', [
+                $requestedAt,
+                $expiresAt,
+                $remaining->y,
+                $remaining->m,
+                $remaining->d
+            ]);
+        }
+
+        $tenant = $licenseService->getTenants(true, [isys_application::instance()->session->get_mandator_id()]);
+
+        $l_free_objects = (int) $tenant[0]['isys_mandator__license_objects'];
 
         // Statistics.
         $l_mod_stat = new isys_module_statistics();
@@ -398,6 +414,11 @@ class isys_module_system extends isys_module implements isys_module_interface, i
             ->assign("stat_stats", $l_mod_stat_stats)
             ->assign("exceeding", $l_exceeding)
             ->include_template('contentbottomcontent', 'modules/system/licence_overview.tpl');
+
+        $template->assign("licensedAddOns", $licenseService->getLicensedAddOns());
+        $template->assign("stringTimeLimit", $stringTimeLimit);
+        $template->assign("expiresWithinSixMonths", $expiresWithinSixMonths);
+        $template->assign("remainingTimePercentage", $remainingTimePercentage);
     }
 
     public function handle_settings()
@@ -708,11 +729,12 @@ class isys_module_system extends isys_module implements isys_module_interface, i
     {
         $categoryStore = [];
         $cmdbDao = isys_application::instance()->container->get('cmdb_dao');
+        $language = isys_application::instance()->container->get('language');
 
         $categoryTypeAbbrTitles = [
-            'g' => isys_application::instance()->container->get('language')->get('LC__CMDB__GLOBAL_CATEGORIES'),
-            's' => isys_application::instance()->container->get('language')->get('LC__CMDB__SPECIFIC_CATEGORIES'),
-            'g_custom' => isys_application::instance()->container->get('language')->get('LC__CMDB__CUSTOM_CATEGORIES'),
+            'g'        => $language->get('LC__CMDB__GLOBAL_CATEGORIES'),
+            's'        => $language->get('LC__CMDB__SPECIFIC_CATEGORIES'),
+            'g_custom' => $language->get('LC__CMDB__CUSTOM_CATEGORIES'),
         ];
 
         foreach (['g', 's', 'g_custom'] as $categoryTypeAbbr) {
@@ -721,10 +743,13 @@ class isys_module_system extends isys_module implements isys_module_interface, i
             while ($categoryRow = $categoryResource->get_row()) {
                 $categoryStore[$categoryTypeAbbrTitles[$categoryTypeAbbr]][] = [
                     'value' => $categoryTypeAbbr . '.' . $categoryRow['isysgui_cat' . $categoryTypeAbbr . '__id'],
-                    'title' => isys_application::instance()->container->get('language')
-                        ->get($categoryRow['isysgui_cat' . $categoryTypeAbbr . '__title'])
+                    'title' => $language->get($categoryRow['isysgui_cat' . $categoryTypeAbbr . '__title'])
                 ];
             }
+
+            usort($categoryStore[$categoryTypeAbbrTitles[$categoryTypeAbbr]], function ($a, $b) {
+                return strnatcasecmp($a['title'], $b['title']);
+            });
         }
 
         return $categoryStore;
@@ -1019,13 +1044,10 @@ class isys_module_system extends isys_module implements isys_module_interface, i
         ];
 
         if (defined('C__MODULE__PRO') && class_exists('isys_module_licence')) {
-            $licences = new isys_module_licence();
-            $license = reset($licences->get_installed_licences(
-                isys_application::instance()->container->get('database_system'),
-                $session->get_mandator_id()
-            ));
+            global $g_license_token;
+            $licenseService = LicenseServiceFactory::createDefaultLicenseService(isys_application::instance()->container->get('database_system'), $g_license_token);
 
-            $objectCount = (isset($license['in_use']) ? $license['in_use'] : '');
+            $objectCount = $licenseService->getTenants(true, [$session->get_mandator_id()])[0]['isys_mandator__license_objects'];
         } else {
             $dao = new isys_statistics_dao($database, new isys_cmdb_dao($database));
             $objectCount = $dao->count_objects();
@@ -1329,8 +1351,9 @@ class isys_module_system extends isys_module implements isys_module_interface, i
             );
         }
 
-        // @see  ID-677
-        if (true) { // @todo  Implement rights: $l_system_auth->is_allowed_to(isys_auth::VIEW, 'GLOBALSETTINGS/CUSTOMPROPERTIES')
+        // @see  ID-6307 Adding auth check.
+        if (isys_module_cmdb::get_auth()->is_allowed_to(isys_auth::VIEW, 'object_browser_configuration')) {
+            // @see  ID-677 Customizable object browser.
             $p_tree->add_node(
                 ++$i,
                 $l_systemsettings_node,
@@ -1734,25 +1757,7 @@ class isys_module_system extends isys_module implements isys_module_interface, i
             if (defined('C__ENABLE__LICENCE') && C__ENABLE__LICENCE) {
                 // Display: Licence.
                 if ($l_licence_rights) {
-                    $l_lic = $p_tree->add_node(++$i, 0, $this->language->get('LC__UNIVERSAL__LICENCEADMINISTRATION'));
-
-                    // Licence -> Installation
-                    $p_tree->add_node(
-                        ++$i,
-                        $l_lic,
-                        $this->language->get('LC__UNIVERSAL__LICENE_INSTALLATION'),
-                        isys_helper_link::create_url([
-                        C__GET__MODULE_ID => C__MODULE__SYSTEM,
-                        C__GET__TREE_NODE => $i,
-                        'handle'          => 'licence_installation'
-                    ]),
-                        null,
-                        'images/icons/key.png',
-                        ($_GET['handle'] == 'licence_installation') ? 1 : 0,
-                        '',
-                        '',
-                        $l_system_auth->is_allowed_to(isys_auth::SUPERVISOR, 'LICENCESETTINGS/INSTALLATION')
-                    );
+                    $l_lic = $p_tree->add_node(++$i, 0, $this->language->get('LC__WIDGET__EVAL_OVERVIEW'));
 
                     // Licence -> Overview
                     $p_tree->add_node(
@@ -2132,7 +2137,7 @@ class isys_module_system extends isys_module implements isys_module_interface, i
             }
         }
 
-        echo 'Done!<hr class="mb5 mt5" />';
+        echo 'Done!';
     }
 
     /**
@@ -2276,8 +2281,6 @@ class isys_module_system extends isys_module implements isys_module_interface, i
         } else {
             echo 'No duplicate single value entries found.<br />';
         }
-
-        echo '<hr class="mt5 mb5" />';
     }
 
     /**
@@ -2311,8 +2314,6 @@ class isys_module_system extends isys_module implements isys_module_interface, i
         } else {
             echo $this->language->get('LC__SYSTEM__CLEANUP_UNASSIGNED_RELATION_OBJECTS__NO_OBJECTS_DELETED');
         }
-
-        echo '<hr class="mt5 mb5" />';
     }
 
     /**
@@ -2383,8 +2384,6 @@ class isys_module_system extends isys_module implements isys_module_interface, i
         } else {
             echo 'No empty SYS-IDs found.';
         }
-
-        echo '<hr class="mb5 mt5" />';
     }
 
     /**
@@ -2957,13 +2956,12 @@ class isys_module_system extends isys_module implements isys_module_interface, i
 
                     break;
 
-                case "db_location":
-                    $l_dao = new isys_cmdb_dao_location(isys_application::instance()->database);
-                    $l_dao->_location_fix();
+                case 'db_location':
+                    isys_cmdb_dao_location::instance(isys_application::instance()->container->get('database'))->_location_fix();
 
-                    echo $this->language->get("LC__SYSTEM__CALCULATE_LOCATIONS_DONE");
-                    echo '<hr class="mb5 mt5" />';
+                    echo $this->language->get('LC__SYSTEM__CACHE_DB__CALCULATE_LOCATIONS_DONE');
                     break;
+
                 case "db_relation":
                     $l_dao = isys_cmdb_dao_relation::instance(isys_application::instance()->database);
                     try {
@@ -2971,16 +2969,15 @@ class isys_module_system extends isys_module implements isys_module_interface, i
                         $l_dao->delete_dead_relations();
                         // Regenerate relation objects
                         $l_dao->regenerate_relations();
-                        echo $this->language->get("LC__SYSTEM__REGENERATE_RELATIONS_SUCCESS");
+                        echo $this->language->get("LC__SYSTEM__CACHE_DB__REGENERATE_RELATIONS_SUCCESS");
                     } catch (Exception $e) {
-                        echo $this->language->get("LC__SYSTEM__REGENERATE_RELATIONS_ERROR");
+                        echo $this->language->get("LC__SYSTEM__CACHE_DB__REGENERATE_RELATIONS_ERROR");
                     }
 
-                    echo '<hr class="mb5 mt5" />';
                     break;
+
                 case 'db_set_lists_to_wildcardfilter':
                 case 'db_set_lists_to_rowclick':
-
                     $l_sql = 'SELECT isys_obj_type_list__id, isys_obj_type_list__table_config, isys_obj__title, isys_obj_type__title
                         FROM isys_obj_type_list
                         INNER JOIN isys_obj ON isys_obj__id = isys_obj_type_list__isys_obj__id
@@ -2991,10 +2988,10 @@ class isys_module_system extends isys_module implements isys_module_interface, i
 
                     if ($_GET["do"] == 'db_set_lists_to_wildcardfilter') {
                         $l_method = 'setFilterWildcard';
-                        $l_lc_response = 'LC__SYSTEM_SET_ALL_LISTS_TO_WILDCARDFILTER_RESPONSE';
+                        $l_lc_response = 'LC__SYSTEM__CACHE_DB__SET_ALL_LISTS_TO_WILDCARDFILTER_RESPONSE';
                     } else {
                         $l_method = 'setRowClickable';
-                        $l_lc_response = 'LC__SYSTEM_SET_ALL_LISTS_TO_ROW_CLICK_RESPONSE';
+                        $l_lc_response = 'LC__SYSTEM__CACHE_DB__SET_ALL_LISTS_TO_ROW_CLICK_RESPONSE';
                     }
 
                     if ($counter) {
@@ -3006,7 +3003,7 @@ class isys_module_system extends isys_module implements isys_module_interface, i
 
                             if ($l_config === false || !is_object($l_config) || (is_object($l_config) && !is_a($l_config, '\idoit\Module\Cmdb\Model\Ci\Table\Config'))) {
                                 $counter--;
-                                echo $this->language->get('LC__SYSTEM_SET_ALL_LISTS_TO_ROW_CLICK_ERROR', [
+                                echo $this->language->get('LC__SYSTEM__CACHE_DB__SET_ALL_LISTS_TO_ROW_CLICK_ERROR', [
                                             $this->language->get($l_row['isys_obj_type__title']),
                                             $l_row['isys_obj__title']
                                         ]) . '<br />';
@@ -3023,7 +3020,6 @@ class isys_module_system extends isys_module implements isys_module_interface, i
                     }
 
                     echo $this->language->get($l_lc_response, $counter);
-                    echo '<hr class="mb5 mt5" />';
 
                     break;
 
@@ -3032,31 +3028,21 @@ class isys_module_system extends isys_module implements isys_module_interface, i
                     $l_result_array = $l_dao->rebuild_properties();
 
                     foreach ($l_result_array as $l_key => $l_value) {
-                        if ($l_key == 'missing_classes') {
+                        if ($l_key === 'missing_classes') {
                             continue;
                         }
 
-                        echo "<table class=\"listing\">" . "<thead>" . "<tr>" . "<th colspan='2'>" . strtoupper($l_key) . "</th>" . "</tr>" . "<tr>" .
-                            "<th width='50%'>Class</th><th>Property</th>" . "</tr>" . "</thead>" . "<tbody>";
-
                         foreach ($l_value as $l_class => $l_prop_values) {
-                            foreach ($l_prop_values as $l_property) {
-                                echo "<tr>" . "<td>" . $l_class . "</td>" . "<td>" . $l_property . "</td>" . "</tr>";
-                            }
+                            echo '<br /><strong>' . $l_class . '</strong> ' . $l_key . ' ' . count($l_prop_values) . ' properties';
                         }
 
-                        echo "</tbody></table>";
+                        echo '<br />';
                     }
 
-                    if (count($l_result_array['missing_classes']) > 0) {
-                        echo '<table class=\"listing\"><thead><tr><th>Missing classes</th></tr></thead><tbody>';
-                        foreach ($l_result_array['missing_classes'] as $l_value) {
-                            echo '<tr><td>' . $l_value . '</td></tr>';
-                        }
-                        echo '</tbody></table>';
+                    if (is_array($l_result_array['missing_classes']) && count($l_result_array['missing_classes'])) {
+                        echo '<br /><br /><strong>Missing classes</strong><br />' . implode('<br />', $l_result_array['missing_classes']);
                     }
 
-                    echo '<hr class="mb5 mt5" />';
                     break;
 
                 case 'db_cleanup_objects':
@@ -3073,14 +3059,15 @@ class isys_module_system extends isys_module implements isys_module_interface, i
                                 break;
 
                             case 'all':
-                                $l_count = $this->cleanup_objects(C__RECORD_STATUS__BIRTH) + $this->cleanup_objects(C__RECORD_STATUS__ARCHIVED) +
+                                $l_count = $this->cleanup_objects(C__RECORD_STATUS__BIRTH) +
+                                    $this->cleanup_objects(C__RECORD_STATUS__ARCHIVED) +
                                     $this->cleanup_objects(C__RECORD_STATUS__DELETED);
                         }
                     } catch (Exception $e) {
                         echo '<div class="error p5 m5">' . $e->getMessage() . '</div>';
                     }
 
-                    echo sprintf($this->language->get("LC__SYSTEM__REMOVE_OBJECTS_DONE"), $l_count);
+                    echo sprintf($this->language->get('LC__SYSTEM__CACHE_DB__REMOVE_OBJECTS_DONE'), $l_count);
 
                     echo '<hr class="mb5 mt5" />';
                     break;
@@ -3169,18 +3156,17 @@ class isys_module_system extends isys_module implements isys_module_interface, i
 
                 case 'cache_system':
                     global $g_dirs;
-                    $l_deleted = $l_undeleted = '';
+
+                    // Removing isys_cache values
+                    isys_cache::keyvalue()->flush();
+
+                    $l_deleted = $l_undeleted = 0;
+
+                    // Deleting contents of the temp directory.
                     isys_glob_delete_recursive($g_dirs["temp"], $l_deleted, $l_undeleted, (ENVIRONMENT === 'development'));
                     echo $this->language->get('LC__SETTINGS__SYSTEM__FLUSH_CACHE_MESSAGE', count($l_deleted) . ' System');
 
-                    /**
-                     * Removing isys_cache values
-                     */
-                    isys_cache::keyvalue()
-                        ->flush();
-
-                    isys_component_signalcollection::get_instance()
-                        ->emit('system.afterFlushSystemCache');
+                    isys_component_signalcollection::get_instance()->emit('system.afterFlushSystemCache');
 
                     break;
                 case 'cache_auth':
@@ -3190,21 +3176,23 @@ class isys_module_system extends isys_module implements isys_module_interface, i
                     echo $this->language->get('LC__SETTINGS__SYSTEM__FLUSH_CACHE_MESSAGE', count($affectedCacheFiles));
                     break;
                 case 'search_index':
-                    $searchEngine = new Mysql(isys_application::instance()->container->get('database'));
+                    try {
+                        $searchEngine = new Mysql(isys_application::instance()->container->get('database'));
 
-                    $collector = new CategoryCollector(isys_application::instance()->container->get('database'), [], []);
+                        $collector = new CategoryCollector(isys_application::instance()->container->get('database'), [], []);
 
-                    $dispatcher = isys_application::instance()->container->get('event_dispatcher');
+                        $dispatcher = isys_application::instance()->container->get('event_dispatcher');
 
-                    $output = new BufferedOutput();
+                        // @see  ID-6535  Don't output anything because it will take double the time.
+                        $manager = new Manager($searchEngine, $dispatcher);
+                        $manager->addCollector($collector, 'categoryCollector');
+                        $manager->clearIndex();
+                        $manager->generateIndex();
 
-                    $manager = new Manager($searchEngine, $dispatcher);
-                    $manager->addCollector($collector, 'categoryCollector');
-                    $manager->setOutput($output);
-                    $manager->clearIndex();
-                    $manager->generateIndex();
-
-                    echo nl2br($output->fetch());
+                        echo 'Search index was created!';
+                    } catch (Exception $e) {
+                        echo 'An error occured: ' . $e->getMessage();
+                    }
                     break;
             }
 
@@ -3213,7 +3201,7 @@ class isys_module_system extends isys_module implements isys_module_interface, i
 
         $g_windows = false;
 
-        if (strtoupper(substr(PHP_OS, 0, 3)) == "WIN") {
+        if (strncasecmp(PHP_OS, 'WIN', 3) === 0) {
             $g_windows = true;
         }
 
@@ -3260,82 +3248,80 @@ class isys_module_system extends isys_module implements isys_module_interface, i
                 'css'     => 'mb15'
             ],
             'LC__SETTINGS__SYSTEM__FLUSH_SYS_CACHE'  => [
-                'onclick' => "window.flush_database('cache_system');"
+                'onclick' => "window.flush_database('cache_system', '', this);",
+                'css'     => 'cache-button'
             ],
             'LC__SETTINGS__SYSTEM__FLUSH_TPL_CACHE'  => [
-                'onclick' => "window.flush_cache('IDOIT_DELETE_TEMPLATES_C');"
+                'onclick' => "window.flush_cache('IDOIT_DELETE_TEMPLATES_C', this);",
+                'css'     => 'cache-button'
             ],
             'LC__SETTINGS__SYSTEM__FLUSH_AUTH_CACHE' => [
-                'onclick' => "window.flush_database('cache_auth');"
+                'onclick' => "window.flush_database('cache_auth', '', this);",
+                'css'     => 'cache-button'
             ]
         ];
 
         if (defined('C__MODULE__PRO')) {
             $l_cache_buttons['LC__SETTINGS__CMDB__VALIDATION__CACHE_REFRESH'] = [
-                'onclick' => "window.flush_validation_cache();"
+                'onclick' => 'window.flush_validation_cache(this);',
+                'css'     => 'cache-button'
             ];
         }
 
         // Database buttons.
         $l_database_buttons = [
-            'LC__SYSTEM__TABLE_EVERY_ACTION'                     => [
-                'onclick' => 'window.flush_database(true);',
-                'style'   => 'background-color:#eee;',
-                'css'     => 'mb15'
+            'LC__SYSTEM__CACHE_DB__TABLE_OPTIMIZATION'                     => [
+                'onclick' => "window.flush_database('db_optimize', '" . $this->language->get('LC__SYSTEM__CACHE_DB__TABLE_OPTIMIZATION_CONFIRMATION') . "', this);"
             ],
-            'LC__SYSTEM__TABLE_OPTIMIZATION'                     => [
-                'onclick' => "window.flush_database('db_optimize');"
+            'LC__SYSTEM__CACHE_DB__TABLE_DEFRAG'                           => [
+                'onclick' => "window.flush_database('db_defrag', '" . $this->language->get('LC__SYSTEM__CACHE_DB__TABLE_DEFRAG_CONFIRMATION') . "', this);"
             ],
-            'LC__SYSTEM__TABLE_DEFRAG'                           => [
-                'onclick' => "window.flush_database('db_defrag');"
+            'LC__SYSTEM__CACHE_DB__CALCULATE_LOCATIONS'                    => [
+                'onclick' => "window.flush_database('db_location', '" . $this->language->get('LC__SYSTEM__CACHE_DB__CALCULATE_LOCATIONS_CONFIRMATION') . "', this);"
             ],
-            'LC__SYSTEM__CALCULATE_LOCATIONS'                    => [
-                'onclick' => "window.flush_database('db_location');"
+            'LC__SYSTEM__CACHE_DB__CLEANUP_CATEGORY_ASSIGNMENTS'           => [
+                'onclick' => "window.flush_database('db_cleanup_cat_assignments', '" . $this->language->get('LC__SYSTEM__CACHE_DB__CLEANUP_CATEGORY_ASSIGNMENTSCONFIRMATION') . "', this);"
             ],
-            'LC__SYSTEM__CLEANUP_CATEGORY_ASSIGNMENTS'           => [
-                'onclick' => "window.flush_database('db_cleanup_cat_assignments');"
+            'LC__SYSTEM__CACHE_DB__RENEW_PROPERTIES'                       => [
+                'onclick' => "window.flush_database('db_properties', '" . $this->language->get('LC__SYSTEM__CACHE_DB__RENEW_PROPERTIES_CONFIRMATION') . "', this);"
             ],
-            'LC__SYSTEM__RENEW_PROPERTIES'                       => [
-                'onclick' => "window.flush_database('db_properties');"
+            'LC__SYSTEM__CACHE_DB__CLEANUP_DUPLICATE_SINGLE_VALUE_ENTRIES' => [
+                'onclick' => "window.flush_database('db_cleanup_duplicate_sv_entries', '" . $this->language->get('LC__SYSTEM__CACHE_DB__CLEANUP_DUPLICATE_SINGLE_VALUE_ENTRIES_CONFIRMATION') . "', this);"
             ],
-            'LC__SYSTEM__CLEANUP_DUPLICATE_SINGLE_VALUE_ENTRIES' => [
-                'onclick' => "window.flush_database('db_cleanup_duplicate_sv_entries');"
+            'LC__SYSTEM__CACHE_DB__CLEANUP_UNASSIGNED_RELATIONS'           => [
+                'onclick' => "window.flush_database('db_cleanup_unassigned_relations', '" . $this->language->get('LC__SYSTEM__CACHE_DB__CLEANUP_UNASSIGNED_RELATIONS_CONFIRMATION') . "', this);"
             ],
-            'LC__SYSTEM__CLEANUP_UNASSIGNED_RELATION_OBJECTS'    => [
-                'onclick' => "window.flush_database('db_cleanup_unassigned_relations');"
+            'LC__SYSTEM__CACHE_DB__RENEW_RELATION_TITLES'                  => [
+                'onclick' => "window.flush_database('db_renew_relation_titles', '" . $this->language->get('LC__SYSTEM__CACHE_DB__RENEW_RELATION_TITLES_CONFIRMATION') . "', this)"
             ],
-            'LC__SYSTEM__RENEW_RELATION_TITLES'                  => [
-                'onclick' => "window.flush_database('db_renew_relation_titles')"
+            'LC__SYSTEM__CACHE_DB__REFILL_EMPTY_SYSIDS'                    => [
+                'onclick' => "window.flush_database('db_refill_empty_sysids', '" . $this->language->get('LC__SYSTEM__CACHE_DB__REFILL_EMPTY_SYSIDS_CONFIRMATION') . "', this)"
             ],
-            'LC__SYSTEM__REFILL_EMPTY_SYSIDS'                    => [
-                'onclick' => "window.flush_database('db_refill_empty_sysids')"
+            'LC__SYSTEM__CACHE_DB__RESET_RELATION_PRIORITIES'              => [
+                'onclick' => "window.flush_database('db_set_default_relation_priorities', '" . $this->language->get('LC__SYSTEM__CACHE_DB__RESET_RELATION_PRIORITIES_CONFIRMATION') . "', this)"
             ],
-            'LC__SYSTEM__RESET_RELATION_PRIORITIES'              => [
-                'onclick' => "window.flush_database('db_set_default_relation_priorities')"
+            'LC__SYSTEM__CACHE_DB__REGENERATE_RELATIONS'                   => [
+                'onclick' => "window.flush_database('db_relation', '" . $this->language->get('LC__SYSTEM__CACHE_DB__REGENERATE_RELATIONS_CONFIRMATION') . "', this)"
             ],
-            'LC__SYSTEM__REGENERATE_RELATIONS'                   => [
-                'onclick' => "if(confirm('" . $this->language->get("LC__SYSTEM__REGENERATE_RELATIONS_CONFIRMATION") . "')){window.flush_database('db_relation');}"
+            'LC__SYSTEM__CACHE_DB__SET_ALL_LISTS_TO_ROW_CLICK'             => [
+                'onclick' => "window.flush_database('db_set_lists_to_rowclick', '" . $this->language->get('LC__SYSTEM__CACHE_DB__SET_ALL_LISTS_TO_ROW_CLICK_CONFIRMATION') . "', this)"
             ],
-            'LC__SYSTEM_SET_ALL_LISTS_TO_ROW_CLICK'              => [
-                'onclick' => "if(confirm('" . $this->language->get("LC__SYSTEM_SET_ALL_LISTS_TO_ROW_CLICK_CONFIRMATION") . "')){window.flush_database('db_set_lists_to_rowclick');}"
+            'LC__SYSTEM__CACHE_DB__SET_ALL_LISTS_TO_WILDCARDFILTER'        => [
+                'onclick' => "window.flush_database('db_set_lists_to_wildcardfilter', '" . $this->language->get('LC__SYSTEM__CACHE_DB__SET_ALL_LISTS_TO_WILDCARDFILTER_CONFIRMATION') . "', this)"
             ],
-            'LC__SYSTEM_SET_ALL_LISTS_TO_WILDCARDFILTER'         => [
-                'onclick' => "if(confirm('" . $this->language->get("LC__SYSTEM_SET_ALL_LISTS_TO_WILDCARDFILTER_CONFIRMATION") . "')){window.flush_database('db_set_lists_to_wildcardfilter');}"
-            ]
         ];
 
-        $l_dao = isys_cmdb_dao::factory(isys_application::instance()->database);
+        $l_dao = isys_cmdb_dao::factory(isys_application::instance()->container->get('database'));
 
-        $l_born = $l_dao->retrieve('SELECT COUNT(*) AS count FROM isys_obj WHERE isys_obj__status = ' . $l_dao->convert_sql_int(C__RECORD_STATUS__BIRTH) .
-            ' AND isys_obj__undeletable = 0;')
+        $l_born = $l_dao
+            ->retrieve('SELECT COUNT(*) AS count FROM isys_obj WHERE isys_obj__status = ' . $l_dao->convert_sql_int(C__RECORD_STATUS__BIRTH) . ' AND isys_obj__undeletable = 0;')
             ->get_row();
-        $l_archived = $l_dao->retrieve('SELECT COUNT(*) AS count FROM isys_obj WHERE isys_obj__status = ' . $l_dao->convert_sql_int(C__RECORD_STATUS__ARCHIVED) .
-            ' AND isys_obj__undeletable = 0;')
+        $l_archived = $l_dao
+            ->retrieve('SELECT COUNT(*) AS count FROM isys_obj WHERE isys_obj__status = ' . $l_dao->convert_sql_int(C__RECORD_STATUS__ARCHIVED) . ' AND isys_obj__undeletable = 0;')
             ->get_row();
-        $l_deleted = $l_dao->retrieve('SELECT COUNT(*) AS count FROM isys_obj WHERE isys_obj__status = ' . $l_dao->convert_sql_int(C__RECORD_STATUS__DELETED) .
-            ' AND isys_obj__undeletable = 0;')
+        $l_deleted = $l_dao
+            ->retrieve('SELECT COUNT(*) AS count FROM isys_obj WHERE isys_obj__status = ' . $l_dao->convert_sql_int(C__RECORD_STATUS__DELETED) . ' AND isys_obj__undeletable = 0;')
             ->get_row();
-        $l_all = $l_born['count'] + $l_archived['count'] + $l_deleted['count'];
 
         // The aliases are used to display translated headings.
         $l_query = 'SELECT isys_obj__id AS \'ID\', isys_obj_type__title AS \'LC__REPORT__FORM__OBJECT_TYPE###1\', isys_obj__title AS \'LC__UNIVERSAL__TITLE###1\', ' .
@@ -3344,25 +3330,20 @@ class isys_module_system extends isys_module implements isys_module_interface, i
             'INNER JOIN isys_obj_type ON isys_obj_type__id = isys_obj__isys_obj_type__id ' . 'WHERE isys_obj__undeletable = 0 AND isys_obj__status = ';
 
         $l_object_buttons = [
-            'LC__SYSTEM__TABLE_EVERY_ACTION'      => [
-                'onclick' => "window.flush_objects('all', '" . isys_glob_htmlentities($this->language->get('LC__SYSTEM__REMOVE_OBJECTS__BIRTH_ARCHIVED_DELETED', $l_all)) . "');",
-                'style'   => 'background-color:#eee;',
-                'css'     => 'btn-block mb15'
-            ],
-            'LC__SYSTEM__REMOVE_BIRTH_OBJECTS'    => [
-                'onclick' => "window.flush_objects(" . C__RECORD_STATUS__BIRTH . ", '" . isys_glob_htmlentities($this->language->get('LC__SYSTEM__REMOVE_OBJECTS__BIRTH', $l_born['count'])) . "');",
+            'LC__SYSTEM__CACHE_DB__REMOVE_OBJECTS_BIRTH'    => [
+                'onclick' => "window.flush_objects(" . C__RECORD_STATUS__BIRTH . ", '" . isys_glob_htmlentities($this->language->get('LC__SYSTEM__CACHE_DB__REMOVE_OBJECTS_BIRTH_CONFIRMATION', $l_born['count'])) . "', this);",
                 'query'   => $l_query . $l_dao->convert_sql_int(C__RECORD_STATUS__BIRTH) . ';',
                 'css'     => 'fl mr5',
                 'style'   => 'width:90%;'
             ],
-            'LC__SYSTEM__REMOVE_ARCHIVED_OBJECTS' => [
-                'onclick' => "window.flush_objects(" . C__RECORD_STATUS__ARCHIVED . ", '" . isys_glob_htmlentities($this->language->get('LC__SYSTEM__REMOVE_OBJECTS__ARCHIVED', $l_archived['count'])) . "');",
+            'LC__SYSTEM__CACHE_DB__REMOVE_OBJECTS_ARCHIVED' => [
+                'onclick' => "window.flush_objects(" . C__RECORD_STATUS__ARCHIVED . ", '" . isys_glob_htmlentities($this->language->get('LC__SYSTEM__CACHE_DB__REMOVE_OBJECTS_ARCHIVED_CONFIRMATION', $l_archived['count'])) . "', this);",
                 'query'   => $l_query . $l_dao->convert_sql_int(C__RECORD_STATUS__ARCHIVED) . ';',
                 'css'     => 'fl mr5',
                 'style'   => 'width:90%;'
             ],
-            'LC__SYSTEM__REMOVE_DELETED_OBJECTS'  => [
-                'onclick' => "window.flush_objects(" . C__RECORD_STATUS__DELETED . ", '" . isys_glob_htmlentities($this->language->get('LC__SYSTEM__REMOVE_OBJECTS__DELETED', $l_deleted['count'])) . "');",
+            'LC__SYSTEM__CACHE_DB__REMOVE_OBJECTS_DELETED'  => [
+                'onclick' => "window.flush_objects(" . C__RECORD_STATUS__DELETED . ", '" . isys_glob_htmlentities($this->language->get('LC__SYSTEM__CACHE_DB__REMOVE_OBJECTS_DELETED_CONFIRMATION', $l_deleted['count'])) . "', this);",
                 'query'   => $l_query . $l_dao->convert_sql_int(C__RECORD_STATUS__DELETED) . ';',
                 'css'     => 'fl mr5',
                 'style'   => 'width:90%;'
@@ -3370,47 +3351,49 @@ class isys_module_system extends isys_module implements isys_module_interface, i
         ];
 
         if (!defined('C__MODULE__PRO')) {
-            unset($l_object_buttons['LC__SYSTEM__REMOVE_BIRTH_OBJECTS']['query'], $l_object_buttons['LC__SYSTEM__REMOVE_ARCHIVED_OBJECTS']['query'], $l_object_buttons['LC__SYSTEM__REMOVE_DELETED_OBJECTS']['query'], $l_object_buttons['LC__SYSTEM__REMOVE_BIRTH_OBJECTS']['style'], $l_object_buttons['LC__SYSTEM__REMOVE_ARCHIVED_OBJECTS']['style'], $l_object_buttons['LC__SYSTEM__REMOVE_DELETED_OBJECTS']['style']);
+            unset(
+                $l_object_buttons['LC__SYSTEM__CACHE_DB__REMOVE_OBJECTS_BIRTH']['query'],
+                $l_object_buttons['LC__SYSTEM__CACHE_DB__REMOVE_OBJECTS_BIRTH']['style'],
+                $l_object_buttons['LC__SYSTEM__CACHE_DB__REMOVE_OBJECTS_ARCHIVED']['query'],
+                $l_object_buttons['LC__SYSTEM__CACHE_DB__REMOVE_OBJECTS_ARCHIVED']['style'],
+                $l_object_buttons['LC__SYSTEM__CACHE_DB__REMOVE_OBJECTS_DELETED']['query'],
+                $l_object_buttons['LC__SYSTEM__CACHE_DB__REMOVE_OBJECTS_DELETED']['style']
+            );
 
-            $l_object_buttons['LC__SYSTEM__REMOVE_BIRTH_OBJECTS']['css'] = 'btn-block';
-            $l_object_buttons['LC__SYSTEM__REMOVE_ARCHIVED_OBJECTS']['css'] = 'btn-block';
-            $l_object_buttons['LC__SYSTEM__REMOVE_DELETED_OBJECTS']['css'] = 'btn-block';
+            $l_object_buttons['LC__SYSTEM__CACHE_DB__REMOVE_OBJECTS_BIRTH']['css'] = 'btn-block';
+            $l_object_buttons['LC__SYSTEM__CACHE_DB__REMOVE_OBJECTS_ARCHIVED']['css'] = 'btn-block';
+            $l_object_buttons['LC__SYSTEM__CACHE_DB__REMOVE_OBJECTS_DELETED']['css'] = 'btn-block';
         }
 
         $l_category_buttons = [
-            'LC__SYSTEM__TABLE_EVERY_ACTION'         => [
-                'onclick' => "window.flush_categories('all', '" . isys_glob_htmlentities($this->language->get('LC__SYSTEM__REMOVE_CATEGORIES__BIRTH_ARCHIVED_DELETED')) . "');",
-                'style'   => 'background-color:#eee;',
-                'css'     => 'mb15'
+            'LC__SYSTEM__CACHE_DB__REMOVE_CATEGORIES_BIRTH'    => [
+                'onclick' => "window.flush_categories(" . C__RECORD_STATUS__BIRTH . ", '" . isys_glob_htmlentities($this->language->get('LC__SYSTEM__CACHE_DB__REMOVE_CATEGORIES_BIRTH_CONFIRMATION')) . "', this);",
             ],
-            'LC__SYSTEM__REMOVE_BIRTH_CATEGORIES'    => [
-                'onclick' => "window.flush_categories(" . C__RECORD_STATUS__BIRTH . ", '" . isys_glob_htmlentities($this->language->get('LC__SYSTEM__REMOVE_CATEGORIES__BIRTH')) . "');",
+            'LC__SYSTEM__CACHE_DB__REMOVE_CATEGORIES_ARCHIVED' => [
+                'onclick' => "window.flush_categories(" . C__RECORD_STATUS__ARCHIVED . ", '" . isys_glob_htmlentities($this->language->get('LC__SYSTEM__CACHE_DB__REMOVE_CATEGORIES_ARCHIVED_CONFIRMATION')) . "', this);",
             ],
-            'LC__SYSTEM__REMOVE_ARCHIVED_CATEGORIES' => [
-                'onclick' => "window.flush_categories(" . C__RECORD_STATUS__ARCHIVED . ", '" . isys_glob_htmlentities($this->language->get('LC__SYSTEM__REMOVE_CATEGORIES__ARCHIVED')) . "');",
-            ],
-            'LC__SYSTEM__REMOVE_DELETED_CATEGORIES'  => [
-                'onclick' => "window.flush_categories(" . C__RECORD_STATUS__DELETED . ", '" . isys_glob_htmlentities($this->language->get('LC__SYSTEM__REMOVE_CATEGORIES__DELETED')) . "');",
+            'LC__SYSTEM__CACHE_DB__REMOVE_CATEGORIES_DELETED'  => [
+                'onclick' => "window.flush_categories(" . C__RECORD_STATUS__DELETED . ", '" . isys_glob_htmlentities($this->language->get('LC__SYSTEM__CACHE_DB__REMOVE_CATEGORIES_DELETED_CONFIRMATION')) . "', this);",
             ]
         ];
 
-        $l_other_buttons = [];
+        $l_other_buttons = [
+            'LC__MODULE__SEARCH__START_INDEXING'         => [
+                'onclick' => 'window.search_index(this);'
+            ]
+        ];
 
         if (isys_module_manager::instance()->is_active('check_mk')) {
-            $l_other_buttons['LC__SYSTEM__TRUNCATE_EXPORTED_CHECK_MK_TAGS'] = [
-                'onclick' => "window.flush_other('check_mk_exported_tags', '" . isys_glob_htmlentities($this->language->get('LC__SYSTEM__TRUNCATE_EXPORTED_CHECK_MK_TAGS_CONFIRM')) . "');"
+            $l_other_buttons['LC__SYSTEM__CACHE_DB__TRUNCATE_EXPORTED_CHECK_MK_TAGS'] = [
+                'onclick' => "window.flush_other('check_mk_exported_tags', '" . isys_glob_htmlentities($this->language->get('LC__SYSTEM__CACHE_DB__TRUNCATE_EXPORTED_CHECK_MK_TAGS_CONFIRM')) . "', this);"
             ];
         }
 
         if (isys_module_manager::instance()->is_active('custom_fields')) {
-            $l_other_buttons['LC__SYSTEM__TRUNCATE_ORPHANED_CUSTOM_CATEGORY_DATA'] = [
-                'onclick' => "window.flush_other('removeOrphanedCustomCategoryData', '" . isys_glob_htmlentities($this->language->get('LC__SYSTEM__TRUNCATE_ORPHANED_CUSTOM_CATEGORY_DATA_CONFIRM')) . "');"
+            $l_other_buttons['LC__SYSTEM__CACHE_DB__TRUNCATE_ORPHANED_CUSTOM_CATEGORY_DATA'] = [
+                'onclick' => "window.flush_other('removeOrphanedCustomCategoryData', '" . isys_glob_htmlentities($this->language->get('LC__SYSTEM__CACHE_DB__TRUNCATE_ORPHANED_CUSTOM_CATEGORY_DATA_CONFIRM')) . "', this);"
             ];
         }
-
-        $l_other_buttons['LC__MODULE__SEARCH__START_INDEXING'] = [
-            'onclick' => 'window.search_index();'
-        ];
 
         $this->m_userrequest->get_template()
             ->assign('report_sql_path', isys_application::instance()->app_path . '/src/classes/modules/report/templates/report.js')

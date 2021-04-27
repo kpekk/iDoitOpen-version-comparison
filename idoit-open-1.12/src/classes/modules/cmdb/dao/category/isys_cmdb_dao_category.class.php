@@ -16,6 +16,11 @@ abstract class isys_cmdb_dao_category extends isys_cmdb_dao
     const C__SAVE = 2;
 
     /**
+     * Will be used to limit the display of how many other objects contain the same data (in context of validation).
+     */
+    const UNIQUE_VALIDATION_OBJECT_COUNT = 10;
+
+    /**
      * Category type for view only categories; used in isysgui_catx__type
      *
      * @var integer
@@ -1439,9 +1444,9 @@ abstract class isys_cmdb_dao_category extends isys_cmdb_dao
                             $l_objects = array_unique($l_objects);
 
                             if ($l_object_count = count($l_objects)) {
-                                if ($l_object_count > 10) {
-                                    $l_objects = array_slice($l_objects, 0, 10);
-                                    $l_objects[] = $language->get('LC__SETTINGS__CMDB__VALIDATION_MESSAGE__UNIQUE_AND_MORE', ($l_object_count - 10));
+                                if ($l_object_count > self::UNIQUE_VALIDATION_OBJECT_COUNT) {
+                                    $l_objects = array_slice($l_objects, 0, self::UNIQUE_VALIDATION_OBJECT_COUNT);
+                                    $l_objects[] = $language->get('LC__SETTINGS__CMDB__VALIDATION_MESSAGE__UNIQUE_AND_MORE', ($l_object_count - self::UNIQUE_VALIDATION_OBJECT_COUNT));
                                 }
 
                                 $l_result[$l_key] = $language->get($l_message) . '<ul class="m0 mt10 list-style-none"><li>' . implode('</li><li>', $l_objects) . '</li></ul>';
@@ -2479,7 +2484,7 @@ abstract class isys_cmdb_dao_category extends isys_cmdb_dao
 
         // @see ID-2736
         if (!empty($this->m_source_table)) {
-            if (strpos($this->m_source_table, '_list') !== false || strpos($this->m_source_table, '_2_') !== false) {
+            if (substr($this->m_source_table, -5) === '_list' || strpos($this->m_source_table, '_2_') !== false) {
                 $table = $this->m_source_table;
             } else {
                 $table = $this->m_source_table . '_list';
@@ -2643,11 +2648,11 @@ abstract class isys_cmdb_dao_category extends isys_cmdb_dao
 
                 if (isset($l_prop[C__PROPERTY__UI][C__PROPERTY__UI__ID]) && array_key_exists($l_prop[C__PROPERTY__UI][C__PROPERTY__UI__ID], $_POST)) {
                     // @see  ID-5379  Skip empty values with no default.
-                    if (is_scalar($_POST[$l_prop[C__PROPERTY__UI][C__PROPERTY__UI__ID]]) && isys_strlen($_POST[$l_prop[C__PROPERTY__UI][C__PROPERTY__UI__ID]]) === 0) {
+                    if (is_scalar($_POST[$l_prop[C__PROPERTY__UI][C__PROPERTY__UI__ID]]) && mb_strlen($_POST[$l_prop[C__PROPERTY__UI][C__PROPERTY__UI__ID]]) === 0) {
                         continue;
                     }
 
-                    if (is_scalar($_POST[$l_prop[C__PROPERTY__UI][C__PROPERTY__UI__DEFAULT]]) && isys_strlen($l_prop[C__PROPERTY__UI][C__PROPERTY__UI__DEFAULT]) === 0) {
+                    if (is_scalar($_POST[$l_prop[C__PROPERTY__UI][C__PROPERTY__UI__DEFAULT]]) && mb_strlen($l_prop[C__PROPERTY__UI][C__PROPERTY__UI__DEFAULT]) === 0) {
                         continue;
                     }
 
@@ -3156,7 +3161,7 @@ abstract class isys_cmdb_dao_category extends isys_cmdb_dao
                         unset($l_dao_ref);
 
                         if ($l_contact_id === false) {
-                            $l_data[$l_key] = null;
+                            $l_data[$l_key] = '';
                         } else {
                             $l_data[$l_key] = intval($l_contact_id);
                         }
@@ -3269,11 +3274,11 @@ abstract class isys_cmdb_dao_category extends isys_cmdb_dao
             $needsConversion = true;
 
             // @see  ID-5378  Do not use conversion, if the defaults are explicitly set to NULL or "".
-            if (isys_strlen($p_data[$l_key]) === 0) {
+            if (mb_strlen($p_data[$l_key]) === 0) {
                 if ($l_value[C__PROPERTY__UI][C__PROPERTY__UI__DEFAULT] === null) {
                     $needsConversion = false;
                     $p_data[$l_key] = 'NULL';
-                } elseif (isys_strlen($l_value[C__PROPERTY__UI][C__PROPERTY__UI__DEFAULT]) === 0) {
+                } elseif (mb_strlen($l_value[C__PROPERTY__UI][C__PROPERTY__UI__DEFAULT]) === 0) {
                     $needsConversion = false;
                     $p_data[$l_key] = "''";
                 }
@@ -3629,5 +3634,17 @@ abstract class isys_cmdb_dao_category extends isys_cmdb_dao
         }
 
         return isys_tenantsettings::get('gui.empty_value', '-');
+    }
+
+    /**
+     * Check whether category is called for an object in birth
+     *
+     * @return bool
+     */
+    public function isCreationInOverview()
+    {
+        return  isys_glob_get_param(C__CMDB__GET__CATLEVEL) == 0 &&
+                isys_glob_get_param(C__CMDB__GET__CATG) == defined_or_default('C__CATG__OVERVIEW') &&
+                isys_glob_get_param(C__GET__NAVMODE) == C__NAVMODE__SAVE;
     }
 }

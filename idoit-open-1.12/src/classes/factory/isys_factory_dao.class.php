@@ -1,33 +1,41 @@
 <?php
 
+/**
+ * i-doit
+ *
+ * Class DAO factory
+ *
+ * @deprecated  Please use the DAO instance method!
+ * @package     i-doit
+ * @subpackage  Factory
+ * @copyright   synetics GmbH
+ * @license     http://www.gnu.org/licenses/agpl-3.0.html GNU AGPLv3
+ */
 class isys_factory_dao
 {
     /**
-     * Contains self representations of factorized classes.
-     *
-     * @var  array  Associative array of instances
+     * @var array
      */
     protected static $m_instances = [];
 
     /**
-     * Gets an instance of a DAO.
+     * @param  string                  $className
+     * @param  isys_component_database $database
      *
-     * @param   string                  $p_class
-     * @param   isys_component_database $p_db
-     *
-     * @return isys_cmdb_dao
+     * @deprecated
+     * @return mixed
      * @throws isys_exception_general
      */
-    public static function get_instance($p_class, isys_component_database $p_db)
+    public static function get_instance($className, isys_component_database $database)
     {
-        if (!$p_class) {
+        if (!$className) {
             throw new isys_exception_general('Instance class is not set in ' . __FILE__ . ':' . __LINE__);
         }
 
-        if (!isset(self::$m_instances[$p_class])) {
-            self::$m_instances[$p_class] = new $p_class($p_db);
+        if (!isset(self::$m_instances[$className])) {
+            self::$m_instances[$className] = new $className($database);
         }
 
-        return self::$m_instances[$p_class];
+        return self::$m_instances[$className];
     }
 }

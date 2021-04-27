@@ -6,7 +6,10 @@
  * @copyright  synetics GmbH
  * @license    http://www.gnu.org/licenses/agpl-3.0.html GNU AGPLv3
  */
-global $g_comp_database, $g_config, $g_absdir, $g_comp_database_system, $g_product_info, $l_dao_mandator;
+
+use idoit\Module\License\LicenseServiceFactory;
+
+global $g_comp_database, $g_license_token, $g_config, $g_absdir, $g_comp_database_system, $g_product_info, $l_dao_mandator, $g_disable_addon_upload;
 
 try {
     $l_template = isys_component_template::instance();
@@ -40,6 +43,10 @@ try {
 
         case 'add':
             try {
+                if ($g_disable_addon_upload == 1) {
+                    throw new \Exception('Error: You disabled uploading of Add-ons in your src/config.inc.php');
+                }
+
                 if (!isset($_POST['mandator'])) {
                     throw new Exception('Error: Select a module');
                 }
@@ -216,6 +223,9 @@ try {
     $l_directory = $g_absdir . '/src/classes/modules/';
     $l_modules = [];
     $i = 0;
+
+    $licenseService = LicenseServiceFactory::createDefaultLicenseService($g_comp_database_system, $g_license_token);
+
     while ($l_tenant = $l_tenants->get_row()) {
         $mandatorDatabase = connect_mandator($l_tenant['isys_mandator__id']);
 
@@ -226,31 +236,17 @@ try {
             'id'       => $l_tenant['isys_mandator__id'],
             'title'    => $l_tenant['isys_mandator__title'],
             'active'   => $l_tenant['isys_mandator__active'],
-            'licenced' => (bool) $l_tenant['isys_licence__id'],
+            'licenced' => false,
             'expires'  => $l_tenant['isys_licence__expires'],
             'host'     => $l_tenant['isys_mandator__db_host'],
             'db'       => $l_tenant['isys_mandator__db_name']
         ];
-
-        $l_licence_serialized_info = utf8_decode($l_tenant['isys_licence__data']);
-        $l_licence_info = unserialize($l_licence_serialized_info);
-
-        if (!$l_licence_info) {
-            $l_licence_info = unserialize($l_tenant['isys_licence__data']);
-        }
-
-        if (isset($l_licence_info[9]) && is_array($l_licence_info[9])) {
-            $l_module_licence = array_map('utf8_encode', $l_licence_info[9]);
-        } else {
-            $l_module_licence = [];
-        }
 
         while (($l_file = readdir($l_dirhandle)) !== false) {
             if (is_dir($l_directory . $l_file) && strpos($l_file, '.') !== 0 && !isOpenModuleIdentifier($l_file)) {
                 if (file_exists($l_directory . $l_file . '/package.json')) {
                     $l_package = json_decode(file_get_contents($l_directory . $l_file . '/package.json'), true);
                     $l_module_id = $l_module_manager->is_installed($l_package['identifier']);
-                    $l_package['licenced'] = $l_licence_info ? true : false;
 
                     // Pro module is always active since it does not need any database entries
                     if (isProModuleIdentifier($l_file)) {
@@ -272,14 +268,6 @@ try {
                         $l_package['update'] = ($l_package['type'] !== 'core' &&
                             filemtime($l_directory . $l_file . '/package.json') > strtotime($l_package['data']['isys_module__date_install']));
 
-                        if ($l_package['licence']) {
-                            if ($l_tenant['isys_licence__id']) {
-                                $l_package['licenced'] = isset($l_module_licence[$l_package['identifier']]) ? true : false;
-                            } else {
-                                $l_package['licenced'] = false;
-                            }
-                        }
-
                         $l_package['installed'] = 1;
 
                         $l_modules[$i]['modules'][] = $l_package;
@@ -294,13 +282,17 @@ try {
             }
         }
 
+        $l_modules[$i]['licenced'] = $licenseService->isTenantLicensed($l_tenant['isys_mandator__id']);
+
         $i++;
         closedir($l_dirhandle);
         unset($l_dirhandle);
+
         $l_tenants_array[] = $l_tenant;
     }
 
     $l_template->assign('modules', $l_modules);
+    $l_template->assign('g_disable_addon_upload', $g_disable_addon_upload);
 
     if (isset($l_tenants_array)) {
         $l_template->assign('mandators', $l_tenants_array);

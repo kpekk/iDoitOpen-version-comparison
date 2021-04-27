@@ -32,7 +32,7 @@ class isys_ajax_handler_suggest extends isys_ajax_handler
         $searchString = false;
         $cmdbFilter = $objectTypeFilter = $categoryFilter = $objectTypeBlacklist = [];
 
-        if (isset($_POST['search']) && isys_strlen(trim($_POST['search'])) >= C__SUGGEST__MINIMUM_SEARCH__LENGTH) {
+        if (isset($_POST['search']) && mb_strlen(trim($_POST['search'])) >= C__SUGGEST__MINIMUM_SEARCH__LENGTH) {
             $searchString = trim($_POST['search']);
         }
 
@@ -277,7 +277,7 @@ class isys_ajax_handler_suggest extends isys_ajax_handler
                 break;
 
             case 'autotext':
-                if ($searchString && isset($_POST[0]) && isys_strlen($_POST[0]) > 0 && isset($_POST[1]) && isys_strlen($_POST[1]) > 0) {
+                if ($searchString && isset($_POST[0]) && mb_strlen($_POST[0]) > 0 && isset($_POST[1]) && mb_strlen($_POST[1]) > 0) {
                     $l_source = trim($_POST[0]);
                     $l_property = trim($_POST[1]);
 

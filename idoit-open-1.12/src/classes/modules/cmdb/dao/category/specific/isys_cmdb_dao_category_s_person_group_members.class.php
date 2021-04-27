@@ -58,7 +58,6 @@ class isys_cmdb_dao_category_s_person_group_members extends isys_cmdb_dao_catego
 
     public function get_count($p_obj_id = null)
     {
-
         if (!empty($p_obj_id)) {
             $l_obj_id = $p_obj_id;
         } else {
@@ -285,11 +284,18 @@ class isys_cmdb_dao_category_s_person_group_members extends isys_cmdb_dao_catego
                 ],
                 C__PROPERTY__DATA     => [
                     C__PROPERTY__DATA__FIELD  => 'isys_cats_person_list__isys_obj__id',
-                    C__PROPERTY__DATA__SELECT => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory('SELECT CONCAT(isys_obj__title, \' {\', isys_obj__id, \'}\')
+                    C__PROPERTY__DATA__SELECT => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory(
+                        'SELECT CONCAT(isys_obj__title, \' {\', isys_obj__id, \'}\')
                               FROM isys_person_2_group
-                              INNER JOIN isys_obj ON isys_obj__id = isys_person_2_group__isys_obj__id__person', 'isys_person_2_group', 'isys_person_2_group__id',
-                        'isys_person_2_group__isys_obj__id__group', '', '', idoit\Module\Report\SqlQuery\Structure\SelectCondition::factory([]),
-                        idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['isys_person_2_group__isys_obj__id__group'])),
+                              INNER JOIN isys_obj ON isys_obj__id = isys_person_2_group__isys_obj__id__person',
+                        'isys_person_2_group',
+                        'isys_person_2_group__id',
+                        'isys_person_2_group__isys_obj__id__group',
+                        '',
+                        '',
+                        idoit\Module\Report\SqlQuery\Structure\SelectCondition::factory([]),
+                        idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['isys_person_2_group__isys_obj__id__group'])
+                    ),
                     C__PROPERTY__DATA__JOIN   => [
                         idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory('isys_person_2_group', 'LEFT', 'isys_person_2_group__isys_obj__id__group', 'isys_obj__id'),
                         idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory('isys_obj', 'LEFT', 'isys_person_2_group__isys_obj__id__person', 'isys_obj__id')
@@ -316,26 +322,48 @@ class isys_cmdb_dao_category_s_person_group_members extends isys_cmdb_dao_catego
     }
 
     /**
-     * @param array  $p_objects
-     * @param int    $p_direction
-     * @param string $p_table
+     * @param int    $entryId
+     * @param int    $direction
+     * @param string $table
+     * @param null   $checkMethod
+     * @param bool   $purge
      *
      * @return bool
      */
-    public function rank_records($p_objects, $p_direction = C__CMDB__RANK__DIRECTION_DELETE, $p_table = "isys_obj", $p_checkMethod = null, $p_purge = false)
+    public function rank_record($entryId, $direction, $table, $checkMethod = null, $purge = false)
+    {
+        if ($_POST[C__GET__NAVMODE] == C__NAVMODE__QUICK_PURGE || $_POST[C__GET__NAVMODE] == C__NAVMODE__PURGE) {
+            $direction = C__CMDB__RANK__DIRECTION_DELETE;
+        }
+
+        if ($direction == C__CMDB__RANK__DIRECTION_DELETE) {
+            $this->detach_person(null, null, $entryId);
+        }
+
+        return true;
+    }
+
+    /**
+     * @param array  $objects
+     * @param int    $direction
+     * @param string $table
+     * @param null   $checkMethod
+     * @param bool   $purge
+     *
+     * @return bool
+     */
+    public function rank_records($objects, $direction = C__CMDB__RANK__DIRECTION_DELETE, $table = 'isys_obj', $checkMethod = null, $purge = false)
     {
         switch ($_POST[C__GET__NAVMODE]) {
             case C__NAVMODE__QUICK_PURGE:
             case C__NAVMODE__PURGE:
-                if (!empty($_POST["id"])) {
-                    foreach ($_POST["id"] AS $l_val) {
+                if (!empty($_POST['id']) && is_array($_POST['id'])) {
+                    foreach ($_POST['id'] as $l_val) {
                         $this->detach_person(null, null, $l_val);
                     }
 
-                    unset($_POST["id"]);
+                    unset($_POST['id']);
                 }
-
-                return true;
         }
 
         return true;
@@ -427,7 +455,6 @@ class isys_cmdb_dao_category_s_person_group_members extends isys_cmdb_dao_catego
      */
     public function detach_person($p_group_id, $p_person_id, $p_cat_list_id = null)
     {
-
         if ($p_cat_list_id > 0) {
             $l_data = $this->get_data($p_cat_list_id)
                 ->get_row();
@@ -490,7 +517,7 @@ class isys_cmdb_dao_category_s_person_group_members extends isys_cmdb_dao_catego
                     $this->attach_person($p_objID, $l_person);
                 }
             }
-        } else if (is_scalar($p_persons)) {
+        } elseif (is_scalar($p_persons)) {
             if (!isset($l_current_persons[$p_persons]) || !$l_current_persons[$p_persons]) {
                 $this->attach_person($p_objID, $l_current_persons[$p_persons]);
             }

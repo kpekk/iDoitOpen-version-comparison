@@ -45,36 +45,32 @@ class isys_smarty_plugin_f_dialog extends isys_smarty_plugin_f implements isys_s
             $p_params = $this->m_parameter;
         }
 
-        $this->m_strPluginClass = "f_button";
-        $this->m_strPluginName = $p_params["name"];
+        $this->m_strPluginClass = 'f_button';
+        $this->m_strPluginName = $p_params['name'];
 
-        $l_strOut = "";
-        $l_strValue = "";
+        $l_strOut = '';
+        $l_strValue = '';
 
-        if ($p_params["p_bEditMode"] == "1") {
+        if ($p_params['p_bEditMode']) {
             return $this->navigation_edit($p_tplclass, $p_params);
         }
 
         $l_arData = [];
 
-        if (!empty($p_params["p_arData"])) {
-            // GET-array with data from $p_params
-            if (is_array($p_params["p_arData"])) {
-                $l_arData = $p_params["p_arData"];
-            } elseif (is_string($p_params["p_arData"])) {
-                $l_arData = unserialize($p_params["p_arData"]);
+        if (!empty($p_params['p_arData'])) {
+            if (is_array($p_params['p_arData'])) {
+                $l_arData = $p_params['p_arData'];
+            } elseif (is_string($p_params['p_arData'])) {
+                $l_arData = unserialize($p_params['p_arData']);
             }
-        } else {
-            //get array from table
-            if (!empty($p_params["p_strTable"])) {
-                if ($p_params["status"] == 0) {
-                    $l_status = null;
-                } else {
-                    $l_status = C__RECORD_STATUS__NORMAL;
-                }
+        } elseif (!empty($p_params['p_strTable'])) {
+            if ($p_params['status'] == 0) {
+                $l_status = null;
+            } else {
+                $l_status = C__RECORD_STATUS__NORMAL;
+            }
 
-                $l_arData = $this->get_array_data($p_params["p_strTable"], $l_status, $p_params["order"], $p_params["condition"]);
-            }
+            $l_arData = $this->get_array_data($p_params['p_strTable'], $l_status, $p_params['order'], $p_params['condition']);
         }
 
         if (is_array($l_arData) && isset($p_params['p_strDbFieldNN'])) {
@@ -82,15 +78,15 @@ class isys_smarty_plugin_f_dialog extends isys_smarty_plugin_f implements isys_s
         }
 
         // Evaluate current value
-        if (isset($p_params["p_strSelectedID"])) {
+        if (isset($p_params['p_strSelectedID'])) {
             if ($l_arData != null) {
-                $l_multiple = (strpos($p_params["p_strSelectedID"], ',') !== false);
-                $l_multiple_items = explode(',', $p_params["p_strSelectedID"]);
+                $l_multiple = (strpos($p_params['p_strSelectedID'], ',') !== false);
+                $l_multiple_items = explode(',', $p_params['p_strSelectedID']);
 
                 foreach ($l_arData as $l_content) {
                     if (is_array($l_content)) {
-                        if (isset($l_content[$p_params["p_strSelectedID"]])) {
-                            $l_value = $l_content[$p_params["p_strSelectedID"]];
+                        if (isset($l_content[$p_params['p_strSelectedID']])) {
+                            $l_value = $l_content[$p_params['p_strSelectedID']];
                             $l_strValue = isys_glob_htmlentities(isys_glob_str_stop($lang->get($l_value), isys_tenantsettings::get('maxlength.dialog_plus', 110)));
 
                             continue;
@@ -100,15 +96,19 @@ class isys_smarty_plugin_f_dialog extends isys_smarty_plugin_f implements isys_s
                             $l_strValue = [];
 
                             foreach ($l_multiple_items as $l_item) {
-                                $l_strValue[] = isys_glob_htmlentities(isys_glob_str_stop($lang->get($l_arData[$l_item]), isys_tenantsettings::get('maxlength.dialog_plus', 110)));
+                                $l_strValue[] = isys_glob_htmlentities(isys_glob_str_stop(
+                                    $lang->get($l_arData[$l_item]),
+                                    isys_tenantsettings::get('maxlength.dialog_plus', 110)
+                                ));
                             }
 
                             $l_strValue = implode(', ', $l_strValue);
-                        } else {
-                            if (isset($l_arData[$p_params["p_strSelectedID"]])) {
-                                $l_value = $l_arData[$p_params["p_strSelectedID"]];
-                                $l_strValue = (is_numeric($l_value)) ? $l_value : isys_glob_htmlentities(isys_glob_str_stop($lang->get($l_value), isys_tenantsettings::get('maxlength.dialog_plus', 110)));
-                            }
+                        } elseif (isset($l_arData[$p_params['p_strSelectedID']])) {
+                            $l_value = $l_arData[$p_params['p_strSelectedID']];
+                            $l_strValue = (is_numeric($l_value)) ? $l_value : isys_glob_htmlentities(isys_glob_str_stop(
+                                $lang->get($l_value),
+                                isys_tenantsettings::get('maxlength.dialog_plus', 110)
+                            ));
                         }
 
                         continue;
@@ -116,13 +116,11 @@ class isys_smarty_plugin_f_dialog extends isys_smarty_plugin_f implements isys_s
                 }
             }
         } else {
-            $l_strValue = "-";
+            $l_strValue = '-';
         }
 
-        if (empty($l_strValue)) {
-            if (isset($p_params["p_strValue"])) {
-                $l_strValue = $p_params["p_strValue"];
-            }
+        if (empty($l_strValue) && isset($p_params['p_strValue'])) {
+            $l_strValue = $p_params['p_strValue'];
         }
 
         $this->getStandardAttributes($p_params);

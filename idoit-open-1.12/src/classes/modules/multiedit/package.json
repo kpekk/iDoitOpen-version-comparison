@@ -57,8 +57,8 @@
     "src/Component/Synchronizer/Category/G/Sla",
     "src/Component/Synchronizer/Category/G",
     "src/Component/Synchronizer/Category/Custom/CustomFields/Popup.php",
+    "src/Component/Synchronizer/Category/Custom/CustomFields",
     "src/Component/Synchronizer/Category/Custom",
-    "src/Component/Synchronizer/Category/S",
     "src/Component/Synchronizer/Category/ConvertInterface.php",
     "src/Component/Synchronizer/Category",
     "src/Component/Synchronizer/AbstractSynchronizer.php",
@@ -132,6 +132,7 @@
     "src/Component/Multiedit/Exception/UnknownCategoryTypeException.php",
     "src/Component/Multiedit/Exception/EmptyPropertiesSourceDataException.php",
     "src/Component/Multiedit/Exception/CategoryPropertiesException.php",
+    "src/Component/Multiedit/Exception/CategoryDataException.php",
     "src/Component/Multiedit/Exception/ConfigException.php",
     "src/Component/Multiedit/Exception",
     "src/Component/Multiedit",
@@ -154,6 +155,8 @@
     "core": ">= 1.12"
   },
   "dependencies": {
-    "php": []
+    "apache": [
+      "mod_rewrite"
+    ]
   }
 }

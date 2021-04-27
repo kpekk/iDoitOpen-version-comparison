@@ -1182,6 +1182,15 @@ class isys_auth_cmdb extends isys_auth implements isys_auth_interface
                 'title'  => 'LC__CMDB__MENU_TREE_VIEW',
                 'type'   => 'boolean',
                 'rights' => [isys_auth::VIEW]
+            ],
+            'object_browser_configuration'     => [
+                'title'  => 'LC__CMDB__TREE__SYSTEM__CMDB_EXPLORER__CUSTOMIZATION',
+                'type'   => 'boolean',
+                'rights' => [
+                    isys_auth::VIEW,
+                    isys_auth::EDIT,
+                    isys_auth::DELETE
+                ]
             ]
         ];
     }
@@ -1203,7 +1212,7 @@ class isys_auth_cmdb extends isys_auth implements isys_auth_interface
      */
     public function get_module_title()
     {
-        return "CMDB";
+        return 'CMDB';
     }
 
     /**

@@ -460,7 +460,28 @@
             <col width="350" />
         </colgroup>
         <tbody>
+        <tr>
+            <td>mod_rewrite</td>
+            <td>[{$apache_dependencies['mod_rewrite']|implode:", "}]</td>
+            <td>
+                [{if isys_core::is_webserver_module_installed('mod_rewrite')}]
+                    [{if isys_core::is_webserver_module_configured('mod_rewrite')}]
+                        <img src="[{$dir_images}]icons/silk/tick.png" class="vam" />
+                        <span class="vam text-green">OK</span>
+                    [{else}]
+                        <img src="[{$dir_images}]icons/silk/cross.png" class="vam" />
+                        <span class="vam text-red">Please verify that the apache module "mod_rewrite" is correctly configured. An automatic check identified that it is not.</span>
+                        <button type="button" id="mod_rewrite_test_button" class="btn ml5 mr5"><img src="[{$dir_images}]icons/silk/server.png" class="mr5" /><span>Test</span></button>
+                    [{/if}]
+                [{else}]
+                    <img src="[{$dir_images}]icons/silk/error.png" class="vam" />
+                    <span class="vam text-yellow">i-doit could not verify that the apache module "mod_rewrite" is correctly configured.</span>
+                    <button type="button" id="mod_rewrite_test_button" class="btn ml5 mr5"><img src="[{$dir_images}]icons/silk/server.png" class="mr5" /><span>Test</span></button>
+                [{/if}]
+            </td>
+        </tr>
         [{foreach $apache_dependencies as $dependency => $modules}]
+            [{if $dependency !== 'mod_rewrite'}]
             <tr>
                 <td>[{$dependency}]</td>
                 <td>[{$modules|implode:", "}]</td>
@@ -480,6 +501,7 @@
                     [{/if}]
                 </td>
             </tr>
+            [{/if}]
         [{/foreach}]
         </tbody>
     </table>
@@ -515,3 +537,72 @@
         </tbody>
     </table>
 </div>
+
+<script type="text/javascript">
+    (function () {
+        'use strict';
+
+        var $testButton = $('mod_rewrite_test_button'),
+            $modRewriteIcon, $modRewriteStatus;
+
+        if ($testButton) {
+            $modRewriteStatus = $testButton.up('td').down('span');
+            $modRewriteIcon = $testButton.up('td').down('img');
+
+            $testButton.on('click', function () {
+                $testButton
+                    .disable()
+                    .down('img').writeAttribute('src', window.dir_images + 'ajax-loading.gif')
+                    .next('span').update('[{isys type="lang" ident="LC__UNIVERSAL__LOADING"}]');
+
+                $modRewriteStatus
+                    .update('...')
+                    .removeClassName('text-red')
+                    .removeClassName('text-yellow')
+                    .removeClassName('text-green');
+
+                new Ajax.Request(window.www_dir + 'mod-rewrite-test', {
+                    parameters: {
+                        start: (new Date()).getTime() / 1000
+                    },
+                    onFailure:  function (xhr) {
+                        var json = xhr.responseJSON;
+
+                        $modRewriteStatus.addClassName('text-red').update('HTTP-Status: ' + xhr.status + ' (' + xhr.statusText + '), Message: ' + (json && json.message ? json.message : xhr.responseText));
+                    },
+                    onComplete: function (xhr) {
+                        var json = xhr.responseJSON;
+
+                        $testButton
+                            .enable()
+                            .down('img').writeAttribute('src', window.dir_images + 'icons/silk/server.png')
+                            .next('span').update('Test');
+
+                        if (json) {
+                            if (json.success) {
+                                $modRewriteIcon.writeAttribute('src', window.dir_images + 'icons/silk/tick.png');
+                                $modRewriteStatus
+                                    .addClassName('text-green')
+                                    .writeAttribute('title', 'HTTP-Status: ' + xhr.status + ' (' + xhr.statusText + '), Timing: ' + json.data.delta.toFixed(4) + 'ms')
+                                    .update('OK');
+                            } else {
+                                $modRewriteIcon.writeAttribute('src', window.dir_images + 'icons/silk/error.png');
+                                $modRewriteStatus
+                                    .addClassName('text-yellow')
+                                    .writeAttribute('title', 'HTTP-Status: ' + xhr.status + ' (' + xhr.statusText + '), Message: ' + (json.message || xhr.responseText))
+                                    .update('OK, but there was a different problem: ' + (json.message || xhr.responseText));
+                            }
+                        } else {
+                            $modRewriteIcon.writeAttribute('src', window.dir_images + 'icons/silk/cross.png');
+                            $modRewriteStatus
+                                .addClassName('text-red')
+                                .writeAttribute('title', 'HTTP-Status: ' + xhr.status + ' (' + xhr.statusText + '), Message: ' + xhr.responseText)
+                                .update('ERROR');
+                        }
+                    }
+                });
+            });
+        }
+
+    })();
+</script>

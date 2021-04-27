@@ -8,9 +8,9 @@
  * @author  Leonard Fischer <lfischer@i-doit.com>
  */
 window.Rack = Class.create({
-	/**
-	 * Initialize method, gets called when object is created.
-	 *
+    /**
+     * Initialize method, gets called when object is created.
+     *
      * @param $element
      * @param options
      */
@@ -53,44 +53,33 @@ window.Rack = Class.create({
     select: function (horizontal, from, to) {
         var i;
         
-        if (horizontal)
-        {
-            if (this.options.slot_sort == 'asc')
-            {
+        if (horizontal) {
+            if (this.options.slot_sort === 'asc') {
                 // @See ID-4676
-                if(from > to)
-                {
+                if (from > to) {
                     i = to;
                     to = from;
                     from = i;
                 }
                 
-                for (i = from; i <= to; i++)
-                {
+                for (i = from; i <= to; i++) {
                     this.$element.down('.slot-' + i).addClassName('selected');
                 }
-            }
-            else
-            {
+            } else {
                 // @See ID-4676
-                if(from < to)
-                {
+                if (from < to) {
                     i = to;
                     to = from;
                     from = i;
                 }
                 
-                for (i = from; i >= to; i--)
-                {
+                for (i = from; i >= to; i--) {
                     this.$element.down('.slot-' + i).addClassName('selected');
                 }
             }
-        }
-        else
-        {
+        } else {
             this.$element.select('.left-slots .slot,.right-slots .slot').each(function ($slot) {
-                if ($slot.readAttribute('data-slot') == from)
-                {
+                if ($slot.readAttribute('data-slot') == from) {
                     $slot.addClassName('selected');
                 }
             });
@@ -98,33 +87,31 @@ window.Rack = Class.create({
     },
     
     unselect: function () {
-	    this.$element.select('.selected').invoke('removeClassName', 'selected');
+        this.$element.select('.selected').invoke('removeClassName', 'selected');
     },
-	
-	setObserver: function () {
+    
+    setObserver: function () {
         this.$element.on('click', '.slot-options', this.slot_option.bindAsEventListener(this));
     },
-
-	/**
-	 * Method for creating the main HTML, rack slots, assigned objects and vertical slots alltogether.
-	 *
-	 * @return  Rack
-	 */
+    
+    /**
+     * Method for creating the main HTML, rack slots, assigned objects and vertical slots alltogether.
+     *
+     * @return  Rack
+     */
     create_rack: function () {
         var left_slots  = 'left-slots',
             right_slots = 'right-slots',
             spacing     = 0,
             table_class = '';
         
-        if (this.options.view == 'rear' && this.options.verticalSlotsMirrored)
-        {
+        if (this.options.view == 'rear' && this.options.verticalSlotsMirrored) {
             // We turn this around, because it's the back view.
             left_slots = 'right-slots';
             right_slots = 'left-slots';
         }
         
-        if (this.options.room_view)
-        {
+        if (this.options.room_view) {
             table_class = 'room-view';
         }
         
@@ -133,7 +120,8 @@ window.Rack = Class.create({
                 .update(new Element('tbody')
                     .update(new Element('tr')
                         .update(new Element('td', {className: left_slots}))
-                        .insert(new Element('td', {className: 'main-slots'}).update(new Element('table', {cellPadding: 0, cellSpacing: spacing})))
+                        .insert(new Element('td', {className: 'main-slots'})
+                            .update(new Element('table', {cellPadding: 0, cellSpacing: spacing})))
                         .insert(new Element('td', {className: right_slots}))))
         );
         
@@ -143,40 +131,40 @@ window.Rack = Class.create({
         
         return this;
     },
-	
-	createQuickinfos: function () {
-	    var $rackObjects = this.$element.select('.object-title'),
+    
+    createQuickinfos: function () {
+        var $rackObjects    = this.$element.select('.object-title'),
             $segmentObjects = this.$element.select('.chassis .device[data-object-id]'),
             $link, i;
-	    
-	    for (i in $rackObjects) {
-	        if (! $rackObjects.hasOwnProperty(i)) {
-	            continue;
+        
+        for (i in $rackObjects) {
+            if (!$rackObjects.hasOwnProperty(i)) {
+                continue;
             }
             
             this.options.quickinfoCallback($rackObjects[i], $rackObjects[i].up('[data-object-id]').readAttribute('data-object-id'));
         }
         
         for (i in $segmentObjects) {
-            if (! $segmentObjects.hasOwnProperty(i)) {
+            if (!$segmentObjects.hasOwnProperty(i)) {
                 continue;
             }
-    
-            $link = new Element('a', {target:'_blank', href:'?objID=' + $segmentObjects[i].readAttribute('data-object-id')})
+            
+            $link = new Element('a', {target: '_blank', href: '?objID=' + $segmentObjects[i].readAttribute('data-object-id')})
                 .update($segmentObjects[i].textContent || $segmentObjects[i].innerText || $segmentObjects[i].innerHTML);
             
             this.options.quickinfoCallback($segmentObjects[i].update($link), $segmentObjects[i].readAttribute('data-object-id'));
         }
     },
-
-	/**
-	 * Method for only creating the vertical slots.
-	 *
-	 * @return  Rack
-	 */
-	createVerticalSlots:function (num) {
-		var fl = 'fl',
-			fr = 'fr',
+    
+    /**
+     * Method for only creating the vertical slots.
+     *
+     * @return  Rack
+     */
+    createVerticalSlots: function (num) {
+        var fl = 'fl',
+            fr = 'fr',
             sorting;
         
         switch (this.options.verticalSlotSorting) {
@@ -209,239 +197,246 @@ window.Rack = Class.create({
                 break;
         }
         
-        if (this.options.view == 'rear' && this.options.verticalSlotsMirrored) {
+        if (this.options.view === 'rear' && this.options.verticalSlotsMirrored) {
             fl = 'fr';
             fr = 'fl';
         }
         
-		this.$element.down('.left-slots')
-			.update(new Element('div', {className:'slot ' + fl, 'data-slot':sorting[0], 'data-vertical': 1}))
-			.insert(new Element('div', {className:'slot ' + fl, 'data-slot':sorting[1], 'data-vertical': 1}))
-			.insert(new Element('br', {className:'clear'}))
-			.insert(new Element('div', {className:'slot ' + fl, 'data-slot':sorting[2], 'data-vertical': 1}))
-			.insert(new Element('div', {className:'slot ' + fl, 'data-slot':sorting[3], 'data-vertical': 1}))
-			.insert(new Element('br', {className:'clear'}))
-			.insert(new Element('div', {className:'slot last ' + fl, 'data-slot':sorting[4], 'data-vertical': 1}))
-			.insert(new Element('div', {className:'slot last ' + fl, 'data-slot':sorting[5], 'data-vertical': 1}));
-
-		this.$element.down('.right-slots')
-			.update(new Element('div', {className:'slot ' + fr, 'data-slot':sorting[6], 'data-vertical': 1}))
-			.insert(new Element('div', {className:'slot ' + fr, 'data-slot':sorting[7], 'data-vertical': 1}))
-			.insert(new Element('br', {className:'clear'}))
-			.insert(new Element('div', {className:'slot ' + fr, 'data-slot':sorting[8], 'data-vertical': 1}))
-			.insert(new Element('div', {className:'slot ' + fr, 'data-slot':sorting[9], 'data-vertical': 1}))
-			.insert(new Element('br', {className:'clear'}))
-			.insert(new Element('div', {className:'slot last ' + fr, 'data-slot':sorting[10], 'data-vertical': 1}))
-			.insert(new Element('div', {className:'slot last ' + fr, 'data-slot':sorting[11], 'data-vertical': 1}));
-
-		return this.updateVerticalSlots(num);
-	},
-
-	/**
-	 * Method for creating the rack slots and the containing objects.
-	 *
-	 * @return  Rack
-	 */
-	create_slots:function () {
-		var i,
-			cnt,
-			num,
-			$tbody = new Element('tbody'),
-			object,
-			rowspan = 0,
-			display_obj,
-			className,
-			last,
+        this.$element.down('.left-slots')
+            .update(new Element('div', {className: 'slot ' + fl, 'data-slot': sorting[0], 'data-vertical': 1}))
+            .insert(new Element('div', {className: 'slot ' + fl, 'data-slot': sorting[1], 'data-vertical': 1}))
+            .insert(new Element('br', {className: 'clear'}))
+            .insert(new Element('div', {className: 'slot ' + fl, 'data-slot': sorting[2], 'data-vertical': 1}))
+            .insert(new Element('div', {className: 'slot ' + fl, 'data-slot': sorting[3], 'data-vertical': 1}))
+            .insert(new Element('br', {className: 'clear'}))
+            .insert(new Element('div', {className: 'slot last ' + fl, 'data-slot': sorting[4], 'data-vertical': 1}))
+            .insert(new Element('div', {className: 'slot last ' + fl, 'data-slot': sorting[5], 'data-vertical': 1}));
+        
+        this.$element.down('.right-slots')
+            .update(new Element('div', {className: 'slot ' + fr, 'data-slot': sorting[6], 'data-vertical': 1}))
+            .insert(new Element('div', {className: 'slot ' + fr, 'data-slot': sorting[7], 'data-vertical': 1}))
+            .insert(new Element('br', {className: 'clear'}))
+            .insert(new Element('div', {className: 'slot ' + fr, 'data-slot': sorting[8], 'data-vertical': 1}))
+            .insert(new Element('div', {className: 'slot ' + fr, 'data-slot': sorting[9], 'data-vertical': 1}))
+            .insert(new Element('br', {className: 'clear'}))
+            .insert(new Element('div', {className: 'slot last ' + fr, 'data-slot': sorting[10], 'data-vertical': 1}))
+            .insert(new Element('div', {className: 'slot last ' + fr, 'data-slot': sorting[11], 'data-vertical': 1}));
+        
+        return this.updateVerticalSlots(num);
+    },
+    
+    /**
+     * Method for creating the rack slots and the containing objects.
+     *
+     * @return  Rack
+     */
+    create_slots: function () {
+        var i,
+            cnt,
+            num,
+            $tbody  = new Element('tbody'),
+            object,
+            rowspan = 0,
+            display_obj,
+            className,
+            last,
             $rackContent;
-
-		for (i = 1; i <= this.options.slots; i++) {
-			num = i;
-
-			// We check for ascending or descanding sorting to label the slots right.
-			if (this.options.slot_sort != 'asc') {
-				num = (this.options.slots - num) + 1;
-			}
-			
+        
+        for (i = 1; i <= this.options.slots; i++) {
+            num = i;
+            
+            // We check for ascending or descanding sorting to label the slots right.
+            if (this.options.slot_sort !== 'asc')
+            {
+                num = (this.options.slots - num) + 1;
+            }
+            
             className = 'row slot-' + parseInt(num);
             num = ((num < 10) ? '0' + num : num);
-
-			object = null;
-			display_obj = false;
-
-			for (cnt in this.options.objects) {
+            
+            object = null;
+            display_obj = false;
+            
+            for (cnt in this.options.objects) {
                 // Fix for iterating through member methods.
                 if (this.options.objects.hasOwnProperty(cnt)) {
                     // Option "4" = Vertical assignment.
                     if (this.options.objects[cnt].option != 4 && this.options.objects[cnt].pos == i) {
-                        if (this.options.objects[cnt].insertion == 2 || (this.options.view == 'front' && this.options.objects[cnt].insertion == 1) || (this.options.view == 'rear' && this.options.objects[cnt].insertion == 0)) {
+                        if (this.options.objects[cnt].insertion == 2 ||
+                            (this.options.view == 'front' && this.options.objects[cnt].insertion == 1) ||
+                            (this.options.view == 'rear' && this.options.objects[cnt].insertion == 0)) {
                             object = this.options.objects[cnt];
                         }
                     }
                 }
-			}
+            }
             
-            $rackContent = new Element('td', {className:'slot'}).update(this.renderObjectOptionsButton());
+            $rackContent = new Element('td', {className: 'slot'}).update(this.renderObjectOptionsButton());
             
             $tbody.insert(
                 new Element('tr', {
-                    className:className,
-                    'data-slotnum':i,
-                    'data-object-id': (object !== null ? object.id || null : null),
-                    'data-object-title': (object !== null ? object.title || null : null),
-                    'data-object-height': (object !== null ? object.height || null : null),
-                    'data-object-chassis': ((object !== null && object.isChassis) ? 1 : null)})
+                    className:             className,
+                    'data-slotnum':        i,
+                    'data-object-id':      (object !== null ? object.id || null : null),
+                    'data-object-title':   (object !== null ? object.title || null : null),
+                    'data-object-height':  (object !== null ? object.height || null : null),
+                    'data-object-chassis': ((object !== null && object.isChassis) ? 1 : null)
+                })
                     .update(new Element('td').update(num))
                     .insert($rackContent)
                     .insert(new Element('td').update(num))
             );
-			
-			if (rowspan > 0) {
+            
+            if (rowspan > 0) {
                 $tbody.down('tr:last').down('td', 1).remove();
-				rowspan--;
-			}
-
-			if (object !== null) {
-				if (this.options.view == 'front' && object.insertion == 1) {
-					display_obj = true;
-				} else if (this.options.view == 'rear' && object.insertion == 0) {
-					display_obj = true;
-				} else if (object.insertion == 2) {
-					display_obj = true;
-				}
-
-				if (display_obj) {
-					rowspan = (object.height - 1);
-					
-					try {
+                rowspan--;
+            }
+            
+            if (object !== null) {
+                if (this.options.view == 'front' && object.insertion == 1) {
+                    display_obj = true;
+                } else if (this.options.view == 'rear' && object.insertion == 0) {
+                    display_obj = true;
+                } else if (object.insertion == 2) {
+                    display_obj = true;
+                }
+                
+                if (display_obj) {
+                    rowspan = (object.height - 1);
+                    
+                    try {
                         $rackContent
                             .insert(this.renderObject(object))
-							.writeAttribute({rowspan: (object.height > 1 ? object.height : null)})
-							.setStyle({backgroundColor: object.color, backgroundImage: 'none'});
-					} catch (e) {
+                            .writeAttribute({rowspan: (object.height > 1 ? object.height : null)})
+                            .setStyle({backgroundColor: object.color, backgroundImage: 'none'});
+                    } catch (e) {
                         $tbody.down('tr:last').previous('tr').down('td', 1).removeAttribute('rowspan');
-                        $rackContent.update(new Element('div', {className:'box-red'}).update('Positioning error in ').insert(new Element('a', {href: '?objID=' + object.id}).update(object.title)));
-					}
-				}
-			}
-		}
-  
-		// Add the "last" class to the last TD in the table.
-		last = $tbody.down('td.slot:last');
-		
+                        $rackContent
+                            .update(new Element('div', {className: 'box-red'}).update('Positioning error in ')
+                            .insert(new Element('a', {href: '?objID=' + object.id}).update(object.title)));
+                    }
+                }
+            }
+        }
+        
+        // Add the "last" class to the last TD in the table.
+        last = $tbody.down('td.slot:last');
+        
         this.$element.down('.main-slots table').update($tbody);
-
-		// For preventing JS errors...
-		if (last) {
-			last.addClassName('last');
-		}
-
-		return this;
-	},
-
-	/**
-	 * Method for updating the viewable vertical slots (may be called from a onChange-event).
-	 *
-	 * @param   slotNumber
-	 * @return  Rack
-	 */
-    updateVerticalSlots:function (slotNumber) {
-		var verticalSlots = this.options.verticalSlots;
-
-		if (typeof slotNumber != 'undefined') {
+        
+        // For preventing JS errors...
+        if (last) {
+            last.addClassName('last');
+        }
+        
+        return this;
+    },
+    
+    /**
+     * Method for updating the viewable vertical slots (may be called from a onChange-event).
+     *
+     * @param   slotNumber
+     * @return  Rack
+     */
+    updateVerticalSlots: function (slotNumber) {
+        var verticalSlots = this.options.verticalSlots;
+        
+        if (typeof slotNumber != 'undefined') {
             verticalSlots = slotNumber;
-		}
-
-		// We need to append the ID of this instance to not update all found left and right slots on a page.
+        }
+        
+        // We need to append the ID of this instance to not update all found left and right slots on a page.
         this.$element.select('.left-slots .slot,.right-slots .slot').each(function ($slot) {
-			var displayObject = false, i, object,
-				slotNumber = $slot.readAttribute('data-slot'),
+            var displayObject = false, i, object,
+                slotNumber    = $slot.readAttribute('data-slot'),
                 attributes;
             
             $slot.update(this.renderObjectOptionsButton());
             
-			if (isNaN(verticalSlots)) {
+            if (isNaN(verticalSlots)) {
                 $slot.hide();
-			} else {
-				for (i in this.options.objects) {
+            } else {
+                for (i in this.options.objects) {
                     // Fix for iterating through member methods.
                     if (this.options.objects.hasOwnProperty(i)) {
                         if (this.options.objects[i].option == this.options.OPTION_VERTICAL && this.options.objects[i].pos == slotNumber) {
-                            if ((this.options.view == 'front' && this.options.objects[i].insertion == this.options.INSERTION_FRONT) || (this.options.view == 'rear' && this.options.objects[i].insertion == this.options.INSERTION_REAR)) {
+                            if ((this.options.view == 'front' && this.options.objects[i].insertion == this.options.INSERTION_FRONT) ||
+                                (this.options.view == 'rear' && this.options.objects[i].insertion == this.options.INSERTION_REAR)) {
                                 object = this.options.objects[i];
                                 displayObject = true;
                             }
                         }
                     }
-				}
-
-				if (displayObject) {
+                }
+                
+                if (displayObject) {
                     attributes = {
-                        'data-slotnum': slotNumber,
-                        'data-object-id': (object !== null ? object.id || null : null),
-                        'data-object-title': (object !== null ? object.title || null : null),
+                        'data-slotnum':       slotNumber,
+                        'data-object-id':     (object !== null ? object.id || null : null),
+                        'data-object-title':  (object !== null ? object.title || null : null),
                         'data-object-height': (object !== null ? object.height || null : null)
                     };
                     
-					$slot.insert(this.renderObject(object).addClassName('rotated'))
-                         .setStyle({backgroundColor: object.color, backgroundImage: 'none'})
-                         .writeAttribute(attributes);
-					
-					$slot.down('.cmdb-marker').removeClassName('m5');
-				} else {
+                    $slot.insert(this.renderObject(object).addClassName('rotated'))
+                        .setStyle({backgroundColor: object.color, backgroundImage: 'none'})
+                        .writeAttribute(attributes);
+                    
+                    $slot.down('.cmdb-marker').removeClassName('m5');
+                } else {
                     $slot.insert(new Element('span', {className: 'rotated'}).update('Slot ' + slotNumber))
                         .writeAttribute('data-slotnum', slotNumber);
-				}
-
-				if (parseInt($slot.readAttribute('data-slot')) > verticalSlots) {
+                }
+                
+                if (parseInt($slot.readAttribute('data-slot')) > verticalSlots) {
                     $slot.hide();
-				} else {
+                } else {
                     $slot.show();
-				}
-			}
-		}.bind(this));
-
-		return this;
-	},
-
-	/**
-	 * Method for setting the slot sorting.
-	 *
-	 * @param   string  sorting
-	 * @return  Rack
-	 */
-	set_slot_sorting:function (sorting) {
-		sorting = sorting.toLowerCase();
-
-		if (sorting == 'asc' || sorting == 'desc') {
-			this.options.slot_sort = sorting;
-		}
-
-		return this;
-	},
-
-	/**
-	 * Method for setting new objects.
-	 *
-	 * @param   array  objects
-	 * @return  Rack
-	 */
-	setObjects:function (objects) {
-		this.options.objects = objects;
-
-		return this;
-	},
-
-	/**
-	 * Method for rendering a DIV with object information inside:
-	 * Object, Object type and controls for re-arranging and removing.
-	 *
-	 * @param   object
-	 * @return  Element
-	 */
-    renderObject:function (object) {
-        var object_title = object.title + ' (' + object.type + ', FF: ' + object.formfactor + ')',
-			$objectContainer = new Element('div', {className:'slot-object'});
-
+                }
+            }
+        }.bind(this));
+        
+        return this;
+    },
+    
+    /**
+     * Method for setting the slot sorting.
+     *
+     * @param   string  sorting
+     * @return  Rack
+     */
+    set_slot_sorting: function (sorting) {
+        sorting = sorting.toLowerCase();
+        
+        if (sorting === 'asc' || sorting === 'desc') {
+            this.options.slot_sort = sorting;
+        }
+        
+        return this;
+    },
+    
+    /**
+     * Method for setting new objects.
+     *
+     * @param   array  objects
+     * @return  Rack
+     */
+    setObjects: function (objects) {
+        this.options.objects = objects;
+        
+        return this;
+    },
+    
+    /**
+     * Method for rendering a DIV with object information inside:
+     * Object, Object type and controls for re-arranging and removing.
+     *
+     * @param   object
+     * @return  Element
+     */
+    renderObject: function (object) {
+        var object_title     = object.title + ' (' + object.type + ', FF: ' + object.formfactor + ')',
+            $objectContainer = new Element('div', {className: 'slot-object'});
+        
         // @see ID-4678 In case of a big chassis we want to use all the space we have to display it.
         if (object.isChassis && object.height > 1) {
             var rowHeight = (this.options.room_view ? 12 : 27);
@@ -452,7 +447,7 @@ window.Rack = Class.create({
         if (this.options.room_view) {
             object_title = new Element('a', {href: '?objID=' + object.id}).update(object_title);
         }
-
+        
         if (object.isChassis) {
             new RackChassis($objectContainer, {
                 x:        object.chassis.x,
@@ -461,15 +456,23 @@ window.Rack = Class.create({
                 devices:  object.chassis.devices,
                 mirrored: (object.insertion == this.options.INSERTION_BOTH && this.options.view == 'rear')
             });
-    
+            
             return $objectContainer.setStyle({margin: '-1px 0 0 -1px'});
         } else {
             return $objectContainer
-                .update(new Element('img', {src: ((object.icon != '')? object.icon: window.dir_images + 'empty.gif'), alt:object.type, className: 'object-icon'}))
+                .update(new Element('img', {
+                    src:       ((object.icon != '') ? object.icon : window.dir_images + 'empty.gif'),
+                    alt:       object.type,
+                    className: 'object-icon'
+                }))
                 .insert(new Element('p', {class: 'object-title'}).update(object_title))
-                .insert(new Element('div', {className:'cmdb-marker m5 mouse-help', style:'background-color:' + object.cmdb_color + ';', title:object.cmdb_status}));
+                .insert(new Element('div', {
+                    className: 'cmdb-marker m5 mouse-help',
+                    style:     'background-color:' + object.cmdb_color + ';',
+                    title:     object.cmdb_status
+                }));
         }
-	},
+    },
     
     // @see ID-4678
     updateRowSizes: function (expanded) {
@@ -484,33 +487,32 @@ window.Rack = Class.create({
         }
         
         for (i in $rowspanRows) {
-            if (! $rowspanRows.hasOwnProperty(i)) {
+            if (!$rowspanRows.hasOwnProperty(i)) {
                 continue;
             }
-    
+            
             $objectContainer = $rowspanRows[i].down('.slot-object');
-    
+            
             if (!$objectContainer) {
                 continue;
             }
-    
+            
             rowSpan = parseInt($rowspanRows[i].readAttribute('rowspan'));
             
-            $objectContainer.setStyle({maxHeight:(rowSpan*rowHeight) + 'px'});
+            $objectContainer.setStyle({maxHeight: (rowSpan * rowHeight) + 'px'});
         }
-    
+        
         this.updateChassisSizes();
     },
     
     updateChassisSizes: function () {
-        setTimeout(function(){
+        setTimeout(function () {
             this.$element.select('.slot-object').invoke('fire', 'update:fitToContainer');
         }.bind(this), 500);
     },
     
     renderObjectOptionsButton: function () {
-        if (this.options.edit_right && !this.options.room_view && (this.options.objectReassign || this.options.object_remove || this.options.link_objects))
-        {
+        if (this.options.edit_right && !this.options.room_view && (this.options.objectReassign || this.options.object_remove || this.options.link_objects)) {
             return new Element('img', {className: 'slot-options', src: window.dir_images + 'icons/silk/cog.png'});
         }
         
@@ -531,30 +533,23 @@ window.Rack = Class.create({
             slotNumber       = $objectElement.readAttribute('data-slotnum'),
             verticalSlots    = !!$element.up('[data-vertical]');
         
-        if ($contextWrapper)
-        {
+        if ($contextWrapper) {
             $contextWrapper.remove();
         }
         
-        if (objectId && this.options.object_link)
-        {
+        if (objectId && this.options.object_link) {
             $options.insert(
                 new Element('li').update(
                     new Element('a', {href: '?objID=' + objectId, target: '_blank'})
                         .update(new Element('img', {src: window.dir_images + 'icons/silk/link.png', className: 'mr5'}))
-                        .insert(idoit.Translate.get("LC__UNIVERSAL__TITLE_LINK"))
+                        .insert(idoit.Translate.get('LC__UNIVERSAL__TITLE_LINK'))
                 )
             );
         }
         
-        if (objectId && this.options.objectReassign)
-        {
+        if (objectId && this.options.objectReassign) {
             $options.insert(
-                new Element('li', {
-                    'data-object-id':     objectId,
-                    'data-object-title':  objectTitle,
-                    'data-object-height': objectSlotHeight
-                }).update(
+                new Element('li', {'data-object-id': objectId, 'data-object-title': objectTitle, 'data-object-height': objectSlotHeight}).update(
                     new Element('a', {href: '#'})
                         .update(new Element('img', {src: window.dir_images + 'icons/silk/arrow_switch.png', className: 'mr5'}))
                         .insert(idoit.Translate.get('LC__CMDB__CATS__RACK__REASSIGN_OBJECT'))
@@ -564,16 +559,11 @@ window.Rack = Class.create({
             $options.down('li:last').on('click', this.options.objectReassignCallback);
         }
         
-        if (objectId && !objectIsChassis && this.options.object_remove)
-        {
+        if (objectId && !objectIsChassis && this.options.object_remove) {
             $options.insert(
-                new Element('li', {
-                    'data-object-id':     objectId,
-                    'data-object-title':  objectTitle,
-                    'data-object-height': objectSlotHeight
-                }).update(
+                new Element('li', {'data-object-id': objectId, 'data-object-title': objectTitle, 'data-object-height': objectSlotHeight}).update(
                     new Element('a', {href: '#'})
-                        .update(new Element('img', {src: window.dir_images + 'icons/silk/cross.png', className: 'mr5'}))
+                        .update(new Element('img', { src: window.dir_images + 'icons/silk/cross.png', className: 'mr5'}))
                         .insert(idoit.Translate.get('LC__CMDB__CATS__RACK__REMOVE_OBJECT'))
                 )
             );
@@ -581,8 +571,7 @@ window.Rack = Class.create({
             $options.down('li:last').on('click', this.options.objectRemoveCallback);
         }
         
-        if (this.options.slot_segment && !objectIsChassis && !verticalSlots)
-        {
+        if (this.options.slot_segment && !objectIsChassis && !verticalSlots) {
             $options.insert(
                 new Element('li', {'data-slot-number': slotNumber}).update(
                     new Element('a', {href: '#'})
@@ -594,8 +583,7 @@ window.Rack = Class.create({
             $options.down('li:last').on('click', this.options.slotSegmentCallback.bindAsEventListener(this));
         }
         
-        if (this.options.slotDetach && objectIsChassis && !verticalSlots)
-        {
+        if (this.options.slotDetach && objectIsChassis && !verticalSlots) {
             $options.insert(
                 new Element('li', {'data-object-id': objectId, 'data-object-title': objectTitle, 'data-slot-number': slotNumber}).update(
                     new Element('a', {href: '#'})
@@ -617,8 +605,7 @@ window.Rack = Class.create({
             .insert($options);
         
         $contextWrapper.on('mouseleave', function () {
-            if ($contextWrapper)
-            {
+            if ($contextWrapper) {
                 new Effect.Morph($contextWrapper, {
                     style:       'top:' + (y + 2) + 'px; left:' + (x + 2) + 'px; opacity: 0;',
                     duration:    0.25,
@@ -641,25 +628,23 @@ window.Rack = Class.create({
         var $slots = this.$element.down('.slot-' + position).select('[data-slot-id]'),
             result = [],
             i;
-	    
-	    for (i in $slots)
-        {
-            if ($slots.hasOwnProperty(i))
-            {
+        
+        for (i in $slots) {
+            if ($slots.hasOwnProperty(i)) {
                 result.push({
-                    id: $slots[i].readAttribute('data-slot-id'),
+                    id:    $slots[i].readAttribute('data-slot-id'),
                     title: $slots[i].readAttribute('data-slot-title')
                 });
             }
         }
-	    
-	    return result.sort(function(a, b) {
-	        return a.title.localeCompare(b.title);
+        
+        return result.sort(function (a, b) {
+            return a.title.localeCompare(b.title);
         });
     },
     
     selectChassis: function (chassisId) {
-	    this.$element.select('.selected').invoke('removeClassName', 'selected');
-	    this.$element.down('[data-slot-id="' + chassisId + '"]').addClassName('selected');
+        this.$element.select('.selected').invoke('removeClassName', 'selected');
+        this.$element.down('[data-slot-id="' + chassisId + '"]').addClassName('selected');
     }
 });

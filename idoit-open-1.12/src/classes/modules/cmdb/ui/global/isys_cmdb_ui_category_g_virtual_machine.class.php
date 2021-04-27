@@ -52,12 +52,15 @@ class isys_cmdb_ui_category_g_virtual_machine extends isys_cmdb_ui_category_glob
         isys_component_template_navbar::getInstance()
             ->set_active(false, C__NAVBAR_BUTTON__NEW);
 
-        unset($_GET[C__CMDB__GET__VIEWMODE]);
-        $_GET[C__CMDB__GET__OBJECT] = ($l_catdata['isys_catg_virtual_machine_list__isys_obj__id'] ?: $l_dao_vm_host->get_last_obj_id_from_type($_GET[C__CMDB__GET__OBJECTTYPE]));
-        $_GET[C__GET__AJAX_CALL] = 'category';
-        $_GET['cluster_options'] = 1;
-        $_GET[C__CMDB__GET__CATLEVEL] = $l_catdata['isys_catg_virtual_machine_list__id'];
-        $url = '?' . http_build_query($_GET, null, '&');
+        // Create duplicate of query parameter
+        $getParams = $_GET;
+
+        unset($getParams[C__CMDB__GET__VIEWMODE]);
+        $getParams[C__CMDB__GET__OBJECT] = ($l_catdata['isys_catg_virtual_machine_list__isys_obj__id'] ?: $l_dao_vm_host->get_last_obj_id_from_type($getParams[C__CMDB__GET__OBJECTTYPE]));
+        $getParams[C__GET__AJAX_CALL] = 'category';
+        $getParams['cluster_options'] = 1;
+        $getParams[C__CMDB__GET__CATLEVEL] = $l_catdata['isys_catg_virtual_machine_list__id'];
+        $url = '?' . http_build_query($getParams, null, '&');
 
         $this->m_template->assign('vm', $l_vm)
             ->assign('C__CATG__VM__HOST_SYSTEM', $p_cat->get_virtualization_system_as_string($l_catdata['isys_catg_virtual_machine_list__isys_obj__id']))// Setup ajax url.

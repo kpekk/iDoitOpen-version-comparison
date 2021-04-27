@@ -41,7 +41,6 @@ class isys_update_config extends isys_update
      */
     public function backup($p_path)
     {
-
         $l_log = isys_update_log::get_instance();
 
         $l_config_path = $p_path . DIRECTORY_SEPARATOR . $this->m_config;
@@ -131,7 +130,7 @@ class isys_update_config extends isys_update
      */
     private function get_config_array()
     {
-        global $g_db_system, $g_admin_auth, $g_crypto_hash;
+        global $g_db_system, $g_admin_auth, $g_crypto_hash, $g_disable_addon_upload, $g_license_token;
 
         $l_admin = [
             'user' => 'admin',
@@ -143,9 +142,10 @@ class isys_update_config extends isys_update
             $l_admin['pass'] = $l_pass;
         }
 
-        if (empty($g_crypto_hash)) {
-            $g_crypto_hash = sha1(uniqid('', true));
-        }
+        // @todo
+        //if (empty($g_crypto_hash)) {
+        //    $g_crypto_hash = sha1(uniqid('', true));
+        //}
 
         return [
             "config.adminauth.username" => $l_admin['user'],
@@ -156,7 +156,9 @@ class isys_update_config extends isys_update
             "config.db.password"        => $g_db_system["pass"],
             "config.db.name"            => $g_db_system["name"],
             "config.db.type"            => $g_db_system["type"],
-            "config.crypt.hash"         => $g_crypto_hash
+            "config.crypt.hash"         => $g_crypto_hash,
+            "config.license.token"         => $g_license_token,
+            "config.admin.disable_addon_upload" => $g_disable_addon_upload ?: 0
         ];
     }
 }

@@ -58,11 +58,12 @@ class isys_cmdb_view_tree_objecttype extends isys_cmdb_view_tree
     {
         global $g_config, $g_dirs;
 
-        $l_gets = $this->get_module_request()
-            ->get_gets();
+        $language = isys_application::instance()->container->get('language');
+        $displayCounter = (bool)isys_tenantsettings::get('cmdb.gui.display-object-type-counter', 1);
+
+        $l_gets = $this->get_module_request()->get_gets();
         $l_dao = $this->get_dao_cmdb();
-        $l_tpl = $this->get_module_request()
-            ->get_template();
+        $l_tpl = $this->get_module_request()->get_template();
 
         $this->remove_ajax_parameters($l_gets);
 
@@ -78,7 +79,7 @@ class isys_cmdb_view_tree_objecttype extends isys_cmdb_view_tree
         }
 
         // Determines types for the specified object type group.
-        $l_typeres = $l_dao->objtype_get_by_objgroup_id($l_gets[C__CMDB__GET__OBJECTGROUP], true);
+        $l_typeres = $l_dao->objtype_get_by_objgroup_id($l_gets[C__CMDB__GET__OBJECTGROUP], true, C__RECORD_STATUS__NORMAL, $displayCounter);
 
         /**
          * This is specifically needed for the new CREATE right for object types.
@@ -97,11 +98,9 @@ class isys_cmdb_view_tree_objecttype extends isys_cmdb_view_tree
 
             if ($l_groupres && $l_groupres->num_rows() > 0) {
                 $l_groupdata = $l_groupres->get_row();
-                $l_roottitle = isys_application::instance()->container->get('language')
-                    ->get($l_groupdata["isys_obj_type_group__title"]);
+                $l_roottitle = $language->get($l_groupdata["isys_obj_type_group__title"]);
             } else {
-                $l_roottitle = isys_application::instance()->container->get('language')
-                    ->get('LC__CMDB__OBJTYPE');
+                $l_roottitle = $language->get('LC__CMDB__OBJTYPE');
             }
 
             $l_root_link = isys_glob_build_ajax_url(C__FUNC__AJAX__CONTENT_BY_OBJECT_GROUP, $l_rootgets);
@@ -127,11 +126,10 @@ class isys_cmdb_view_tree_objecttype extends isys_cmdb_view_tree
                     continue;
                 }
 
-                $l_type_data_arr[isys_application::instance()->container->get('language')
-                    ->get($l_typedata['isys_obj_type__title']) . $l_typedata['isys_obj_type__id']] = $l_typedata;
+                $l_type_data_arr[$language->get($l_typedata['isys_obj_type__title']) . $l_typedata['isys_obj_type__id']] = $l_typedata;
             }
 
-            $l_dao_object_types = new \idoit\Module\Cmdb\Model\CiTypeCache(isys_application::instance()->database);
+            $l_dao_object_types = new \idoit\Module\Cmdb\Model\CiTypeCache(isys_application::instance()->container->get('database'));
 
             /**
              * Assign additional object types to l_type_data_arr that are coming from a create right on these types
@@ -139,12 +137,16 @@ class isys_cmdb_view_tree_objecttype extends isys_cmdb_view_tree
             if (is_array($l_allowed_object_types) && !empty($l_allowed_object_types)) {
                 // Get object counts which we could not retrieve in previous query
 
-                $countSelect = 'SELECT COUNT(isys_obj__id) 
-                    FROM isys_obj WHERE isys_obj__status = ' . $l_dao->convert_sql_int(C__RECORD_STATUS__NORMAL) . ' 
-                    AND isys_obj__isys_obj_type__id = isys_obj_type__id ' .
-                    isys_auth_cmdb_objects::instance()->get_allowed_objects_condition(isys_auth::VIEW);
+                $countSelect = "''";
 
-                $l_objCountSql = 'SELECT isys_obj_type__id, (' . $countSelect . ') AS objectCount 
+                if ($displayCounter) {
+                    $countSelect = '(SELECT COUNT(isys_obj__id) 
+                        FROM isys_obj WHERE isys_obj__status = ' . $l_dao->convert_sql_int(C__RECORD_STATUS__NORMAL) . ' 
+                        AND isys_obj__isys_obj_type__id = isys_obj_type__id 
+                        ' . isys_auth_cmdb_objects::instance()->get_allowed_objects_condition(isys_auth::VIEW) . ')';
+                }
+
+                $l_objCountSql = 'SELECT isys_obj_type__id, ' . $countSelect . ' AS objectCount 
                     FROM isys_obj_type 
                     WHERE isys_obj_type__id IN (' . implode(',', $l_allowed_object_types) . ')';
 
@@ -158,12 +160,10 @@ class isys_cmdb_view_tree_objecttype extends isys_cmdb_view_tree
                     $l_object_type = $l_dao_object_types->get($l_object_type_id);
 
                     if ($l_object_type->groupId == $l_gets[C__CMDB__GET__OBJECTGROUP]) {
-
                         $l_object_type_temp = $l_object_type->toArray($l_object_type->columnMap());
                         $l_object_type_temp['objcount'] = $l_objCountForTypes[$l_object_type_id];
 
-                        $l_type_data_arr[isys_application::instance()->container->get('language')
-                            ->get($l_object_type->title) . $l_object_type->id] = $l_object_type_temp;
+                        $l_type_data_arr[$language->get($l_object_type->title) . $l_object_type->id] = $l_object_type_temp;
                     }
                 }
                 unset($l_object_type_temp);
@@ -194,12 +194,28 @@ class isys_cmdb_view_tree_objecttype extends isys_cmdb_view_tree
                 }
 
                 $l_link = "javascript:tree_obj_type_click('" . $l_typedata["isys_obj_type__id"] . "');";
-                $l_title = isys_glob_escape_string(isys_helper::sanitize_text(isys_application::instance()->container->get('language')
-                    ->get($l_dao->get_objtype_name_by_id_as_string($l_typedata["isys_obj_type__id"]))));
+                $l_title = isys_glob_escape_string(isys_helper::sanitize_text($language->get($l_dao->get_objtype_name_by_id_as_string($l_typedata["isys_obj_type__id"]))));
 
-                $this->m_tree->add_node($l_typedata["isys_obj_type__id"], $l_root,
-                    '<span' . ($l_typedata["objcount"] > 0 ? '' : ' class="obj_noentries"') . '>' . $l_title . '</span> <span>(' . $l_typedata["objcount"] . ')</span>',
-                    $l_link, '', $l_icon, $l_issel, '', '', true, $l_typedata["isys_obj_type__const"]);
+                if ($displayCounter) {
+                    $nodeLabel = '<span' . ($l_typedata["objcount"] > 0 ? '' : ' class="obj_noentries"') . '>' . $l_title . '</span> <span>(' . $l_typedata["objcount"] . ')</span>';
+                } else {
+                    $nodeLabel = '<span>' . $l_title . '</span> <span class="hide">(1)</span>';
+                }
+
+
+                $this->m_tree->add_node(
+                    $l_typedata["isys_obj_type__id"],
+                    $l_root,
+                    $nodeLabel,
+                    $l_link,
+                    '',
+                    $l_icon,
+                    $l_issel,
+                    '',
+                    '',
+                    true,
+                    $l_typedata["isys_obj_type__const"]
+                );
             }
 
             $l_settings = isys_component_dao_user::instance($l_dao->get_database_component())

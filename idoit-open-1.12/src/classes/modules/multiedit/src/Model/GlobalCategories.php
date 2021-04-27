@@ -1,6 +1,7 @@
 <?php
 namespace idoit\Module\Multiedit\Model;
 
+use idoit\Module\Multiedit\Component\Multiedit\Exception\CategoryDataException;
 use isys_component_database;
 use isys_application;
 use isys_cmdb_dao_category;
@@ -26,85 +27,90 @@ class GlobalCategories extends Categories
         $language = $container->get('language');
         $categoryFilterCondition = '';
 
-        $query = "SELECT *, (SELECT isysgui_catg__title FROM isysgui_catg WHERE isysgui_catg__id = main.isysgui_catg__parent) AS parent FROM isysgui_catg main
+        try {
+            $query = "SELECT *, (SELECT isysgui_catg__title FROM isysgui_catg WHERE isysgui_catg__id = main.isysgui_catg__parent) AS parent FROM isysgui_catg main
             INNER JOIN isys_property_2_cat propCat ON propCat.isys_property_2_cat__isysgui_catg__id = main.isysgui_catg__id
             WHERE main.isysgui_catg__type IN ({$supportedCategoriesAsString}) AND main.isysgui_catg__id NOT IN ({$blackListAsString}) AND 
             !LOCATE('_ROOT', main.isysgui_catg__const) AND !LOCATE('_NAGIOS', main.isysgui_catg__const)";
 
-        $filter = $this->getFilter();
+            $filter = $this->getFilter();
 
-        if (!empty($filter->getObjects())) {
-            $query .= ' AND main.isysgui_catg__id IN (
+            if (!empty($filter->getObjects())) {
+                $query .= ' AND main.isysgui_catg__id IN (
                 SELECT DISTINCT isys_obj_type_2_isysgui_catg__isysgui_catg__id FROM isys_obj_type_2_isysgui_catg WHERE isys_obj_type_2_isysgui_catg__isys_obj_type__id IN (
                     SELECT DISTINCT isys_obj__isys_obj_type__id FROM isys_obj WHERE isys_obj__id IN (' . implode(',', $filter->getObjects()) . ')
                 )
             )';
-        }
-        $categories = $filter->getCategories();
-
-        if (!empty($categories)) {
-            $categoryFilterCondition = ' AND main.isysgui_catg__const IN (\'' . implode('\',', $categories) . '\')';
-            if (is_numeric($categories[0])) {
-                $categoryFilterCondition = ' AND main.isysgui_catg__id IN (' . implode(',', $categories) . ')';
             }
-            $query .= $categoryFilterCondition;
-        }
+            $categories = $filter->getCategories();
 
-        // Union SELECT to get all assigned child categories from assigned parents
-        $query .= " UNION SELECT *, (SELECT isysgui_catg__title FROM isysgui_catg WHERE isysgui_catg__id = main.isysgui_catg__parent) AS parent FROM isysgui_catg main
+            if (!empty($categories)) {
+                $categoryFilterCondition = ' AND main.isysgui_catg__const IN (\'' . implode('\',\'', $categories) . '\')';
+                if (is_numeric($categories[0])) {
+                    $categoryFilterCondition = ' AND main.isysgui_catg__id IN (' . implode(',', $categories) . ')';
+                }
+                $query .= $categoryFilterCondition;
+            }
+
+            // Union SELECT to get all assigned child categories from assigned parents
+            $query .= " UNION SELECT *, (SELECT isysgui_catg__title FROM isysgui_catg WHERE isysgui_catg__id = main.isysgui_catg__parent) AS parent FROM isysgui_catg main
             LEFT JOIN isys_property_2_cat propCat ON propCat.isys_property_2_cat__isysgui_catg__id = main.isysgui_catg__id
             WHERE main.isysgui_catg__parent IN (SELECT DISTINCT isysgui_catg__parent FROM isysgui_catg) AND main.isysgui_catg__id NOT IN ({$blackListAsString})";
 
-        if (!empty($filter->getObjects())) {
-            $query .= ' AND main.isysgui_catg__parent IN (
+            if (!empty($filter->getObjects())) {
+                $query .= ' AND main.isysgui_catg__parent IN (
                 SELECT DISTINCT isys_obj_type_2_isysgui_catg__isysgui_catg__id FROM isys_obj_type_2_isysgui_catg WHERE isys_obj_type_2_isysgui_catg__isys_obj_type__id  
                 IN (
                     SELECT DISTINCT isys_obj__isys_obj_type__id FROM isys_obj WHERE isys_obj__id IN (' . implode(',', $filter->getObjects()) . ')
                 )
             )';
-        }
-
-        $query .= $categoryFilterCondition;
-
-        $result = $this->retrieve($query);
-        while ($row = $result->get_row()) {
-            $categoryTitle = $language->get($row['isysgui_catg__title']);
-
-            if (!empty($row['parent'])) {
-                $categoryTitle .= ' (' . $language->get('LC__MULTIEDIT__SUBCATEGORY_OF') . ' ' . $language->get($row['parent']) . ')';
             }
 
-            $this->data[$this->getType() . '_' . $row['isysgui_catg__id'] . ':' . $row['isysgui_catg__class_name']] = $categoryTitle;
-            $this->increment();
-            if ($row['isysgui_catg__list_multi_value'] > 0) {
-                $checkSql = 'SELECT isys_property_2_cat__prop_key FROM isys_property_2_cat
+            $query .= $categoryFilterCondition;
+
+            $result = $this->retrieve($query);
+            while ($row = $result->get_row()) {
+                $categoryTitle = $language->get($row['isysgui_catg__title']);
+
+                if (!empty($row['parent'])) {
+                    $categoryTitle .= ' (' . $language->get('LC__MULTIEDIT__SUBCATEGORY_OF') . ' ' . $language->get($row['parent']) . ')';
+                }
+
+                $this->data[$this->getType() . '_' . $row['isysgui_catg__id'] . ':' . $row['isysgui_catg__class_name']] = $categoryTitle;
+                $this->increment();
+                if ($row['isysgui_catg__list_multi_value'] > 0) {
+                    $checkSql = 'SELECT isys_property_2_cat__prop_key FROM isys_property_2_cat
                         WHERE isys_property_2_cat__cat_const = ' . $this->convert_sql_text($row['isysgui_catg__const']) . '
                             AND isys_property_2_cat__prop_type = ' . $this->convert_sql_int(C__PROPERTY_TYPE__STATIC) . '
                             AND isys_property_2_cat__prop_key != ' . $this->convert_sql_text('description') . '
                             AND isys_property_2_cat__prop_provides & ' . $this->convert_sql_int(C__PROPERTY__PROVIDES__MULTIEDIT);
-                $checkResult = $this->retrieve($checkSql);
-                $numProperties = $checkResult->num_rows();
-                if ($numProperties === 1) {
-                    $propKey = $checkResult->get_row_value('isys_property_2_cat__prop_key');
-                    $catDao = $row['isysgui_catg__class_name']::instance($container->get('database'));
-                    $properties = $catDao->get_properties();
-                    $property = $properties[$propKey];
+                    $checkResult = $this->retrieve($checkSql);
+                    $numProperties = $checkResult->num_rows();
+                    if ($numProperties === 1) {
+                        $propKey = $checkResult->get_row_value('isys_property_2_cat__prop_key');
+                        $catDao = $row['isysgui_catg__class_name']::instance($container->get('database'));
+                        $properties = $catDao->get_properties();
+                        $property = $properties[$propKey];
 
-                    if ((int)$property[C__PROPERTY__INFO][C__PROPERTY__INFO__TYPE] === C__PROPERTY__INFO__TYPE__OBJECT_BROWSER ||
-                        (int)$property[C__PROPERTY__INFO][C__PROPERTY__INFO__TYPE] === C__PROPERTY__INFO__TYPE__N2M) {
+                        if ((int)$property[C__PROPERTY__INFO][C__PROPERTY__INFO__TYPE] === C__PROPERTY__INFO__TYPE__OBJECT_BROWSER ||
+                            (int)$property[C__PROPERTY__INFO][C__PROPERTY__INFO__TYPE] === C__PROPERTY__INFO__TYPE__N2M) {
+                            continue;
+                        }
+                    } elseif ($numProperties === 0) {
+                        // Remove category from list, because there are no properties which are usable for the multiedit list
+                        unset($this->data[$this->getType() . '_' . $row['isysgui_catg__id'] . ':' . $row['isysgui_catg__class_name']]);
+                        $this->decrement();
                         continue;
                     }
-                } elseif ($numProperties === 0) {
-                    // Remove category from list, because there are no properties which are usable for the multiedit list
-                    unset($this->data[$this->getType() . '_' . $row['isysgui_catg__id'] . ':' . $row['isysgui_catg__class_name']]);
-                    $this->decrement();
-                    continue;
-                }
 
-                $this->addToMultivalueCategories($row['isysgui_catg__id']);
+                    $this->addToMultivalueCategories($row['isysgui_catg__id']);
+                }
             }
+
+            return $this;
+        } catch (\Exception $e) {
+            throw new CategoryDataException('Collecting global categories failed in File : ' . $e->getFile() . ' on Line: ' . $e->getLine() . ' with Message: ' . $e->getMessage());
         }
-        return $this;
     }
 
     public function __construct(isys_component_database $p_db)

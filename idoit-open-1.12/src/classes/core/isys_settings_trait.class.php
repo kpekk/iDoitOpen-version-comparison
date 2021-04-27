@@ -58,11 +58,11 @@ trait isys_settings_trait
     /**
      * @static
      *
-     * @param  array $p_settings
+     * @param  array $settings
      */
-    public static function extend(array $p_settings = [])
+    public static function extend(array $settings = [])
     {
-        self::$m_definition += $p_settings;
+        self::$m_definition = array_merge_recursive(self::$m_definition, $settings);
     }
 
     /**
@@ -288,5 +288,4 @@ trait isys_settings_trait
     {
         return isys_format_json::decode($p_data, true);
     }
-
 }

@@ -121,7 +121,10 @@ class Multiselect extends Formatter implements FormatterInterface
             }
         }
 
-        $valueObject->setValue(\isys_format_json::encode($return));
+        $dataValue = (is_countable($return) && count($return) > 1) ?
+            \isys_format_json::encode($return): $return[0];
+
+        $valueObject->setValue($dataValue);
         $valueObject->setViewValue(implode(',', $viewValue));
 
         return $valueObject;

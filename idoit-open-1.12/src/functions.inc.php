@@ -1074,7 +1074,7 @@ function isys_glob_get_mandant_name_as_string($p_id)
 
     $l_strMandatorName = $g_comp_session->get_mandator_name();
 
-    if (isys_strlen($l_strMandatorName) > 0) {
+    if (mb_strlen($l_strMandatorName) > 0) {
         return $l_strMandatorName;
     }
 
@@ -1211,7 +1211,7 @@ function isys_glob_add_to_query($p_key, $p_value, $p_url = null)
         $p_url = $_GET;
     } else {
         /* Remove '?' from the beginning of the delivered query */
-        if (is_string($p_url) && isys_strlen($p_url) && $p_url[0] == "?") {
+        if (is_string($p_url) && mb_strlen($p_url) && $p_url[0] == "?") {
             $p_url = substr($p_url, 1);
         }
 
@@ -1253,8 +1253,8 @@ function isys_glob_cut_string($string, $length = 100, $appendix = "..")
 {
     global $g_config;
 
-    if ($length > 0 && isys_strlen($string) > $length) {
-        $length -= isys_strlen($appendix);
+    if ($length > 0 && mb_strlen($string) > $length) {
+        $length -= mb_strlen($appendix);
 
         if (function_exists('mb_substr')) {
             $l_string = mb_substr($string, 0, $length, $g_config['html-encoding']);
@@ -1798,21 +1798,6 @@ function array_find($needle, array $haystack)
     }
 
     return null;
-}
-
-/**
- * Function which will return the string length. Will use mb_strlen if available.
- *
- * @param   string $p_string
- *
- * @return  integer
- * @author  Leonard Fischer <lfischer@i-doit.com>
- */
-function isys_strlen($p_string)
-{
-    global $g_config;
-
-    return (function_exists('mb_strlen') ? mb_strlen($p_string, $g_config['html-encoding']) : strlen($p_string));
 }
 
 /**

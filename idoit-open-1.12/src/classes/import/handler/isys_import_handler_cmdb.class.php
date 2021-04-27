@@ -4550,6 +4550,10 @@ class isys_import_handler_cmdb extends isys_import_handler
         $validateData = [];
         foreach ($categoryData['properties'] as $key => $data) {
             $validateData[$key] = $data[C__DATA__VALUE];
+
+            if (isset($data['ref_title'])) {
+                $validateData[$key] = $data['ref_title'];
+            }
         } // foreach property
 
         $validationErrors = $dao->validate($validateData);

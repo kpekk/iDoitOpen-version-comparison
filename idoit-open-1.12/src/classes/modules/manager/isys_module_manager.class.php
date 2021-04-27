@@ -1,5 +1,7 @@
 <?php
 
+use idoit\Module\License\LicenseService;
+
 /**
  * i-doit
  *
@@ -812,22 +814,23 @@ class isys_module_manager extends isys_module implements isys_module_interface
                 return $this;
             }
 
+
+
             // Set licence info for licenced modules.
-            // todo licensing 2.0
-            if (isset($_SESSION["licence_data"]) && is_array($_SESSION["licence_data"])) {
-                foreach ($_SESSION["licence_data"] as $l_mod_identifier => $l_licenced) {
-                    $moduleClassName = strtolower('isys_module_' . $l_mod_identifier);
+            if (isset($_SESSION['licensed_addons'])) {
+                foreach ($_SESSION['licensed_addons'] as $identifier => $addon) {
+                    $moduleClassName = strtolower('isys_module_' . $identifier);
                     if (class_exists($moduleClassName)) {
                         if (is_a($moduleClassName, 'idoit\AddOn\LicensableInterface', true)) {
                             /**
                              * @var $moduleClassName idoit\AddOn\LicensableInterface
                              */
-                            $moduleClassName::setLicensed($l_licenced);
+                            $moduleClassName::setLicensed($addon['licensed']);
                         } else {
                             /**
                              * @var $moduleClassName isys_module
                              */
-                            $moduleClassName::set_licenced($l_licenced);
+                            $moduleClassName::set_licenced($addon['licensed']);
                         }
                     }
                 }
@@ -1189,7 +1192,15 @@ class isys_module_manager extends isys_module implements isys_module_interface
             if ($l_module_res->count()) {
                 $l_module_data = $l_module_res->get_row();
 
-                // Check for isys_module_authable
+                // Check for Authable.
+                if (is_a($l_module_data['isys_module__class'], \idoit\AddOn\AuthableInterface::class, true)) {
+                    $this->m_module_auth[$p_module_id] = call_user_func_array([
+                        $l_module_data['isys_module__class'],
+                        'getAuth'
+                    ], []);
+                }
+
+                // Check for isys_module_authable.
                 if (is_a($l_module_data['isys_module__class'], 'isys_module_authable', true)) {
                     $this->m_module_auth[$p_module_id] = call_user_func_array([
                         $l_module_data['isys_module__class'],

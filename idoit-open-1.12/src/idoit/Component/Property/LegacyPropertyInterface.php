@@ -59,6 +59,7 @@ interface LegacyPropertyInterface
     const C__PROPERTY__UI__TYPE__POPUP = 'popup';
     const C__PROPERTY__UI__TYPE__MULTISELECT = 'multiselect';
     const C__PROPERTY__UI__TYPE__TEXT = 'text';
+    const C__PROPERTY__UI__TYPE__LINK = 'link';
     const C__PROPERTY__UI__TYPE__TEXTAREA = 'textarea';
     const C__PROPERTY__UI__TYPE__DIALOG = 'dialog';
     const C__PROPERTY__UI__TYPE__DIALOG_LIST = 'f_dialog_list';

@@ -116,9 +116,16 @@ class isys_cmdb_dao_category_g_power_consumer extends isys_cmdb_dao_category_glo
                 ],
                 C__PROPERTY__DATA => [
                     C__PROPERTY__DATA__FIELD  => 'isys_catg_pc_list__title',
-                    C__PROPERTY__DATA__SELECT => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory('SELECT isys_catg_pc_list__title FROM isys_catg_pc_list',
-                        'isys_catg_pc_list', 'isys_catg_pc_list__id', 'isys_catg_pc_list__isys_obj__id', '', '', null,
-                        idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['isys_catg_pc_list__isys_obj__id']))
+                    C__PROPERTY__DATA__SELECT => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory(
+                        'SELECT isys_catg_pc_list__title FROM isys_catg_pc_list',
+                        'isys_catg_pc_list',
+                        'isys_catg_pc_list__id',
+                        'isys_catg_pc_list__isys_obj__id',
+                        '',
+                        '',
+                        null,
+                        idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['isys_catg_pc_list__isys_obj__id'])
+                    )
                 ],
                 C__PROPERTY__UI   => [
                     C__PROPERTY__UI__ID => 'C__CATG__POWER_CONSUMER__TITLE'
@@ -131,12 +138,19 @@ class isys_cmdb_dao_category_g_power_consumer extends isys_cmdb_dao_category_glo
                 ],
                 C__PROPERTY__DATA     => [
                     C__PROPERTY__DATA__FIELD  => 'isys_catg_pc_list__active',
-                    C__PROPERTY__DATA__SELECT => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory('SELECT (CASE WHEN isys_catg_pc_list__active = \'1\' THEN ' .
+                    C__PROPERTY__DATA__SELECT => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory(
+                        'SELECT (CASE WHEN isys_catg_pc_list__active = \'1\' THEN ' .
                         $this->convert_sql_text('LC__UNIVERSAL__YES') . '
                         	    WHEN isys_catg_pc_list__active = \'0\' THEN ' . $this->convert_sql_text('LC__UNIVERSAL__NO') . ' END)
-                             FROM isys_catg_pc_list', 'isys_catg_pc_list', 'isys_catg_pc_list__id', 'isys_catg_pc_list__isys_obj__id', '', '',
+                             FROM isys_catg_pc_list',
+                        'isys_catg_pc_list',
+                        'isys_catg_pc_list__id',
+                        'isys_catg_pc_list__isys_obj__id',
+                        '',
+                        '',
                         idoit\Module\Report\SqlQuery\Structure\SelectCondition::factory([]),
-                        idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['isys_catg_pc_list__isys_obj__id'])),
+                        idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['isys_catg_pc_list__isys_obj__id'])
+                    ),
                     C__PROPERTY__DATA__JOIN   => [
                         idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory('isys_catg_pc_list', 'LEFT', 'isys_catg_pc_list__isys_obj__id', 'isys_obj__id')
                     ]
@@ -169,15 +183,26 @@ class isys_cmdb_dao_category_g_power_consumer extends isys_cmdb_dao_category_glo
                         'isys_pc_manufacturer',
                         'isys_pc_manufacturer__id'
                     ],
-                    C__PROPERTY__DATA__SELECT       => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory('SELECT isys_pc_manufacturer__title
+                    C__PROPERTY__DATA__SELECT       => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory(
+                        'SELECT isys_pc_manufacturer__title
                             FROM isys_catg_pc_list
-                            INNER JOIN isys_pc_manufacturer ON isys_pc_manufacturer__id = isys_catg_pc_list__isys_pc_manufacturer__id', 'isys_catg_pc_list',
-                        'isys_catg_pc_list__id', 'isys_catg_pc_list__isys_obj__id', '', '', idoit\Module\Report\SqlQuery\Structure\SelectCondition::factory([]),
-                        idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['isys_catg_pc_list__isys_obj__id'])),
+                            INNER JOIN isys_pc_manufacturer ON isys_pc_manufacturer__id = isys_catg_pc_list__isys_pc_manufacturer__id',
+                        'isys_catg_pc_list',
+                        'isys_catg_pc_list__id',
+                        'isys_catg_pc_list__isys_obj__id',
+                        '',
+                        '',
+                        idoit\Module\Report\SqlQuery\Structure\SelectCondition::factory([]),
+                        idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['isys_catg_pc_list__isys_obj__id'])
+                    ),
                     C__PROPERTY__DATA__JOIN         => [
                         idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory('isys_catg_pc_list', 'LEFT', 'isys_catg_pc_list__isys_obj__id', 'isys_obj__id'),
-                        idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory('isys_pc_manufacturer', 'LEFT', 'isys_catg_pc_list__isys_pc_manufacturer__id',
-                            'isys_pc_manufacturer__id')
+                        idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory(
+                            'isys_pc_manufacturer',
+                            'LEFT',
+                            'isys_catg_pc_list__isys_pc_manufacturer__id',
+                            'isys_pc_manufacturer__id'
+                        )
                     ]
                 ],
                 C__PROPERTY__UI       => [
@@ -210,11 +235,18 @@ class isys_cmdb_dao_category_g_power_consumer extends isys_cmdb_dao_category_glo
                         'isys_pc_model',
                         'isys_pc_model__id'
                     ],
-                    C__PROPERTY__DATA__SELECT       => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory('SELECT isys_pc_model__title
+                    C__PROPERTY__DATA__SELECT       => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory(
+                        'SELECT isys_pc_model__title
                             FROM isys_catg_pc_list
-                            INNER JOIN isys_pc_model ON isys_pc_model__id = isys_catg_pc_list__isys_pc_model__id', 'isys_catg_pc_list', 'isys_catg_pc_list__id',
-                            'isys_catg_pc_list__isys_obj__id', '', '', idoit\Module\Report\SqlQuery\Structure\SelectCondition::factory([]),
-                            idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['isys_catg_pc_list__isys_obj__id'])),
+                            INNER JOIN isys_pc_model ON isys_pc_model__id = isys_catg_pc_list__isys_pc_model__id',
+                        'isys_catg_pc_list',
+                        'isys_catg_pc_list__id',
+                            'isys_catg_pc_list__isys_obj__id',
+                        '',
+                        '',
+                        idoit\Module\Report\SqlQuery\Structure\SelectCondition::factory([]),
+                            idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['isys_catg_pc_list__isys_obj__id'])
+                    ),
                         C__PROPERTY__DATA__JOIN         => [
                             idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory('isys_catg_pc_list', 'LEFT', 'isys_catg_pc_list__isys_obj__id', 'isys_obj__id'),
                             idoit\Module\Report\SqlQuery\Structure\SelectJoin::factory('isys_pc_model', 'LEFT', 'isys_catg_pc_list__isys_pc_model__id', 'isys_pc_model__id')
@@ -245,9 +277,16 @@ class isys_cmdb_dao_category_g_power_consumer extends isys_cmdb_dao_category_glo
                     ],
                     C__PROPERTY__DATA => [
                         C__PROPERTY__DATA__FIELD  => 'isys_catg_pc_list__volt',
-                        C__PROPERTY__DATA__SELECT => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory('SELECT isys_catg_pc_list__volt FROM isys_catg_pc_list',
-                            'isys_catg_pc_list', 'isys_catg_pc_list__id', 'isys_catg_pc_list__isys_obj__id', '', '', null,
-                            idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['isys_catg_pc_list__isys_obj__id']))
+                        C__PROPERTY__DATA__SELECT => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory(
+                            'SELECT isys_catg_pc_list__volt FROM isys_catg_pc_list',
+                            'isys_catg_pc_list',
+                            'isys_catg_pc_list__id',
+                            'isys_catg_pc_list__isys_obj__id',
+                            '',
+                            '',
+                            null,
+                            idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['isys_catg_pc_list__isys_obj__id'])
+                        )
                     ],
                     C__PROPERTY__UI   => [
                         C__PROPERTY__UI__ID => 'C__CATG__POWER_CONSUMER__VOLT'
@@ -260,9 +299,16 @@ class isys_cmdb_dao_category_g_power_consumer extends isys_cmdb_dao_category_glo
                     ],
                     C__PROPERTY__DATA => [
                         C__PROPERTY__DATA__FIELD  => 'isys_catg_pc_list__watt',
-                        C__PROPERTY__DATA__SELECT => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory('SELECT isys_catg_pc_list__watt FROM isys_catg_pc_list',
-                            'isys_catg_pc_list', 'isys_catg_pc_list__id', 'isys_catg_pc_list__isys_obj__id', '', '', null,
-                            idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['isys_catg_pc_list__isys_obj__id']))
+                        C__PROPERTY__DATA__SELECT => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory(
+                            'SELECT isys_catg_pc_list__watt FROM isys_catg_pc_list',
+                            'isys_catg_pc_list',
+                            'isys_catg_pc_list__id',
+                            'isys_catg_pc_list__isys_obj__id',
+                            '',
+                            '',
+                            null,
+                            idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['isys_catg_pc_list__isys_obj__id'])
+                        )
                     ],
                     C__PROPERTY__UI   => [
                         C__PROPERTY__UI__ID => 'C__CATG__POWER_CONSUMER__WATT'
@@ -275,9 +321,16 @@ class isys_cmdb_dao_category_g_power_consumer extends isys_cmdb_dao_category_glo
                     ],
                     C__PROPERTY__DATA => [
                         C__PROPERTY__DATA__FIELD  => 'isys_catg_pc_list__ampere',
-                        C__PROPERTY__DATA__SELECT => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory('SELECT isys_catg_pc_list__ampere FROM isys_catg_pc_list',
-                            'isys_catg_pc_list', 'isys_catg_pc_list__id', 'isys_catg_pc_list__isys_obj__id', '', '', null,
-                            idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['isys_catg_pc_list__isys_obj__id']))
+                        C__PROPERTY__DATA__SELECT => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory(
+                            'SELECT isys_catg_pc_list__ampere FROM isys_catg_pc_list',
+                            'isys_catg_pc_list',
+                            'isys_catg_pc_list__id',
+                            'isys_catg_pc_list__isys_obj__id',
+                            '',
+                            '',
+                            null,
+                            idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['isys_catg_pc_list__isys_obj__id'])
+                        )
                     ],
                     C__PROPERTY__UI   => [
                         C__PROPERTY__UI__ID => 'C__CATG__POWER_CONSUMER__AMPERE'
@@ -290,9 +343,16 @@ class isys_cmdb_dao_category_g_power_consumer extends isys_cmdb_dao_category_glo
                 ],
                 C__PROPERTY__DATA     => [
                     C__PROPERTY__DATA__FIELD  => 'isys_catg_pc_list__btu',
-                    C__PROPERTY__DATA__SELECT => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory('SELECT isys_catg_pc_list__btu FROM isys_catg_pc_list',
-                        'isys_catg_pc_list', 'isys_catg_pc_list__id', 'isys_catg_pc_list__isys_obj__id', '', '', null,
-                        idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['isys_catg_pc_list__isys_obj__id']))
+                    C__PROPERTY__DATA__SELECT => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory(
+                        'SELECT isys_catg_pc_list__btu FROM isys_catg_pc_list',
+                        'isys_catg_pc_list',
+                        'isys_catg_pc_list__id',
+                        'isys_catg_pc_list__isys_obj__id',
+                        '',
+                        '',
+                        null,
+                        idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['isys_catg_pc_list__isys_obj__id'])
+                    )
                 ],
                 C__PROPERTY__UI       => [
                     C__PROPERTY__UI__ID => 'C__CATG__POWER_CONSUMER__BTU'
@@ -310,14 +370,21 @@ class isys_cmdb_dao_category_g_power_consumer extends isys_cmdb_dao_category_glo
                     C__PROPERTY__DATA__FIELD       => 'isys_catg_pc_list__isys_catg_connector_list__id',
                     C__PROPERTY__DATA__TABLE_ALIAS => 'output',
                     C__PROPERTY__DATA__FIELD_ALIAS => 'con_connector',
-                    C__PROPERTY__DATA__SELECT      => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory('SELECT CONCAT(isys_obj__title, \' {\', isys_obj__id, \'}\')
+                    C__PROPERTY__DATA__SELECT      => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory(
+                        'SELECT CONCAT(isys_obj__title, \' {\', isys_obj__id, \'}\')
                             FROM isys_catg_pc_list
                             INNER JOIN isys_catg_connector_list con1 ON con1.isys_catg_connector_list__id = isys_catg_pc_list__isys_catg_connector_list__id
                             LEFT JOIN isys_catg_connector_list con2 ON con2.isys_catg_connector_list__isys_cable_connection__id = con1.isys_catg_connector_list__isys_cable_connection__id
                               AND con2.isys_catg_connector_list__id != con1.isys_catg_connector_list__id
-                            INNER JOIN isys_obj ON isys_obj__id = con2.isys_catg_connector_list__isys_obj__id', 'isys_catg_pc_list', 'isys_catg_pc_list__id',
-                        'isys_catg_pc_list__isys_obj__id', '', '', idoit\Module\Report\SqlQuery\Structure\SelectCondition::factory([]),
-                        idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['isys_catg_pc_list__isys_obj__id']))
+                            INNER JOIN isys_obj ON isys_obj__id = con2.isys_catg_connector_list__isys_obj__id',
+                        'isys_catg_pc_list',
+                        'isys_catg_pc_list__id',
+                        'isys_catg_pc_list__isys_obj__id',
+                        '',
+                        '',
+                        idoit\Module\Report\SqlQuery\Structure\SelectCondition::factory([]),
+                        idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['isys_catg_pc_list__isys_obj__id'])
+                    )
                 ],
                 C__PROPERTY__UI       => [
                     C__PROPERTY__UI__ID     => 'C__CATG__POWER_CONSUMER__DEST',
@@ -332,7 +399,7 @@ class isys_cmdb_dao_category_g_power_consumer extends isys_cmdb_dao_category_glo
                     C__PROPERTY__PROVIDES__SEARCH  => false,
                     C__PROPERTY__PROVIDES__REPORT  => true,
                     C__PROPERTY__PROVIDES__LIST    => false,
-                    C__PROPERTY__PROVIDES__VIRTUAL => true
+                    C__PROPERTY__PROVIDES__VIRTUAL => false
                 ],
                 C__PROPERTY__FORMAT   => [
                     C__PROPERTY__FORMAT__CALLBACK => [
@@ -350,13 +417,20 @@ class isys_cmdb_dao_category_g_power_consumer extends isys_cmdb_dao_category_glo
                     C__PROPERTY__DATA__FIELD       => 'isys_catg_pc_list__isys_catg_connector_list__id',
                     C__PROPERTY__DATA__TABLE_ALIAS => 'connected',
                     C__PROPERTY__DATA__FIELD_ALIAS => 'con_connector',
-                    C__PROPERTY__DATA__SELECT      => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory('SELECT con2.isys_catg_connector_list__title
+                    C__PROPERTY__DATA__SELECT      => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory(
+                        'SELECT con2.isys_catg_connector_list__title
                             FROM isys_catg_pc_list
                             INNER JOIN isys_catg_connector_list con1 ON con1.isys_catg_connector_list__id = isys_catg_pc_list__isys_catg_connector_list__id
                             LEFT JOIN isys_catg_connector_list con2 ON con2.isys_catg_connector_list__isys_cable_connection__id = con1.isys_catg_connector_list__isys_cable_connection__id
-                              AND con2.isys_catg_connector_list__id != con1.isys_catg_connector_list__id', 'isys_catg_pc_list', 'isys_catg_pc_list__id',
-                        'isys_catg_pc_list__isys_obj__id', '', '', idoit\Module\Report\SqlQuery\Structure\SelectCondition::factory([]),
-                        idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['isys_catg_pc_list__isys_obj__id'])),
+                              AND con2.isys_catg_connector_list__id != con1.isys_catg_connector_list__id',
+                        'isys_catg_pc_list',
+                        'isys_catg_pc_list__id',
+                        'isys_catg_pc_list__isys_obj__id',
+                        '',
+                        '',
+                        idoit\Module\Report\SqlQuery\Structure\SelectCondition::factory([]),
+                        idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['isys_catg_pc_list__isys_obj__id'])
+                    ),
                     /*
                     C__PROPERTY__DATA__JOIN => idoit\Module\Report\SqlQuery\Structure\JoinSubSelect::factory(
                         'SELECT isys_catg_pc_list__id AS id, isys_catg_pc_list__isys_obj__id AS objectID,
@@ -416,9 +490,16 @@ class isys_cmdb_dao_category_g_power_consumer extends isys_cmdb_dao_category_glo
                 ],
                 C__PROPERTY__DATA => [
                     C__PROPERTY__DATA__FIELD  => 'isys_catg_pc_list__description',
-                    C__PROPERTY__DATA__SELECT => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory('SELECT isys_catg_pc_list__description FROM isys_catg_pc_list',
-                        'isys_catg_pc_list', 'isys_catg_pc_list__id', 'isys_catg_pc_list__isys_obj__id', '', '', null,
-                        idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['isys_catg_pc_list__isys_obj__id']))
+                    C__PROPERTY__DATA__SELECT => idoit\Module\Report\SqlQuery\Structure\SelectSubSelect::factory(
+                        'SELECT isys_catg_pc_list__description FROM isys_catg_pc_list',
+                        'isys_catg_pc_list',
+                        'isys_catg_pc_list__id',
+                        'isys_catg_pc_list__isys_obj__id',
+                        '',
+                        '',
+                        null,
+                        idoit\Module\Report\SqlQuery\Structure\SelectGroupBy::factory(['isys_catg_pc_list__isys_obj__id'])
+                    )
                 ],
                 C__PROPERTY__UI   => [
                     C__PROPERTY__UI__ID => 'C__CMDB__CAT__COMMENTARY_' . C__CMDB__CATEGORY__TYPE_GLOBAL . defined_or_default('C__CATG__POWER_CONSUMER', 'C__CATG__POWER_CONSUMER')
@@ -444,20 +525,47 @@ class isys_cmdb_dao_category_g_power_consumer extends isys_cmdb_dao_category_glo
             $this->m_sync_catg_data = $p_category_data;
             switch ($p_status) {
                 case isys_import_handler_cmdb::C__CREATE:
-                    if (($p_category_data['data_id'] = $this->create($p_object_id, C__RECORD_STATUS__NORMAL, $this->get_property('title'), $this->get_property('manufacturer'),
-                        $this->get_property('model'), $this->get_property('assigned_connector'), null, null, $this->get_property('volt'), $this->get_property('watt'),
-                        $this->get_property('ampere'), $this->get_property('btu'), $this->get_property('description'), $this->get_property('connector_sibling'),
-                        $this->get_property('active')))) {
+                    if (($p_category_data['data_id'] = $this->create(
+                        $p_object_id,
+                        C__RECORD_STATUS__NORMAL,
+                        $this->get_property('title'),
+                        $this->get_property('manufacturer'),
+                        $this->get_property('model'),
+                        $this->get_property('assigned_connector'),
+                        null,
+                        null,
+                        $this->get_property('volt'),
+                        $this->get_property('watt'),
+                        $this->get_property('ampere'),
+                        $this->get_property('btu'),
+                        $this->get_property('description'),
+                        $this->get_property('connector_sibling'),
+                        $this->get_property('active')
+                    ))) {
                         $l_indicator = true;
                     }
                     break;
                 case isys_import_handler_cmdb::C__UPDATE:
                     $l_data = $this->get_data($p_category_data['data_id'])
                         ->get_row();
-                    $l_indicator = $this->save($p_category_data['data_id'], C__RECORD_STATUS__NORMAL, $this->get_property('title'), $this->get_property('manufacturer'),
-                        $this->get_property('model'), $l_data['isys_catg_pc_list__isys_catg_connector_list__id'], $this->get_property('assigned_connector'), null, null,
-                        $this->get_property('volt'), $this->get_property('watt'), $this->get_property('ampere'), $this->get_property('btu'),
-                        $this->get_property('description'), $this->get_property('connector_sibling'), $this->get_property('active'));
+                    $l_indicator = $this->save(
+                        $p_category_data['data_id'],
+                        C__RECORD_STATUS__NORMAL,
+                        $this->get_property('title'),
+                        $this->get_property('manufacturer'),
+                        $this->get_property('model'),
+                        $l_data['isys_catg_pc_list__isys_catg_connector_list__id'],
+                        $this->get_property('assigned_connector'),
+                        null,
+                        null,
+                        $this->get_property('volt'),
+                        $this->get_property('watt'),
+                        $this->get_property('ampere'),
+                        $this->get_property('btu'),
+                        $this->get_property('description'),
+                        $this->get_property('connector_sibling'),
+                        $this->get_property('active')
+                    );
                     break;
             }
         }
@@ -514,11 +622,23 @@ class isys_cmdb_dao_category_g_power_consumer extends isys_cmdb_dao_category_glo
         $l_intErrorCode = -1;
 
         if ($p_create) {
-            $l_id = $this->create($_GET[C__CMDB__GET__OBJECT], C__RECORD_STATUS__NORMAL, $_POST['C__CATG__POWER_CONSUMER__TITLE'],
-                $_POST['C__CATG__POWER_CONSUMER__MANUFACTURER_ID'], $_POST['C__CATG__POWER_CONSUMER__MODEL_ID'], $_POST['C__CATG__POWER_CONSUMER__DEST__HIDDEN'],
-                $_POST['C__CATG__POWER_CONSUMER__DEST__CABLE_NAME'], $_POST['C__CATG__POWER_CONSUMER__CABLE__HIDDEN'], $_POST['C__CATG__POWER_CONSUMER__VOLT'],
-                $_POST['C__CATG__POWER_CONSUMER__WATT'], $_POST['C__CATG__POWER_CONSUMER__AMPERE'], $_POST['C__CATG__POWER_CONSUMER__BTU'],
-                $_POST["C__CMDB__CAT__COMMENTARY_" . $this->get_category_type() . $this->get_category_id()], null, $_POST["C__CATG__POWER_CONSUMER__ACTIVE"]);
+            $l_id = $this->create(
+                $_GET[C__CMDB__GET__OBJECT],
+                C__RECORD_STATUS__NORMAL,
+                $_POST['C__CATG__POWER_CONSUMER__TITLE'],
+                $_POST['C__CATG__POWER_CONSUMER__MANUFACTURER_ID'],
+                $_POST['C__CATG__POWER_CONSUMER__MODEL_ID'],
+                $_POST['C__CATG__POWER_CONSUMER__DEST__HIDDEN'],
+                $_POST['C__CATG__POWER_CONSUMER__DEST__CABLE_NAME'],
+                $_POST['C__CATG__POWER_CONSUMER__CABLE__HIDDEN'],
+                $_POST['C__CATG__POWER_CONSUMER__VOLT'],
+                $_POST['C__CATG__POWER_CONSUMER__WATT'],
+                $_POST['C__CATG__POWER_CONSUMER__AMPERE'],
+                $_POST['C__CATG__POWER_CONSUMER__BTU'],
+                $_POST["C__CMDB__CAT__COMMENTARY_" . $this->get_category_type() . $this->get_category_id()],
+                null,
+                $_POST["C__CATG__POWER_CONSUMER__ACTIVE"]
+            );
 
             $this->m_strLogbookSQL = $this->get_last_query();
 
@@ -531,12 +651,24 @@ class isys_cmdb_dao_category_g_power_consumer extends isys_cmdb_dao_category_glo
             ->__to_array();
         $p_intOldRecStatus = $l_catdata["isys_catg_pc_list__status"];
 
-        $l_bRet = $this->save($l_catdata["isys_catg_pc_list__id"], C__RECORD_STATUS__NORMAL, $_POST['C__CATG__POWER_CONSUMER__TITLE'],
-            $_POST['C__CATG__POWER_CONSUMER__MANUFACTURER_ID'], $_POST['C__CATG__POWER_CONSUMER__MODEL_ID'], $l_catdata["isys_catg_pc_list__isys_catg_connector_list__id"],
-            $_POST['C__CATG__POWER_CONSUMER__DEST__HIDDEN'], $_POST['C__CATG__POWER_CONSUMER__DEST__CABLE_NAME'], $_POST['C__CATG__POWER_CONSUMER__CABLE__HIDDEN'],
-            $_POST['C__CATG__POWER_CONSUMER__VOLT'], $_POST['C__CATG__POWER_CONSUMER__WATT'], $_POST['C__CATG__POWER_CONSUMER__AMPERE'],
-            $_POST['C__CATG__POWER_CONSUMER__BTU'], $_POST["C__CMDB__CAT__COMMENTARY_" . $this->get_category_type() . $this->get_category_id()], null,
-            $_POST["C__CATG__POWER_CONSUMER__ACTIVE"]);
+        $l_bRet = $this->save(
+            $l_catdata["isys_catg_pc_list__id"],
+            C__RECORD_STATUS__NORMAL,
+            $_POST['C__CATG__POWER_CONSUMER__TITLE'],
+            $_POST['C__CATG__POWER_CONSUMER__MANUFACTURER_ID'],
+            $_POST['C__CATG__POWER_CONSUMER__MODEL_ID'],
+            $l_catdata["isys_catg_pc_list__isys_catg_connector_list__id"],
+            $_POST['C__CATG__POWER_CONSUMER__DEST__HIDDEN'],
+            $_POST['C__CATG__POWER_CONSUMER__DEST__CABLE_NAME'],
+            $_POST['C__CATG__POWER_CONSUMER__CABLE__HIDDEN'],
+            $_POST['C__CATG__POWER_CONSUMER__VOLT'],
+            $_POST['C__CATG__POWER_CONSUMER__WATT'],
+            $_POST['C__CATG__POWER_CONSUMER__AMPERE'],
+            $_POST['C__CATG__POWER_CONSUMER__BTU'],
+            $_POST["C__CMDB__CAT__COMMENTARY_" . $this->get_category_type() . $this->get_category_id()],
+            null,
+            $_POST["C__CATG__POWER_CONSUMER__ACTIVE"]
+        );
 
         $this->m_strLogbookSQL = $this->get_last_query();
 
@@ -582,8 +714,17 @@ class isys_cmdb_dao_category_g_power_consumer extends isys_cmdb_dao_category_glo
     ) {
         $l_daoConnector = new isys_cmdb_dao_category_g_connector($this->m_db);
         $l_daoCableConnection = new isys_cmdb_dao_cable_connection($this->m_db);
-        $l_connectorRearID = $l_daoConnector->create($p_objID, C__CONNECTOR__INPUT, null, null, $p_title, $p_description, $p_connector_sibling, null,
-            "C__CATG__POWER_CONSUMER");
+        $l_connectorRearID = $l_daoConnector->create(
+            $p_objID,
+            C__CONNECTOR__INPUT,
+            null,
+            null,
+            $p_title,
+            $p_description,
+            $p_connector_sibling,
+            null,
+            "C__CATG__POWER_CONSUMER"
+        );
 
         if ($p_connectorAheadID != null) {
             // If the cable-id is empty, we create a new cable with a nice name.
@@ -678,8 +819,12 @@ class isys_cmdb_dao_category_g_power_consumer extends isys_cmdb_dao_category_glo
 
             if ($p_connectorRearID != $p_connectorAheadID) {
                 $l_dao_cable_con = isys_cmdb_dao_cable_connection::instance(isys_application::instance()->database);
-                $l_cable_connection_id = $l_dao_cable_con->handle_cable_connection_detachment($l_dao_cable_con->get_cable_connection_id_by_connector_id($p_connectorRearID),
-                    $p_connectorRearID, $p_connectorAheadID, $p_cableID);
+                $l_cable_connection_id = $l_dao_cable_con->handle_cable_connection_detachment(
+                    $l_dao_cable_con->get_cable_connection_id_by_connector_id($p_connectorRearID),
+                    $p_connectorRearID,
+                    $p_connectorAheadID,
+                    $p_cableID
+                );
                 $l_dao_cable_con->handle_cable_connection_attachment($p_connectorRearID, $p_connectorAheadID, $p_cableID, ($p_cableName ?: $p_title), $l_cable_connection_id);
             }
         }

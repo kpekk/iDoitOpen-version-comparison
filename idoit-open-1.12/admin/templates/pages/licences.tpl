@@ -9,10 +9,12 @@
 	<div class="error mb10">
 		<table cellspacing="4">
 			<colgroup><col width="100" /></colgroup>
+            [{if isset($errorcode)}]
 			<tr>
 				<td class="bold">Error-Code:</td>
 				<td>[{$errorcode}]</td>
 			</tr>
+            [{/if}]
 			<tr>
 				<td class="bold">Error:</td>
 				<td>[{$error}]</td>
@@ -33,24 +35,13 @@
 			<fieldset>
 				<legend class="bold text-shadow">Add a new licence</legend>
 
-				<p>
-					<strong>Licence Type:</strong><br /><br />
-					&nbsp;&nbsp;<label><input type="radio" name="licence_type" checked="checked" value="subscription" onclick="$('mandator_licence').show();" /> Subscription</label>
-					&nbsp;&nbsp;<label><input type="radio" name="licence_type" value="hosting" onclick="$('mandator_licence').hide();" /> Multi-tenant</label>
-					&nbsp;&nbsp;<label><input type="radio" name="licence_type" value="buyers" onclick="$('mandator_licence').show();" /> Buyers licence</label>
-					&nbsp;&nbsp;<label><input type="radio" name="licence_type" value="buyers-hosting" onclick="$('mandator_licence').hide();" /> Multi-tenant buyers licence</label>
-				</p>
-
 				<table class="contentTable" width="100%">
 					<colgroup><col width="160" /></colgroup>
-					<tr id="mandator_licence">
-						<td class="bold">Install into tenant:</td>
-						<td>[{html_options name="mandator" options=$mandators}]</td>
-					</tr>
 					<tr>
-						<td class="bold">Licence file:</td>
+						<td class="bold" valign="top">Licence file:</td>
 						<td>
-						<input type="file" name="licence_file" />
+						    <input type="file" name="licence_file" /><br /><br />
+                            <textarea name="license_file_raw" style="margin: 0px; width: 263px; height: 133px;"></textarea>
 						</td>
 					</tr>
 				</table>

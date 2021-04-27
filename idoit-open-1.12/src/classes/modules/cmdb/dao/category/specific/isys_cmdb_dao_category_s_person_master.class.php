@@ -751,6 +751,16 @@ class isys_cmdb_dao_category_s_person_master extends isys_cmdb_dao_category_s_pe
 
             if ($p_status === isys_import_handler_cmdb::C__CREATE || $p_status === isys_import_handler_cmdb::C__UPDATE) {
                 // Save category data:
+                $organization = null;
+
+                if (isset($p_category_data['properties']['organization'][C__DATA__VALUE])) {
+                    $organization = trim($p_category_data['properties']['organization'][C__DATA__VALUE]);
+                }
+
+                // @see  ID-6713  This can happen during duplication of an object, this contact is assigned to.
+                if ($organization === '' && isset($p_category_data['properties']['organization_title'][C__DATA__VALUE])) {
+                    $organization = trim($p_category_data['properties']['organization_title'][C__DATA__VALUE]);
+                }
 
                 /**
                  * Handle organization assignment
@@ -759,27 +769,22 @@ class isys_cmdb_dao_category_s_person_master extends isys_cmdb_dao_category_s_pe
                  */
                 $l_dao_orga = isys_factory_dao::get_instance('isys_cmdb_dao_category_s_organization_master', ($this->get_database_component()));
 
-                if (isset($p_category_data['properties']['organization'][C__DATA__VALUE]) && strlen($p_category_data['properties']['organization'][C__DATA__VALUE]) > 0) {
+                if ($organization !== '') {
                     // Don't assign anything if object does not exist
-                    if (is_numeric($p_category_data['properties']['organization'][C__DATA__VALUE])) {
-                        if (!$this->obj_exists($p_category_data['properties']['organization'][C__DATA__VALUE])) {
-                            $p_category_data['properties']['organization'][C__DATA__VALUE] = null;
+                    if (is_numeric($organization)) {
+                        if (!$this->obj_exists($organization)) {
+                            $organization = null;
                         }
-                    } // Try to find organization by title
-                    else {
-                        $l_orga = trim($p_category_data['properties']['organization'][C__DATA__VALUE]);
-                        if ($l_orga != '') {
-                            $p_category_data['properties']['organization'][C__DATA__VALUE] = $l_dao_orga->get_object_id_by_title($l_orga, true);
-                        } else {
-                            $p_category_data['properties']['organization'][C__DATA__VALUE] = null;
-                        }
+                    } else {
+                        // Try to find organization by title.
+                        $organization = $l_dao_orga->get_object_id_by_title($organization, true);
                     }
                 }
 
                 // @See ID-4336: If first_name and last_name is empty than use the object title
-                if ($l_data && isset($l_data['isys_obj__title']) && empty($p_category_data['properties']['first_name'][C__DATA__VALUE]) &&
-                    empty($p_category_data['properties']['last_name'][C__DATA__VALUE])) {
+                if ($l_data && isset($l_data['isys_obj__title']) && empty($p_category_data['properties']['first_name'][C__DATA__VALUE]) && empty($p_category_data['properties']['last_name'][C__DATA__VALUE])) {
                     $p_category_data['properties']['first_name'][C__DATA__VALUE] = $l_data['isys_obj__title'];
+
                     if (strpos($l_data['isys_obj__title'], ' ') !== false) {
                         $p_category_data['properties']['first_name'][C__DATA__VALUE] = substr($l_data['isys_obj__title'], 0, strpos($l_data['isys_obj__title'], ' '));
                         $p_category_data['properties']['last_name'][C__DATA__VALUE] = substr($l_data['isys_obj__title'], strpos($l_data['isys_obj__title'], ' ') + 1);
@@ -796,7 +801,7 @@ class isys_cmdb_dao_category_s_person_master extends isys_cmdb_dao_category_s_pe
                     $p_category_data['properties']['phone_mobile'][C__DATA__VALUE],
                     $p_category_data['properties']['fax'][C__DATA__VALUE],
                     $p_category_data['properties']['department'][C__DATA__VALUE],
-                    $p_category_data['properties']['organization'][C__DATA__VALUE],
+                    $organization,
                     $p_category_data['properties']['description'][C__DATA__VALUE],
                     $p_category_data['properties']['ldap_id'][C__DATA__VALUE],
                     $p_category_data['properties']['ldap_dn'][C__DATA__VALUE],
@@ -814,17 +819,24 @@ class isys_cmdb_dao_category_s_person_master extends isys_cmdb_dao_category_s_pe
 
                 $this->set_source_table('isys_cats_person_list');
 
-                // Save custom properties
-                $this->save_custom_properties($p_category_data['data_id'], [
-                    'C__CONTACT__CUSTOM1' => $p_category_data['properties']['custom_1']['value'],
-                    'C__CONTACT__CUSTOM2' => $p_category_data['properties']['custom_2']['value'],
-                    'C__CONTACT__CUSTOM3' => $p_category_data['properties']['custom_3']['value'],
-                    'C__CONTACT__CUSTOM4' => $p_category_data['properties']['custom_4']['value'],
-                    'C__CONTACT__CUSTOM5' => $p_category_data['properties']['custom_5']['value'],
-                    'C__CONTACT__CUSTOM6' => $p_category_data['properties']['custom_6']['value'],
-                    'C__CONTACT__CUSTOM7' => $p_category_data['properties']['custom_7']['value'],
-                    'C__CONTACT__CUSTOM8' => $p_category_data['properties']['custom_8']['value']
-                ]);
+                // @see  ID-6713  Only write the custom properties if at least one is set.
+                $customKeys = array_filter($p_category_data['properties'], function ($key) {
+                    return strpos($key, 'custom_') === 0;
+                }, ARRAY_FILTER_USE_KEY);
+
+                if (!empty($customKeys)) {
+                    // Save custom properties
+                    $this->save_custom_properties($p_category_data['data_id'], [
+                        'C__CONTACT__CUSTOM1' => $p_category_data['properties']['custom_1']['value'],
+                        'C__CONTACT__CUSTOM2' => $p_category_data['properties']['custom_2']['value'],
+                        'C__CONTACT__CUSTOM3' => $p_category_data['properties']['custom_3']['value'],
+                        'C__CONTACT__CUSTOM4' => $p_category_data['properties']['custom_4']['value'],
+                        'C__CONTACT__CUSTOM5' => $p_category_data['properties']['custom_5']['value'],
+                        'C__CONTACT__CUSTOM6' => $p_category_data['properties']['custom_6']['value'],
+                        'C__CONTACT__CUSTOM7' => $p_category_data['properties']['custom_7']['value'],
+                        'C__CONTACT__CUSTOM8' => $p_category_data['properties']['custom_8']['value']
+                    ]);
+                }
             }
         }
 

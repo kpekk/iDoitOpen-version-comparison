@@ -42,6 +42,7 @@ class ObjectBrowser extends Formatter implements FormatterInterface
         $key = $valueFormatter->getPropertyKey();
         $property = $valueFormatter->getProperty();
         $objectId = $valueFormatter->getObjectId();
+        $multivalueCategoryWithMultiselection = false;
 
         list($class, $propKey) = explode('__', $key);
 
@@ -84,6 +85,8 @@ class ObjectBrowser extends Formatter implements FormatterInterface
 
                     if ($join->getOnLeftAlias() === '') {
                         $join->setOnLeftAlias($idFieldAlias);
+                    } else {
+                        $idFieldAlias = $join->getTableAlias();
                     }
                     $firstAlias = $join->getOnLeftAlias();
                     $firstTable = $join->getTable();
@@ -92,7 +95,7 @@ class ObjectBrowser extends Formatter implements FormatterInterface
                     if ($join->getOnRightAlias() === '') {
                         $join->setOnRightAlias($idFieldAlias);
                     } else {
-                        $idFieldAlias = $join->getOnRightAlias();
+                        $idFieldAlias = $join->getTableAlias();
                     }
 
                     if ($join->getOnLeftAlias() === '') {
@@ -104,7 +107,7 @@ class ObjectBrowser extends Formatter implements FormatterInterface
                     $titleField = $join->getTable() . '__title';
                 }
 
-                $tables[] = $join->getTable();
+                $tables[] = ($join->getTableAlias() ? $join->getTableAlias() . '.': '') . $join->getTable();
                 $aliase[] = $idFieldAlias;
 
                 if ($join->getTableAlias() === '') {
@@ -149,7 +152,6 @@ class ObjectBrowser extends Formatter implements FormatterInterface
                             $matchTable = substr($match, 0, strpos($match, '__'));
                             $matchField = $replaceField = substr($match, 0, strpos($match, ' '));
                             if (strpos($matchTable, '.') !== false) {
-                                $matchTable = substr($matchTable, strpos($matchTable, '.') + 1);
                                 $matchField = substr($matchField, strpos($match, '.') + 1);
                             }
 
@@ -180,11 +182,12 @@ class ObjectBrowser extends Formatter implements FormatterInterface
 
             $selectCondition->addCondition("AND {$rootAlias}.isys_obj__id = '{$objectId}'");
 
-            if (!($dao instanceof ObjectBrowserReceiver)) {
+            if (!($dao instanceof ObjectBrowserReceiver) && $property->getUi()->getParams()['p_strPopupType'] !== 'browser_cable_connection_ng') {
                 $selectCondition->setCondition(["{$rootAlias}.isys_obj__id = '{$objectId}'"]);
+                $multivalueCategoryWithMultiselection = $dao->is_multivalued() && (bool)$propertyParams['multiselection'];
             }
 
-            if (!$propertyParams['multiselection'] || (isset($references[0]) && strncmp(strrev($references[0]), 'tsil_', 5) === 0)) {
+            if (!$propertyParams['multiselection'] || $multivalueCategoryWithMultiselection || (isset($references[0]) && strncmp(strrev($references[0]), 'tsil_', 5) === 0)) {
                 if ($valueFormatter->getEntryId()) {
                     if ($firstTable === 'isys_connection') {
                         $index = (int)array_search($firstTable, $tables) + 1;

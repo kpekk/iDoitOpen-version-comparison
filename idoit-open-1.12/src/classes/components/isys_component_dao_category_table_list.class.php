@@ -29,4 +29,41 @@ class isys_component_dao_category_table_list extends isys_cmdb_dao_list
 
         return $instance;
     }
+
+    /**
+     * Get counts of entries in several status
+     *
+     * @return array Counts of several status
+     * @throws isys_exception_dao_cmdb
+     */
+    public function get_rec_counts()
+    {
+        if ($this->m_rec_counts) {
+            return $this->m_rec_counts;
+        } else {
+            /**
+             * Check whether objectId is set - otherwise prevent querying all data
+             *
+             * @see ID-6355
+             */
+            if (isset($_GET[C__CMDB__GET__OBJECT])) {
+                $l_normal = $this->get_result(null, $_GET[C__CMDB__GET__OBJECT], C__RECORD_STATUS__NORMAL);
+                $l_archived = $this->get_result(null, $_GET[C__CMDB__GET__OBJECT], C__RECORD_STATUS__ARCHIVED);
+                $l_deleted = $this->get_result(null, $_GET[C__CMDB__GET__OBJECT], C__RECORD_STATUS__DELETED);
+            }
+
+            $this->m_rec_counts = [
+                C__RECORD_STATUS__NORMAL   => ($l_normal) ? $l_normal->num_rows() : 0,
+                C__RECORD_STATUS__ARCHIVED => ($l_archived) ? $l_archived->num_rows() : 0,
+                C__RECORD_STATUS__DELETED  => ($l_deleted) ? $l_deleted->num_rows() : 0,
+            ];
+
+            if (defined("C__TEMPLATE__STATUS") && C__TEMPLATE__STATUS == 1) {
+                $l_template = $this->get_result(null, $_GET[C__CMDB__GET__OBJECT], C__RECORD_STATUS__TEMPLATE);
+                $this->m_rec_counts[C__RECORD_STATUS__TEMPLATE] = ($l_template) ? $l_template->num_rows() : 0;
+            }
+
+            return $this->m_rec_counts;
+        }
+    }
 }

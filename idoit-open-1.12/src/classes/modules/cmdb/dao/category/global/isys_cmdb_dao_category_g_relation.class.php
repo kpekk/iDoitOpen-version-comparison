@@ -386,7 +386,7 @@ class isys_cmdb_dao_category_g_relation extends isys_cmdb_dao_category_global
         }
 
         if ($p_catg_id > 0 && !empty($p_category_table)) {
-            $relationType = $this->get_relation_type($p_relation_type);
+            $relationType = $this->get_relation_type($p_relation_type, null, true);
 
             if ($this->get_objtype_configuration($p_obj_slave) && $relationType['isys_relation_type__const'] === null &&
                 $relationType['isys_relation_type__type'] !== C__RELATION__EXPLICIT) {

@@ -43,9 +43,6 @@ class isys_cmdb_dao_category_g_assigned_workstation extends isys_cmdb_dao_catego
     {
         $l_properties = isys_cmdb_dao_category_g_logical_unit::properties();
 
-        /* Reset commentary id to the right identificator */
-        $l_properties['parent'][C__PROPERTY__UI][C__PROPERTY__UI__PARAMS]['catFilter'] = 'C__CATG__ASSIGNED_LOGICAL_UNIT';
-
         /**
          * @var idoit\Module\Report\SqlQuery\Structure\SelectSubSelect $l_selectSubSelect
          */

@@ -108,7 +108,7 @@ class isys_cmdb_dao_dialog extends isys_cmdb_dao
 
         $l_title_lower = trim(strtolower($p_title));
         if (isset($this->m_cache[$this->m_table])) {
-            foreach ($this->m_cache[$this->m_table] AS $l_data) {
+            foreach ($this->m_cache[$this->m_table] as $l_data) {
                 $l_data_lower_title = isset($l_data['title_lower'])
                     ? $l_data['title_lower']
                     : strtolower((isset($l_data['title'])
@@ -298,5 +298,19 @@ class isys_cmdb_dao_dialog extends isys_cmdb_dao
         }
 
         return (bool) $this->retrieve($sql . ';')->get_row_value('count');
+    }
+
+    /**
+     * Appends data to the cache
+     *
+     * @param string $table
+     * @param int    $id
+     * @param array  $data
+     */
+    public function appendToCache($id, array $data, $table = null)
+    {
+        $table = $table ?: $this->m_table;
+        $this->m_cache[$table][$id] = $data;
+        return $this;
     }
 }

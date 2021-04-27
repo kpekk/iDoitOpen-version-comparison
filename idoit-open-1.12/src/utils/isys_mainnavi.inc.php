@@ -40,9 +40,9 @@ if (defined('C__MAINMENU__CMDB_EXPLORER') && $_GET[C__CMDB__GET__VIEWMODE] == C_
 } else {
     if (!isset($_GET[C__GET__MODULE_ID]) || $_GET[C__GET__MODULE_ID] == defined_or_default('C__MODULE__CMDB')) {
         if (isset($_GET[C__CMDB__GET__OBJECTGROUP])) {
-            $l_activeMainMenuItem = $_GET[C__CMDB__GET__OBJECTGROUP] . '0';
+            $l_activeMainMenuItem = (int)$_GET[C__CMDB__GET__OBJECTGROUP] . '0';
         } elseif (isset($_GET[C__CMDB__GET__OBJECTTYPE])) {
-            $l_activeMainMenuItem = $g_menu->get_active_menu_by_objtype_as_constant($_GET[C__CMDB__GET__OBJECTTYPE]);
+            $l_activeMainMenuItem = $g_menu->get_active_menu_by_objtype_as_constant((int)$_GET[C__CMDB__GET__OBJECTTYPE]);
         }
         /*else {
             $l_activeMainMenuItem = C__OBJTYPE_GROUP__INFRASTRUCTURE . '0';

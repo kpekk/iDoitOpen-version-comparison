@@ -1,4 +1,7 @@
 <?php
+
+use idoit\Module\License\LicenseService;
+
 /**
  * @author     Dennis Stuecken
  * @package    i-doit
@@ -18,6 +21,8 @@ define("DUMPFILE", $g_absdir . "/setup/sql/idoit_data.sql");
 
 global $g_comp_database_system;
 $l_dao_mandator = new isys_component_dao_mandator($g_comp_database_system);
+
+global $licenseService;
 
 if (file_exists($g_absdir . "/setup/functions.inc.php")) {
     include_once $g_absdir . "/setup/functions.inc.php";
@@ -88,6 +93,7 @@ try {
 						isys_mandator__db_name = " . $l_dao_mandator->convert_sql_text($_POST["mandator_database"]) . ",
 						isys_mandator__dir_cache = " . $l_dao_mandator->convert_sql_text('cache_' . filter_directory_name($_POST["mandator_cache_dir"])) . ",
 						isys_mandator__sort = " . $l_dao_mandator->convert_sql_int($_POST["mandator_sort"]) . ",
+						isys_mandator__license_objects = " . $l_dao_mandator->convert_sql_int($_POST["license_objects"]) . ",
 						isys_mandator__db_user = " . $l_dao_mandator->convert_sql_text($_POST["mandator_username"]);
 
                     if ($_POST["change_pass"]) {
@@ -108,6 +114,11 @@ try {
                     "error"   => $l_error,
                     "message" => $l_message
                 ];
+
+                $licenseService->getEventDispatcher()->dispatch(
+                    \idoit\Module\License\Event\Tenant\TenantUpdatedEvent::NAME,
+                    new \idoit\Module\License\Event\Tenant\TenantUpdatedEvent()
+                );
 
                 header("Content-Type: application/json");
                 echo json_encode($l_response);
@@ -141,6 +152,11 @@ try {
                             if ($l_dao_mandator->delete($l_id)) {
                                 $l_message = "Tenant(s) successfully deleted.";
                                 $l_error = false;
+
+                                $licenseService->getEventDispatcher()->dispatch(
+                                    \idoit\Module\License\Event\Tenant\TenantDeletedEvent::NAME,
+                                    new \idoit\Module\License\Event\Tenant\TenantDeletedEvent()
+                                );
                             }
                         } else {
                             $l_message = "Tenant with id '" . $l_id . "' not found.";
@@ -160,6 +176,11 @@ try {
                                     if ($l_dao_mandator->deactivate_mandator($l_id)) {
                                         $l_message = "Tenant(s) successfully deactivated.";
                                         $l_error = false;
+
+                                        $licenseService->getEventDispatcher()->dispatch(
+                                            \idoit\Module\License\Event\Tenant\TenantDeactivatedEvent::NAME,
+                                            new \idoit\Module\License\Event\Tenant\TenantDeactivatedEvent()
+                                        );
                                     }
                                 }
                             } elseif (!$l_error) {
@@ -171,6 +192,11 @@ try {
                                 if ($l_dao_mandator->activate_mandator($l_id)) {
                                     $l_message = "Tenant(s) successfully activated.";
                                     $l_error = false;
+
+                                    $licenseService->getEventDispatcher()->dispatch(
+                                        \idoit\Module\License\Event\Tenant\TenantActivatedEvent::NAME,
+                                        new \idoit\Module\License\Event\Tenant\TenantActivatedEvent()
+                                    );
                                 }
                             }
                         }
@@ -193,8 +219,63 @@ try {
 
             break;
         case "list":
+            if ($_POST["action"] === 'updateLicenseInformation') {
+                $l_message = '';
+
+                try {
+                    $counts = isys_format_json::decode($_POST['license_object_counts']);
+
+                    isys_settings::set('admin.active_license_distribution', ($_POST['active_license_distribution'] === 'true' ? 1 : 0));
+
+                    $licenseService->setLicenseObjectsForTenants($counts, array_keys($counts));
+
+                    $l_message = "Successfully updated.";
+                } catch (Exception $e) {
+                    $l_error = true;
+                    $l_message = $e->getMessage();
+                }
+
+                $l_response = [
+                    "error"   => $l_error,
+                    "message" => $l_message
+                ];
+
+                $licenseService->getEventDispatcher()->dispatch(
+                    \idoit\Module\License\Event\Tenant\TenantUpdatedEvent::NAME,
+                    new \idoit\Module\License\Event\Tenant\TenantUpdatedEvent()
+                );
+
+                header("Content-Type: application/json");
+                echo json_encode($l_response);
+
+                die;
+            }
+
             $l_tenants = $l_dao_mandator->get_mandator(null, 0);
+
+            $l_tenants_objects = $l_dao_mandator->get_mandator(null, 0);
+
+            $mandatorObjectCount = [];
+            $mandatorObjectCountTotal = 0;
+            $totalObjects = $licenseService->getTotalObjects();
+
+            while ($tenant = $l_tenants_objects->get_row()) {
+                $tenantDatabase = connect_mandator($tenant['isys_mandator__id']);
+                $statisticsDao = new isys_statistics_dao($tenantDatabase, isys_cmdb_dao::instance($tenantDatabase));
+                $mandatorObjectCount[$tenant['isys_mandator__id']] = $statisticsDao->count_objects();
+
+                $mandatorObjectCountTotal += $mandatorObjectCount[$tenant['isys_mandator__id']];
+            }
+
+            $totalTenants = $licenseService->getTotalTenants();
+
             $l_template->assign("mandators", $l_tenants);
+            $l_template->assign("mandatorObjectCount", $mandatorObjectCount);
+            $l_template->assign("totalLicenseObjects", $totalObjects);
+            $l_template->assign("totalTenants", $totalTenants);
+            $l_template->assign("remainingTenants", $totalTenants - count($l_tenants));
+            $l_template->assign("remaningLicenseObjects", $totalObjects - $mandatorObjectCountTotal);
+            $l_template->assign("activeLicenseDistribution", isys_settings::get('admin.active_license_distribution', 1));
             $l_template->display($g_absdir . "/admin/templates/pages/mandator_list.tpl");
             die;
             break;
@@ -265,6 +346,11 @@ try {
                         $l_message = "Tenant \"<strong>" . $l_tenant_title . "</strong>\" successfully created.";
                     }
 
+                    $licenseService->getEventDispatcher()->dispatch(
+                        \idoit\Module\License\Event\Tenant\TenantBeforeAddedEvent::NAME,
+                        new \idoit\Module\License\Event\Tenant\TenantBeforeAddedEvent()
+                    );
+
                     // Adding mandator.
                     $l_result = add_mandator(
                         $l_tenant_title,
@@ -278,7 +364,8 @@ try {
                         $l_tenant_pass,
                         $l_sort + 1,
                         $g_db_system["name"],
-                        $g_dbLink
+                        $g_dbLink,
+                        $_POST['license_objects']
                     );
 
                     if (!$l_result) {
@@ -316,6 +403,16 @@ try {
                         "error"   => false,
                         "message" => $l_message
                     ];
+
+                    $lastTenant = $g_comp_database_system->retrieveArrayFromResource(
+                        $g_comp_database_system->query('SELECT isys_mandator__id FROM isys_mandator WHERE TRUE ORDER BY isys_mandator__id DESC LIMIT 1;')
+                    );
+
+                    $licenseService->getEventDispatcher()->dispatch(
+                        \idoit\Module\License\Event\Tenant\TenantAddedEvent::NAME,
+                        new \idoit\Module\License\Event\Tenant\TenantAddedEvent($lastTenant[0]['isys_mandator__id'])
+                    );
+
                     header("Content-Type: application/json");
                     echo json_encode($l_response);
                     die;
@@ -341,5 +438,27 @@ try {
 
 $l_tenants = $l_dao_mandator->get_mandator(null, 0);
 
+$l_tenants_objects = $l_dao_mandator->get_mandator(null, 0);
+
+$mandatorObjectCount = [];
+$mandatorObjectCountTotal = 0;
+$totalObjects = $licenseService->getTotalObjects();
+
+while ($tenant = $l_tenants_objects->get_row()) {
+    $tenantDatabase = connect_mandator($tenant['isys_mandator__id']);
+    $statisticsDao = new isys_statistics_dao($tenantDatabase, isys_cmdb_dao::instance($tenantDatabase));
+    $mandatorObjectCount[$tenant['isys_mandator__id']] = $statisticsDao->count_objects();
+
+    $mandatorObjectCountTotal += $mandatorObjectCount[$tenant['isys_mandator__id']];
+}
+
+$totalTenants = $licenseService->getTotalTenants();
+
 $l_template->assign("mandators", $l_tenants);
+$l_template->assign("mandatorObjectCount", $mandatorObjectCount);
 $l_template->assign("db_conf", $g_db_system);
+$l_template->assign("totalLicenseObjects", $totalObjects);
+$l_template->assign("totalTenants", $totalTenants);
+$l_template->assign("remainingTenants", $totalTenants - count($l_tenants));
+$l_template->assign("activeLicenseDistribution", isys_settings::get('admin.active_license_distribution', 1));
+$l_template->assign("remaningLicenseObjects", $totalObjects - $mandatorObjectCountTotal);

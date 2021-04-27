@@ -6,12 +6,52 @@
  * @package     i-doit
  * @subpackage  Reports
  * @author      Van Quyen Hoang <qhoang@i-doit.com>
- * @version     1.4.9
  * @copyright   synetics GmbH
  * @license     http://www.gnu.org/licenses/agpl-3.0.html GNU AGPLv3
  */
 class isys_report_view_cmdb_changes extends isys_report_view
 {
+    /**
+     * @return string
+     */
+    public static function name()
+    {
+        return 'LC__REPORT__VIEW__CMDB_CHANGES__TITLE';
+    }
+
+    /**
+     * @return string
+     */
+    public static function description()
+    {
+        return 'LC__REPORT__VIEW__CMDB_CHANGES__DESCRIPTION';
+    }
+
+    /**
+     * @return string
+     */
+    public function template()
+    {
+        return isys_module_report::getPath() . 'templates/view_cmdb_changes.tpl';
+    }
+
+    /**
+     * @return string
+     */
+    public static function viewtype()
+    {
+        return 'LC__REPORT__VIEW_TYPE__CMDB_CHANGES';
+    }
+
+    /**
+     *
+     */
+    public function start()
+    {
+        $this->template->activate_editmode()
+            ->assign('page_limit', isys_glob_get_pagelimit())
+            ->assign('ajax_url', isys_glob_add_to_query('ajax', 1));
+    }
 
     /**
      * @throws \idoit\Exception\JsonException
@@ -20,12 +60,7 @@ class isys_report_view_cmdb_changes extends isys_report_view
     {
         global $g_dirs;
 
-        $l_database = isys_application::instance()->database;
-
-        /**
-         * @var $l_dao isys_cmdb_dao
-         */
-        $l_dao = isys_cmdb_dao::instance($l_database);
+        $l_dao = isys_cmdb_dao::instance($this->database);
         $l_return = [
             'data'    => [],
             'success' => false
@@ -35,19 +70,14 @@ class isys_report_view_cmdb_changes extends isys_report_view
         // Get all object types
         $l_res_objtypes = $l_dao->get_object_types();
         while ($l_row_objtypes = $l_res_objtypes->get_row()) {
-            $l_objtypes[$l_row_objtypes['isys_obj_type__title']] = isys_application::instance()->container->get('language')
-                ->get($l_row_objtypes['isys_obj_type__title']);
+            $l_objtypes[$l_row_objtypes['isys_obj_type__title']] = $this->language->get($l_row_objtypes['isys_obj_type__title']);
         }
 
         // Fetching some translations that will be used a few times.
-        $l_lc_title = isys_application::instance()->container->get('language')
-            ->get('LC__UNIVERSAL__TITLE_LINK');
-        $l_lc_object_type = isys_application::instance()->container->get('language')
-            ->get('LC__CMDB__OBJTYPE');
-        $l_lc_date = isys_application::instance()->container->get('language')
-            ->get('LC_UNIVERSAL__DATE');
-        $l_lc_changes = isys_application::instance()->container->get('language')
-            ->get('LC__UNIVERSAL__CHANGES');
+        $l_lc_title = $this->language->get('LC__UNIVERSAL__TITLE_LINK');
+        $l_lc_object_type = $this->language->get('LC__CMDB__OBJTYPE');
+        $l_lc_date = $this->language->get('LC_UNIVERSAL__DATE');
+        $l_lc_changes = $this->language->get('LC__UNIVERSAL__CHANGES');
 
         $l_period_from = $_POST['C__CMDB_CHANGES__PERIOD_FROM__HIDDEN'];
         $l_period_to = $_POST['C__CMDB_CHANGES__PERIOD_TO__HIDDEN'];
@@ -55,8 +85,7 @@ class isys_report_view_cmdb_changes extends isys_report_view
 
         // Query
         $l_sql = "SELECT isys_catg_logb_list__isys_obj__id, isys_obj__title AS '" . $l_lc_title . "',
-			isys_logbook__obj_type_static AS '" . $l_lc_object_type . "', isys_logbook__user_name_static AS '" . isys_application::instance()->container->get('language')
-                ->get('LC__CMDB__LOGBOOK__SOURCE__USER') . "',
+			isys_logbook__obj_type_static AS '" . $l_lc_object_type . "', isys_logbook__user_name_static AS '" . $this->language->get('LC__CMDB__LOGBOOK__SOURCE__USER') . "',
 			isys_logbook__date AS '" . $l_lc_date . "', isys_logbook__changes AS '" . $l_lc_changes . "'
 			FROM isys_catg_logb_list
 			INNER JOIN isys_logbook ON isys_logbook__id = isys_catg_logb_list__isys_logbook__id
@@ -85,25 +114,20 @@ class isys_report_view_cmdb_changes extends isys_report_view
             }
         }
 
-        $l_res = $l_database->query($l_sql . ';');
+        $l_res = $this->database->query($l_sql . ';');
 
-        if ($l_database->num_rows($l_res) > 0) {
-            while ($l_row = $l_database->fetch_row_assoc($l_res)) {
+        if ($this->database->num_rows($l_res) > 0) {
+            while ($l_row = $this->database->fetch_row_assoc($l_res)) {
                 $l_obj_id = $l_row['isys_catg_logb_list__isys_obj__id'];
                 unset($l_row['isys_catg_logb_list__isys_obj__id']);
 
                 // Create object link
                 $l_url_link = isys_helper_link::create_url([C__CMDB__GET__OBJECT => $l_obj_id]);
 
-                $l_row[$l_lc_title] = "<a href='" . $l_url_link . "'>" . $l_row[isys_application::instance()->container->get('language')
-                        ->get('LC__UNIVERSAL__TITLE_LINK')] . "</a>";
+                $l_row[$l_lc_title] = "<a href='" . $l_url_link . "'>" . $l_row[$this->language->get('LC__UNIVERSAL__TITLE_LINK')] . "</a>";
 
-                $l_row[isys_application::instance()->container->get('language')
-                    ->get('LC__CMDB__OBJTYPE')] = $l_objtypes[$l_row[isys_application::instance()->container->get('language')
-                    ->get('LC__CMDB__OBJTYPE')]];
-                $l_row[isys_application::instance()->container->get('language')
-                    ->get('LC_UNIVERSAL__DATE')] = isys_application::instance()->container->locales->fmt_datetime($l_row[isys_application::instance()->container->get('language')
-                    ->get('LC_UNIVERSAL__DATE')]);
+                $l_row[$this->language->get('LC__CMDB__OBJTYPE')] = $l_objtypes[$l_row[$this->language->get('LC__CMDB__OBJTYPE')]];
+                $l_row[$this->language->get('LC_UNIVERSAL__DATE')] = isys_application::instance()->container->get('locales')->fmt_datetime($l_row[$this->language->get('LC_UNIVERSAL__DATE')]);
 
                 $l_changes = unserialize($l_row[$l_lc_changes]);
 
@@ -124,71 +148,13 @@ class isys_report_view_cmdb_changes extends isys_report_view
             $l_return['success'] = true;
         } else {
             $l_return['data'] = '<p class="pb10 pl10"><img src="' . $g_dirs['images'] . 'icons/infobox/blue.png" class="vam" /> ' .
-                isys_application::instance()->container->get('language')
-                    ->get('LC__CMDB__FILTER__NOTHING_FOUND_STD') . '</p>';
+                $this->language->get('LC__CMDB__FILTER__NOTHING_FOUND_STD') .
+                '</p>';
         }
 
         header('Content-Type: application/json');
         echo isys_format_json::encode($l_return);
 
         die;
-    }
-
-    /**
-     * @return string
-     */
-    public static function description()
-    {
-        return "LC__REPORT__VIEW__CMDB_CHANGES__DESCRIPTION";
-    }
-
-    /**
-     * @return bool
-     */
-    public function init()
-    {
-        return true;
-    }
-
-    /**
-     * @return string
-     */
-    public static function name()
-    {
-        return "LC__REPORT__VIEW__CMDB_CHANGES__TITLE";
-    }
-
-    /**
-     *
-     */
-    public function start()
-    {
-        isys_application::instance()->template->activate_editmode()
-            ->assign('page_limit', isys_glob_get_pagelimit())
-            ->assign('ajax_url', isys_glob_add_to_query('ajax', 1));
-    }
-
-    /**
-     * @return string
-     */
-    public function template()
-    {
-        return "view_cmdb_changes.tpl";
-    }
-
-    /**
-     * @return int
-     */
-    public static function type()
-    {
-        return self::c_php_view;
-    }
-
-    /**
-     * @return string
-     */
-    public static function viewtype()
-    {
-        return "LC__REPORT__VIEW_TYPE__CMDB_CHANGES";
     }
 }

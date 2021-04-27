@@ -36,7 +36,8 @@
             C__CMDB__GET__OBJECTGROUP = "[{$objgroup}]",
             C__GET__NAVMODE           = "[{$smarty.const.C__GET__NAVMODE}]",
             C__NAVMODE__JS_ACTION     = "[{$smarty.const.C__NAVMODE__JS_ACTION}]",
-            C__AUTHORIZED             = "[{isys_application::instance()->container->get('session')->is_logged_in()}]";
+            C__AUTHORIZED             = "[{isys_application::instance()->container->get('session')->is_logged_in()}]",
+            C__TENANT_ID              = "[{isys_application::instance()->container->get('session')->get_mandator_id()}]";
 
         [{$errorTrackerCode}]
     </script>
@@ -64,7 +65,7 @@
 
         idoit.Require.config({
             paths: {
-                d3:                      "[{$dir_tools}]js/d3/d3-v5.7.0-min.js",
+                d3:                      "[{$dir_tools}]js/d3/d3-v5.9.1-min.js",
                 d3cola:                  "[{$dir_tools}]js/d3/cola-v3.3.8-min.js",
                 d3CmdbExplorer:          "[{$dir_tools}]js/d3/visualization/cmdb-explorer.js",
                 d3VisConnection:         "[{$dir_tools}]js/d3/visualization/connections.js",
